@@ -207,7 +207,26 @@ textarea.form-input{resize:vertical;min-height:88px}
   display:flex;flex-direction:column;height:100vh;overflow:hidden;
   transition:background .2s,border-color .2s;
 }
-.sidebar-header{padding:18px 16px 14px;border-bottom:1px solid var(--bd);flex-shrink:0}
+.sidebar-header{padding:18px 16px 16px;border-bottom:1px solid var(--bd);flex-shrink:0}
+/* v9 sidebar logo */
+.s-logo-v9{display:flex;align-items:center;gap:12px}
+.s-logo-mark-v9{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--brand),var(--brand-mid));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 12px rgba(79,70,229,.32);
+  overflow:hidden;
+}
+.s-logo-mark-v9 i{color:#fff;font-size:18px}
+.s-logo-name{
+  font-size:15px;font-weight:800;line-height:1.2;color:var(--tx-1);
+  letter-spacing:-.3px;
+}
+.s-logo-sub{
+  font-size:11px;font-weight:400;color:var(--tx-3);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;
+}
+/* legacy compat */
 .s-logo{display:flex;align-items:center;gap:10px}
 .s-logo-mark{
   width:34px;height:34px;border-radius:9px;flex-shrink:0;
@@ -968,12 +987,15 @@ tbody tr:hover{background:var(--bg-3)}
   <!-- SIDEBAR -->
   <aside class="sidebar" id="main-sidebar">
     <div class="sidebar-header">
-      <div class="s-logo" id="s-logo-wrap">
-        <div class="s-logo-mark" id="s-logo-mark">
-          <img id="s-logo-img" src="" style="display:none;width:28px;height:28px;object-fit:contain;border-radius:6px">
-          <span id="s-logo-emoji" style="font-size:18px;line-height:1">⚡</span>
+      <div class="s-logo-v9" id="s-logo-wrap">
+        <div class="s-logo-mark-v9" id="s-logo-mark">
+          <img id="s-logo-img" src="" style="display:none;width:44px;height:44px;object-fit:contain;border-radius:10px">
+          <span id="s-logo-emoji" style="font-size:24px;line-height:1">⚡</span>
         </div>
-        <div class="s-logo-text" id="s-logo-text-wrap">AlexisDigital <span id="s-sys-name">Manager</span></div>
+        <div>
+          <div class="s-logo-name" id="s-logo-text-wrap">AlexisDigital <span id="s-sys-name">Manager</span></div>
+          <div class="s-logo-sub" id="s-logo-sub">AlexisDigital</div>
+        </div>
       </div>
     </div>
     <nav class="sidebar-nav">
@@ -5975,6 +5997,10 @@ function switchCfgPanel(name, btn){
   };
   (renderers[name]||function(){})();
   if(name==='integraciones') setTimeout(renderDbStatus,50);
+  // v9 extras
+  if(name==='departamentos') setTimeout(renderDepartamentos,50);
+  if(name==='backup')        setTimeout(_renderBackupHistory,50);
+  if(name==='integraciones') setTimeout(renderDbStatus,50);
 }
 
 function saveCurrentCfgPanel(){
@@ -6020,6 +6046,8 @@ function saveSistemaPanel(){
   DB.sistema.logoEmoji=emoji;
   DB.sistema.colorBrand=color;
   DB.sistema.themeDefault=theme;
+  const subtitulo=(document.getElementById('cfg-subtitulo')?.value.trim())||'';
+  DB.sistema.subtitulo=subtitulo;
   DB.config.moneda=g('cfg-moneda')?.value||DB.config.moneda;
   DB.config.notificaciones=g('cfg-notif')?.checked??true;
   applySystemSettings();
@@ -6031,6 +6059,9 @@ function applySystemSettings(){
   const s=DB.sistema||{};
   const sn=document.getElementById('s-sys-name');
   if(sn) sn.textContent=s.nombre||'Manager';
+  // v9: update subtitle (bajada) from config agencia name
+  const sub=document.getElementById('s-logo-sub');
+  if(sub) sub.textContent=s.subtitulo||DB.config?.agencia||'AlexisDigital';
   const li=document.getElementById('s-logo-icon');
   if(li){
     const em=s.logoEmoji||'⚡';
@@ -8892,13 +8923,7 @@ function renderPortal(){
 }
 
 /* ── WIRE switchCfgPanel to render departamentos/backup ──── */
-const _origSwitchCfgPanel=typeof switchCfgPanel==='function'?switchCfgPanel:null;
-function switchCfgPanel(name,btn){
-  if(_origSwitchCfgPanel) _origSwitchCfgPanel(name,btn);
-  if(name==='departamentos') setTimeout(renderDepartamentos,50);
-  if(name==='backup')        setTimeout(_renderBackupHistory,50);
-  if(name==='integraciones') setTimeout(renderDbStatus,50);
-}
+
 
 /* ── INIT v9 ─────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded',()=>{
