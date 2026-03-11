@@ -716,15 +716,102 @@ tbody tr:hover{background:var(--bg-3)}
 .admin-search-wrap input{background:transparent;border:none;outline:none;font-family:var(--font);font-size:13px;color:var(--tx-1);width:160px}
 .admin-search-wrap input::placeholder{color:var(--tx-3)}
 
+/* ── VIEW SWITCH ─────────────────────────────────────────────── */
+.view-switch{display:flex;gap:4px;background:var(--bg-2);border:1.5px solid var(--bd);border-radius:var(--r-sm);padding:3px}
+.view-btn{width:30px;height:26px;border:none;border-radius:5px;background:transparent;color:var(--tx-3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all var(--ease)}
+.view-btn:hover{color:var(--tx-1)}
+.view-btn.active{background:var(--bg-1);color:var(--brand);box-shadow:var(--sh-xs)}
+
+/* ── CATALOG GRID (cards view) ──────────────────────────────── */
+.catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.catalog-grid .plt-card,.catalog-grid .client-card,.catalog-grid .project-card{width:100%}
+
+/* ── CATALOG LIST (list view) ───────────────────────────────── */
+.catalog-list{display:flex;flex-direction:column;gap:1px;border:1px solid var(--bd);border-radius:var(--r-lg);overflow:hidden;background:var(--bg-1)}
+.catalog-list-row{
+  display:flex;align-items:center;gap:12px;padding:10px 16px;
+  background:var(--bg-1);border-bottom:1px solid var(--bd);
+  transition:background var(--ease);cursor:default;
+}
+.catalog-list-row:last-child{border-bottom:none}
+.catalog-list-row:hover{background:var(--bg-2)}
+.catalog-list-icon{font-size:22px;width:36px;text-align:center;flex-shrink:0}
+.catalog-list-name{font-size:13.5px;font-weight:600;color:var(--tx-1);flex:2;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.catalog-list-meta{font-size:12px;color:var(--tx-3);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.catalog-list-price{font-size:13px;font-weight:700;color:var(--green);width:90px;text-align:right;flex-shrink:0}
+.catalog-list-badge{flex-shrink:0}
+.catalog-list-actions{display:flex;gap:5px;flex-shrink:0;margin-left:auto}
+
+/* ── DOC UPLOAD CARD ────────────────────────────────────────── */
+.doc-upload-card{
+  background:var(--bg-1);border:1px solid var(--bd);border-radius:var(--r-lg);
+  padding:18px;box-shadow:var(--sh-sm);margin-bottom:14px;
+}
+.doc-upload-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.doc-upload-ico{width:38px;height:38px;border-radius:9px;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.doc-upload-title{font-size:14px;font-weight:600;color:var(--tx-1)}
+.doc-upload-sub{font-size:12px;color:var(--tx-3);margin-top:2px}
+.doc-upload-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.doc-preview-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--green-soft);border:1px solid var(--green);border-radius:var(--r-sm);margin-top:10px;font-size:13px;color:var(--green)}
+
+/* ── CURRENCY SYMBOL ────────────────────────────────────────── */
+.input-currency-wrap{position:relative;display:flex;align-items:center}
+.input-currency-wrap input{padding-left:28px!important}
+.currency-prefix{position:absolute;left:10px;color:var(--tx-3);font-size:13px;font-weight:600;pointer-events:none;z-index:1}
+
 /* ── RESPONSIVE ────────────────────────────────────────────── */
 @media(max-width:1100px){.kanban-board-5{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:1024px){.cfg-layout{grid-template-columns:1fr}}
 @media(max-width:900px){
   .kanban-board,.kanban-board-5,.grid-2,.grid-3,.config-grid,.dash-row{grid-template-columns:1fr}
 }
+@media(max-width:768px){
+  :root{--sw:0px;--th:54px}
+  #app{position:relative}
+  .sidebar{
+    position:fixed;left:0;top:0;bottom:0;z-index:400;
+    width:260px;transform:translateX(-100%);
+    transition:transform .25s cubic-bezier(.22,1,.36,1);
+    box-shadow:var(--sh-xl);
+  }
+  .sidebar.mob-open{transform:translateX(0)}
+  .mob-overlay{
+    display:none;position:fixed;inset:0;background:var(--overlay);
+    z-index:399;
+  }
+  .mob-overlay.open{display:block}
+  .topbar{padding:0 14px;gap:8px}
+  .topbar-search{width:auto;flex:1}
+  .topbar-search .search-box kbd{display:none}
+  .content{padding:14px}
+  .sec-header{flex-direction:column;align-items:flex-start;gap:10px}
+  .sec-header>div:last-child{width:100%;display:flex;flex-wrap:wrap;gap:8px}
+  .sec-header .btn,.sec-header .form-select{flex:1;min-width:120px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .dash-row{grid-template-columns:1fr}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .catalog-grid{grid-template-columns:1fr}
+  .catalog-list-meta{display:none}
+  .kanban-board,.kanban-board-5{grid-template-columns:1fr}
+  .cfg-layout{grid-template-columns:1fr}
+  .view-switch{display:none}
+  .mob-menu-btn{display:flex!important}
+  .topbar-logo-wrap{display:none!important}
+  table thead th:nth-child(n+4){display:none}
+  table tbody td:nth-child(n+4){display:none}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+  .modal{margin:8px;border-radius:var(--r-lg);max-height:calc(100vh - 16px)}
+  .modal-body{padding:14px}
+  .topbar-actions .tb-btn:not(:last-child):not(#dm-toggle){display:none}
+}
 @media(max-width:600px){
   .stats-grid{grid-template-columns:1fr 1fr}.topbar-search{display:none}.content{padding:14px}
 }
+/* Mobile menu button */
+.mob-menu-btn{display:none;width:36px;height:36px;border-radius:var(--r-sm);border:1.5px solid var(--bd);background:var(--bg-1);color:var(--tx-2);cursor:pointer;align-items:center;justify-content:center;font-size:16px;margin-right:6px}
+
 </style>
 
 <!-- LOGIN -->
@@ -755,8 +842,9 @@ tbody tr:hover{background:var(--bg-3)}
 
 <!-- APP SHELL -->
 <div id="app">
+  <div class="mob-overlay" id="mob-overlay" onclick="closeMobMenu()"></div>
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="main-sidebar">
     <div class="sidebar-header">
       <div class="s-logo" id="s-logo-wrap">
         <div class="s-logo-mark" id="s-logo-mark">
@@ -836,6 +924,7 @@ tbody tr:hover{background:var(--bg-3)}
     <!-- TOPBAR -->
     <header class="topbar">
       <div class="topbar-left">
+        <button class="mob-menu-btn" onclick="openMobMenu()" title="Menú"><i class="fa-solid fa-bars"></i></button>
         <div class="topbar-logo" id="topbar-logo-wrap">
           <img id="topbar-logo-light" class="topbar-logo-img" src="" alt="Logo">
           <img id="topbar-logo-dark" class="topbar-logo-img" src="" alt="Logo" style="display:none">
@@ -918,17 +1007,23 @@ tbody tr:hover{background:var(--bg-3)}
       <section class="section" id="sec-clientes">
         <div class="sec-header">
           <div><div class="sec-title">Clientes</div><div class="sec-sub">CRM — gestión de contactos y cuentas</div></div>
-          <div class="flex gap-8">
+          <div class="flex gap-8" style="align-items:center">
             <select class="form-select" style="width:140px" onchange="filterClientes(this.value)">
               <option value="">Todos</option><option value="lead">Lead</option><option value="activo">Activo</option><option value="finalizado">Finalizado</option>
             </select>
+            <div class="view-switch">
+              <button class="view-btn" id="vbtn-cli-list" onclick="setViewMode('clientes','list')" title="Vista lista"><i class="fa-solid fa-list"></i></button>
+              <button class="view-btn" id="vbtn-cli-grid" onclick="setViewMode('clientes','grid')" title="Vista tarjetas"><i class="fa-solid fa-grip"></i></button>
+            </div>
             <button class="btn btn-primary" onclick="openModal('modal-cliente')"><i class="fa-solid fa-user-plus"></i> Nuevo cliente</button>
           </div>
         </div>
-        <div class="card">
-          <div class="table-wrap">
-            <table><thead><tr><th>Cliente</th><th>Email</th><th>Teléfono</th><th>Empresa</th><th>Estado</th><th>Proyectos</th><th>Acciones</th></tr></thead>
-            <tbody id="clientes-tbody"></tbody></table>
+        <div id="clientes-view-container">
+          <div class="card">
+            <div class="table-wrap">
+              <table><thead><tr><th>Cliente</th><th>Email</th><th>Teléfono</th><th>Empresa</th><th>Estado</th><th>Proyectos</th><th>Acciones</th></tr></thead>
+              <tbody id="clientes-tbody"></tbody></table>
+            </div>
           </div>
         </div>
       </section>
@@ -937,18 +1032,24 @@ tbody tr:hover{background:var(--bg-3)}
       <section class="section" id="sec-proyectos">
         <div class="sec-header">
           <div><div class="sec-title">Proyectos</div><div class="sec-sub">Gestión de proyectos web de la agencia</div></div>
-          <div class="flex gap-8">
-            <select class="form-select" style="width:170px" onchange="filterProyectos(this.value)">
+          <div class="flex gap-8" style="align-items:center">
+            <select class="form-select" style="width:170px" onchange="filterProyectos(this.value)" id="proyectos-filter-sel">
               <option value="">Todos</option><option value="pendiente">Pendiente</option><option value="en desarrollo">En Desarrollo</option><option value="entregado">Entregado</option>
             </select>
+            <div class="view-switch">
+              <button class="view-btn" id="vbtn-proy-list" onclick="setViewMode('proyectos','list')" title="Lista"><i class="fa-solid fa-list"></i></button>
+              <button class="view-btn" id="vbtn-proy-grid" onclick="setViewMode('proyectos','grid')" title="Tarjetas"><i class="fa-solid fa-grip"></i></button>
+            </div>
             <button class="btn btn-primary" onclick="openModal('modal-proyecto')"><i class="fa-solid fa-plus"></i> Nuevo proyecto</button>
           </div>
         </div>
+        <div id="proyectos-view-container">
         <div class="card">
           <div class="table-wrap">
             <table><thead><tr><th>Proyecto</th><th>Cliente</th><th>Estado</th><th>Inicio</th><th>Entrega</th><th>Precio</th><th>Avance</th><th>Acciones</th></tr></thead>
             <tbody id="proyectos-tbody"></tbody></table>
           </div>
+        </div>
         </div>
       </section>
 
@@ -1053,14 +1154,22 @@ tbody tr:hover{background:var(--bg-3)}
       <section class="section" id="sec-presupuestos">
         <div class="sec-header">
           <div><div class="sec-title">Presupuestos</div><div class="sec-sub">Propuestas comerciales para clientes</div></div>
-          <button class="btn btn-primary" onclick="openModal('modal-presupuesto')"><i class="fa-solid fa-plus"></i> Nuevo presupuesto</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="view-switch">
+              <button class="view-btn" id="vbtn-pres-list" onclick="setViewMode('presupuestos','list')" title="Lista"><i class="fa-solid fa-list"></i></button>
+              <button class="view-btn" id="vbtn-pres-grid" onclick="setViewMode('presupuestos','grid')" title="Tarjetas"><i class="fa-solid fa-grip"></i></button>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-presupuesto')"><i class="fa-solid fa-plus"></i> Nuevo presupuesto</button>
+          </div>
         </div>
         <div class="stats-grid" id="presupuestos-stats"></div>
+        <div id="presupuestos-view-container">
         <div class="card">
           <div class="table-wrap">
             <table><thead><tr><th>Presupuesto</th><th>Cliente</th><th>Precio</th><th>Fecha</th><th>Válido hasta</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="presupuestos-tbody"></tbody></table>
           </div>
+        </div>
         </div>
       </section>
 
@@ -1068,7 +1177,13 @@ tbody tr:hover{background:var(--bg-3)}
       <section class="section" id="sec-plantillas_web">
         <div class="sec-header">
           <div><div class="sec-title">Plantillas Web</div><div class="sec-sub">Catálogo de plantillas disponibles para proyectos rápidos</div></div>
-          <button class="btn btn-primary" onclick="openModal('modal-plantilla_web')"><i class="fa-solid fa-plus"></i> Nueva plantilla</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="view-switch">
+              <button class="view-btn" id="vbtn-plt-list" onclick="setViewMode('plantillas','list')" title="Lista"><i class="fa-solid fa-list"></i></button>
+              <button class="view-btn" id="vbtn-plt-grid" onclick="setViewMode('plantillas','grid')" title="Tarjetas"><i class="fa-solid fa-grip"></i></button>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-plantilla_web')"><i class="fa-solid fa-plus"></i> Nueva plantilla</button>
+          </div>
         </div>
         <div class="tabs">
           <button class="tab-btn active" onclick="switchTab('plt','todas',this)">Todas</button>
@@ -1076,10 +1191,10 @@ tbody tr:hover{background:var(--bg-3)}
           <button class="tab-btn" onclick="switchTab('plt','sitio_web',this)">Sitios Web</button>
           <button class="tab-btn" onclick="switchTab('plt','ecommerce',this)">E-commerce</button>
         </div>
-        <div id="plt-todas-tab"><div class="file-grid" id="plt-grid-todas"></div></div>
-        <div id="plt-landing-tab" style="display:none"><div class="file-grid" id="plt-grid-landing"></div></div>
-        <div id="plt-sitio_web-tab" style="display:none"><div class="file-grid" id="plt-grid-sitio_web"></div></div>
-        <div id="plt-ecommerce-tab" style="display:none"><div class="file-grid" id="plt-grid-ecommerce"></div></div>
+        <div id="plt-todas-tab"><div id="plt-view-todas"></div></div>
+        <div id="plt-landing-tab" style="display:none"><div id="plt-view-landing"></div></div>
+        <div id="plt-sitio_web-tab" style="display:none"><div id="plt-view-sitio_web"></div></div>
+        <div id="plt-ecommerce-tab" style="display:none"><div id="plt-view-ecommerce"></div></div>
       </section>
 
       <!-- CONTRATOS -->
@@ -1108,15 +1223,23 @@ tbody tr:hover{background:var(--bg-3)}
           <div><div class="sec-title">Facturación</div><div class="sec-sub">Registro de facturas emitidas</div></div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-secondary" onclick="navigate('emails');setTimeout(()=>showEmailCompose('factura'),100)" title="Enviar email de factura"><i class="fa-solid fa-envelope"></i></button>
-            <button class="btn btn-primary" onclick="openModal('modal-factura')"><i class="fa-solid fa-plus"></i> Nueva factura</button>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="view-switch">
+                <button class="view-btn" id="vbtn-fct-list" onclick="setViewMode('facturas','list')" title="Lista"><i class="fa-solid fa-list"></i></button>
+                <button class="view-btn" id="vbtn-fct-grid" onclick="setViewMode('facturas','grid')" title="Tarjetas"><i class="fa-solid fa-grip"></i></button>
+              </div>
+              <button class="btn btn-primary" onclick="openModal('modal-factura')"><i class="fa-solid fa-plus"></i> Nueva factura</button>
+            </div>
           </div>
         </div>
         <div class="stats-grid" id="facturacion-stats"></div>
+        <div id="facturas-view-container">
         <div class="card">
           <div class="table-wrap">
             <table><thead><tr><th>#</th><th>Cliente</th><th>Proyecto</th><th>Monto</th><th>Fecha</th><th>Vence</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="facturas-tbody"></tbody></table>
           </div>
+        </div>
         </div>
       </section>
 
@@ -1208,6 +1331,9 @@ tbody tr:hover{background:var(--bg-3)}
             </div>
             <div class="cfg-sidebar-item" onclick="switchCfgPanel('usuarios',this)" id="cfgmenu-usuarios">
               <i class="fa-solid fa-users-gear"></i> Usuarios
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('documentos',this)" id="cfgmenu-documentos">
+              <i class="fa-solid fa-file-pdf"></i> Documentos
             </div>
             <div class="cfg-sidebar-item" onclick="switchCfgPanel('integraciones',this)" id="cfgmenu-integraciones">
               <i class="fa-solid fa-database"></i> Integraciones
@@ -1443,6 +1569,66 @@ tbody tr:hover{background:var(--bg-3)}
               </div>
             </div>
 
+            <!-- ─── DOCUMENTOS ─── -->
+            <div class="cfg-panel" id="cfgpanel-documentos">
+              <div class="config-section">
+                <div class="config-section-header"><i class="fa-solid fa-file-pdf"></i><div class="config-section-title">Documentos de la Agencia</div></div>
+                <div class="config-section-body">
+                  <p class="text-muted text-sm mb-16">Sube documentos PDF que podrán enviarse a clientes desde sus perfiles. Se guardan localmente en el navegador.</p>
+
+                  <!-- Contrato base -->
+                  <div class="doc-upload-card" id="doc-card-contrato">
+                    <div class="doc-upload-header">
+                      <div class="doc-upload-ico"><i class="fa-solid fa-file-contract"></i></div>
+                      <div>
+                        <div class="doc-upload-title">Contrato Base de Servicios</div>
+                        <div class="doc-upload-sub">Contrato estándar para enviar a nuevos clientes</div>
+                      </div>
+                    </div>
+                    <div id="doc-contrato-preview"></div>
+                    <div class="doc-upload-actions">
+                      <div class="upload-zone" style="flex:1;min-width:200px">
+                        <input type="file" id="doc-contrato-input" accept=".pdf,application/pdf" onchange="handleDocUpload('contrato',this)">
+                        <i class="fa-solid fa-file-pdf" style="color:#ef4444"></i>
+                        <p>Subir PDF (máx 2MB)</p>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:6px">
+                        <button class="btn btn-secondary btn-sm" onclick="previewDoc('contrato')" id="btn-preview-contrato" style="display:none"><i class="fa-solid fa-eye"></i> Previsualizar</button>
+                        <button class="btn btn-secondary btn-sm" onclick="downloadDoc('contrato')" id="btn-dl-contrato" style="display:none"><i class="fa-solid fa-download"></i> Descargar</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteDoc('contrato')" id="btn-del-contrato" style="display:none"><i class="fa-solid fa-trash"></i></button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Guía de trabajo -->
+                  <div class="doc-upload-card" id="doc-card-guia">
+                    <div class="doc-upload-header">
+                      <div class="doc-upload-ico" style="background:var(--purple-soft);color:var(--purple)"><i class="fa-solid fa-book-open"></i></div>
+                      <div>
+                        <div class="doc-upload-title">Guía de Trabajo / Metodología</div>
+                        <div class="doc-upload-sub">Proceso de trabajo, etapas, tiempos y revisiones</div>
+                      </div>
+                    </div>
+                    <div id="doc-guia-preview"></div>
+                    <div class="doc-upload-actions">
+                      <div class="upload-zone" style="flex:1;min-width:200px">
+                        <input type="file" id="doc-guia-input" accept=".pdf,application/pdf" onchange="handleDocUpload('guia',this)">
+                        <i class="fa-solid fa-book-open" style="color:var(--purple)"></i>
+                        <p>Subir PDF (máx 2MB)</p>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:6px">
+                        <button class="btn btn-secondary btn-sm" onclick="previewDoc('guia')" id="btn-preview-guia" style="display:none"><i class="fa-solid fa-eye"></i> Previsualizar</button>
+                        <button class="btn btn-secondary btn-sm" onclick="downloadDoc('guia')" id="btn-dl-guia" style="display:none"><i class="fa-solid fa-download"></i> Descargar</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteDoc('guia')" id="btn-del-guia" style="display:none"><i class="fa-solid fa-trash"></i></button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="info-box"><div class="info-box-row"><i class="fa-solid fa-circle-info"></i><strong>Uso:</strong></div><p>Los documentos subidos aparecerán en el perfil de cada cliente y en la sección de Contratos para su envío.</p></div>
+                </div>
+              </div>
+            </div>
+
             <!-- ─── INTEGRACIONES ─── -->
             <div class="cfg-panel" id="cfgpanel-integraciones">
               <div class="config-section">
@@ -1507,7 +1693,7 @@ tbody tr:hover{background:var(--bg-3)}
       <div class="form-group"><label class="form-label">Estado</label>
         <select class="form-select" id="p-estado"><option value="pendiente">Pendiente</option><option value="en desarrollo">En Desarrollo</option><option value="entregado">Entregado</option></select>
       </div>
-      <div class="form-group"><label class="form-label">Precio (ARS)</label><input type="number" class="form-input" id="p-precio" placeholder="150000"></div>
+      <div class="form-group"><label class="form-label">Precio (<span class="currency-sym-label">$</span>)</label><input type="number" class="form-input" id="p-precio" placeholder="150000"></div>
     </div>
     <div class="grid-2 mb-16">
       <div class="form-group"><label class="form-label">Inicio</label><input type="date" class="form-input" id="p-inicio"></div>
@@ -1543,7 +1729,7 @@ tbody tr:hover{background:var(--bg-3)}
     </div>
     <div class="form-group mb-16"><label class="form-label">Descripción *</label><input type="text" class="form-input" id="t-desc" placeholder="Descripción de la transacción"></div>
     <div class="grid-2 mb-16">
-      <div class="form-group"><label class="form-label">Monto (ARS) *</label><input type="number" class="form-input" id="t-monto" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Monto (<span class="currency-sym-label">$</span>) *</label><input type="number" class="form-input" id="t-monto" placeholder="0"></div>
       <div class="form-group"><label class="form-label">Categoría</label>
         <select class="form-select" id="t-categoria">
           <option>Desarrollo web</option><option>Diseño</option><option>Mantenimiento</option><option>Consultoría</option><option>Herramientas</option><option>Marketing</option><option>Otros</option>
@@ -1663,7 +1849,7 @@ tbody tr:hover{background:var(--bg-3)}
     </div>
     <div class="grid-2 mb-16">
       <div class="form-group"><label class="form-label">Contacto</label><input type="text" class="form-input" id="ld-contacto" placeholder="juan@empresa.com"></div>
-      <div class="form-group"><label class="form-label">Valor Estimado (ARS)</label><input type="number" class="form-input" id="ld-valor" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Valor Estimado (<span class="currency-sym-label">$</span>)</label><input type="number" class="form-input" id="ld-valor" placeholder="0"></div>
     </div>
     <div class="grid-2 mb-16">
       <div class="form-group"><label class="form-label">Etapa</label>
@@ -1753,7 +1939,7 @@ tbody tr:hover{background:var(--bg-3)}
     </div>
     <div class="form-group mb-16"><label class="form-label">Descripción</label><textarea class="form-input" id="plw-desc" placeholder="Describe la plantilla y su uso ideal..."></textarea></div>
     <div class="grid-2 mb-16">
-      <div class="form-group"><label class="form-label">Precio base (ARS) *</label><input type="number" class="form-input" id="plw-precio" placeholder="0" oninput="calcPresupuesto()"></div>
+      <div class="form-group"><label class="form-label">Precio base (<span class="currency-sym-label">$</span>) *</label><input type="number" class="form-input" id="plw-precio" placeholder="0" oninput="calcPresupuesto()"></div>
       <div class="form-group"><label class="form-label">Entrega estimada (días)</label><input type="number" class="form-input" id="plw-dias" placeholder="14"></div>
     </div>
     <div class="form-group"><label class="form-label">Emoji / Ícono representativo</label><input type="text" class="form-input" id="plw-emoji" placeholder="🌐" style="font-size:24px;text-align:center;letter-spacing:4px"></div>
@@ -1803,7 +1989,7 @@ tbody tr:hover{background:var(--bg-3)}
     </div>
     <div class="form-group mb-16"><label class="form-label">Descripción *</label><input type="text" class="form-input" id="fct-desc" placeholder="Descripción del servicio facturado"></div>
     <div class="grid-2 mb-16">
-      <div class="form-group"><label class="form-label">Monto (ARS) *</label><input type="number" class="form-input" id="fct-monto" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Monto (<span class="currency-sym-label">$</span>) *</label><input type="number" class="form-input" id="fct-monto" placeholder="0"></div>
       <div class="form-group"><label class="form-label">Estado</label>
         <select class="form-select" id="fct-estado"><option value="pendiente">Pendiente</option><option value="pagada">Pagada</option><option value="vencida">Vencida</option></select>
       </div>
@@ -1827,7 +2013,7 @@ tbody tr:hover{background:var(--bg-3)}
     <input type="hidden" id="ex-id">
     <div class="grid-2 mb-16">
       <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="form-input" id="ex-label" placeholder="SEO Básico"></div>
-      <div class="form-group"><label class="form-label">Precio adicional (ARS) *</label><input type="number" class="form-input" id="ex-precio" placeholder="25000"></div>
+      <div class="form-group"><label class="form-label">Precio adicional (<span class="currency-sym-label">$</span>) *</label><input type="number" class="form-input" id="ex-precio" placeholder="25000"></div>
     </div>
     <div class="grid-2 mb-16">
       <div class="form-group"><label class="form-label">Ícono Font Awesome</label><input type="text" class="form-input" id="ex-icon" placeholder="fa-magnifying-glass"></div>
@@ -2042,7 +2228,7 @@ tbody tr:hover{background:var(--bg-3)}
     </div>
     <div class="grid-2">
       <div class="form-group"><label class="form-label">Fecha de pago</label><input type="date" class="form-input" id="pago-fecha"></div>
-      <div class="form-group"><label class="form-label">Monto recibido (ARS)</label><input type="number" class="form-input" id="pago-monto" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Monto recibido (<span class="currency-sym-label">$</span>)</label><input type="number" class="form-input" id="pago-monto" placeholder="0"></div>
     </div>
   </div><div class="modal-footer">
     <button class="btn btn-secondary" onclick="closeModal('modal-pago-factura')">Cancelar</button>
@@ -2060,11 +2246,15 @@ tbody tr:hover{background:var(--bg-3)}
       <button class="tab-btn active" onclick="switchTab('vcli','info',this)"><i class="fa-solid fa-user" style="margin-right:5px"></i>Info</button>
       <button class="tab-btn" onclick="switchTab('vcli','proyectos',this)"><i class="fa-solid fa-code-branch" style="margin-right:5px"></i>Proyectos</button>
       <button class="tab-btn" onclick="switchTab('vcli','timeline',this)"><i class="fa-solid fa-timeline" style="margin-right:5px"></i>Actividad</button>
+      <button class="tab-btn" onclick="switchTab('vcli','docs',this)"><i class="fa-solid fa-file-pdf" style="margin-right:5px"></i>Docs</button>
     </div>
     <div id="vcli-info-tab"><div id="ver-cliente-body"></div></div>
     <div id="vcli-proyectos-tab" style="display:none"><div id="ver-cliente-proyectos"></div></div>
     <div id="vcli-timeline-tab" style="display:none">
       <div id="ver-cliente-timeline" class="timeline"></div>
+    </div>
+    <div id="vcli-docs-tab" style="display:none">
+      <div id="ver-cliente-docs"></div>
     </div>
   </div><div class="modal-footer">
     <button class="btn btn-secondary" onclick="closeModal('modal-ver-cliente')">Cerrar</button>
@@ -2554,11 +2744,6 @@ function renderDashCharts(){
 /* ================================================================
    CLIENTES
    ================================================================ */
-function renderClientes(filter=''){
-  const list=filter?DB.clientes.filter(c=>c.estado===filter):DB.clientes;
-  const pCount=id=>DB.proyectos.filter(p=>p.clienteId===id).length;
-  $('clientes-tbody').innerHTML=list.length?list.map(c=>`<tr><td><div class="flex-center gap-8"><div class="avatar-sm">${initials(c.nombre)}</div><span class="fw-500">${c.nombre}</span></div></td><td class="text-muted">${c.email}</td><td class="text-muted">${c.telefono||'—'}</td><td>${c.empresa||'—'}</td><td>${statusBadge(c.estado)}</td><td><span class="tag"><i class="fa-solid fa-code-branch" style="margin-right:4px;font-size:10px"></i>${pCount(c.id)}</span></td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="verCliente(${c.id})" title="Ver"><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="editCliente(${c.id})" title="Editar"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteCliente(${c.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-users"></i></div><h3>Sin clientes</h3><p>Agrega tu primer cliente</p></div></td></tr>`;
-}
 function filterClientes(v){renderClientes(v);}
 function saveCliente(){
   const id=$('c-id').value;
@@ -2583,10 +2768,6 @@ function verCliente(id){
    PROYECTOS
    ================================================================ */
 let tempChecklist=[];
-function renderProyectos(filter=''){
-  const list=filter?DB.proyectos.filter(p=>p.estado===filter):DB.proyectos;
-  $('proyectos-tbody').innerHTML=list.length?list.map(p=>{const pct=calcProgress(p.checklist);return`<tr><td><span class="fw-500">${p.nombre}</span></td><td class="text-muted">${getClienteName(p.clienteId)}</td><td>${statusBadge(p.estado)}</td><td class="text-muted text-sm">${fmtD(p.inicio)}</td><td class="text-muted text-sm">${fmtD(p.entrega)}</td><td class="amount-positive">$${fmt(p.precio)}</td><td style="min-width:110px"><div style="display:flex;align-items:center;gap:8px"><div class="progress" style="flex:1"><div class="progress-fill" style="width:${pct}%"></div></div><span class="text-sm text-muted fw-600">${pct}%</span></div></td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="verProyecto(${p.id})"><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="editProyecto(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteProyecto(${p.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`;}).join(''):`<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-code-branch"></i></div><h3>Sin proyectos</h3><p>Crea tu primer proyecto</p></div></td></tr>`;
-}
 function filterProyectos(v){renderProyectos(v);}
 function renderTempChecklist(){$('p-checklist').innerHTML=tempChecklist.map((item,i)=>`<div class="checklist-item ${item.done?'done':''}"><input type="checkbox" ${item.done?'checked':''} onchange="tempChecklist[${i}].done=this.checked;renderTempChecklist()"><span>${item.texto}</span><button class="btn btn-icon btn-danger btn-sm" style="padding:2px 6px" onclick="tempChecklist.splice(${i},1);renderTempChecklist()"><i class="fa-solid fa-xmark"></i></button></div>`).join('');}
 function addChecklistItem(){const inp=$('p-checklist-input');const val=inp.value.trim();if(!val)return;tempChecklist.push({id:nextId(),texto:val,done:false});inp.value='';renderTempChecklist();inp.focus();}
@@ -2840,18 +3021,6 @@ function deleteContrato(id){if(!confirm('¿Eliminar?'))return;DB.contratos=DB.co
    FACTURACIÓN
    ================================================================ */
 let facturaCounter=100;
-function renderFacturacion(){
-  const totalFacturado=DB.facturas.reduce((a,f)=>a+f.monto,0);
-  const totalPagado=DB.facturas.filter(f=>f.estado==='pagada').reduce((a,f)=>a+f.monto,0);
-  const totalPendiente=DB.facturas.filter(f=>f.estado==='pendiente').reduce((a,f)=>a+f.monto,0);
-  $('facturacion-stats').innerHTML=[
-    {label:'Total Facturado',value:`$${fmt(totalFacturado)}`,icon:'fa-receipt',acc:'acc-brand',si:'si-brand',ch:'',dir:'flat'},
-    {label:'Cobrado',value:`$${fmt(totalPagado)}`,icon:'fa-circle-check',acc:'acc-green',si:'si-green',ch:`${DB.facturas.filter(f=>f.estado==='pagada').length} facturas`,dir:'up'},
-    {label:'Pendiente de cobro',value:`$${fmt(totalPendiente)}`,icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:`${DB.facturas.filter(f=>f.estado==='pendiente').length} facturas`,dir:'down'},
-    {label:'Vencidas',value:DB.facturas.filter(f=>f.estado==='vencida').length,icon:'fa-exclamation-triangle',acc:'acc-red',si:'si-red',ch:'',dir:'down'}
-  ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div>${s.ch?`<span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span>`:''}</div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
-  $('facturas-tbody').innerHTML=DB.facturas.map((f,i)=>`<tr><td><span class="tag">#${1000+i}</span></td><td>${getClienteName(f.clienteId)}</td><td class="text-muted">${getProyectoName(f.proyectoId)}</td><td class="amount-positive">$${fmt(f.monto)}</td><td class="text-muted text-sm">${fmtD(f.fecha)}</td><td class="text-muted text-sm">${fmtD(f.vence)}</td><td>${statusBadge(f.estado)}</td><td><div class="flex gap-6">${f.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="markFacturaPagada(${f.id})"><i class="fa-solid fa-check"></i> Cobrar</button>`:''}<button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('factura',${f.id})" title="PDF"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteFactura(${f.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join('')||`<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-receipt"></i></div><h3>Sin facturas</h3></div></td></tr>`;
-}
 /* saveFactura replaced by new version */
 function markFacturaPagada(id){const f=DB.facturas.find(f=>f.id===id);if(f){f.estado='pagada';DB.actividad.unshift({icon:'fa-receipt',color:'green',texto:`Factura cobrada: <strong>$${fmt(f.monto)}</strong>`,tiempo:'Ahora'});renderFacturacion();toast('success','Factura marcada como pagada');}}
 function deleteFactura(id){if(!confirm('¿Eliminar?'))return;DB.facturas=DB.facturas.filter(f=>f.id!==id);renderFacturacion();toast('info','Eliminada');}
@@ -2944,7 +3113,7 @@ function switchCfgPanel(name, btn){
     plantillas:renderCfgPlantillas,extras:renderCfgExtras,
     tipos_proyecto:renderCfgTiposProyecto,pipeline_estados:renderCfgPipelineEstados,
     contratos_tpl:renderCfgContratosTpl,categorias:renderCfgCategorias,
-    usuarios:renderCfgUsuarios
+    usuarios:renderCfgUsuarios,documentos:renderDocumentosPanel
   };
   (renderers[name]||function(){})();
 }
@@ -3349,35 +3518,6 @@ function showNotifications(){const p=DB.tareas.filter(t=>t.estado==='pendiente')
 const PLT_TYPE_LABELS={landing:'Landing Page',sitio_web:'Sitio Web',ecommerce:'E-commerce',aplicacion:'App Web'};
 const PLT_TYPE_COLORS={landing:'badge-brand',sitio_web:'badge-blue',ecommerce:'badge-green',aplicacion:'badge-purple'};
 
-function renderPlantillasWeb(){
-  /* populate all 4 grids */
-  ['todas','landing','sitio_web','ecommerce'].forEach(tab=>{
-    const list=tab==='todas'?DB.plantillas_web:DB.plantillas_web.filter(p=>p.tipo===tab);
-    const el=$('plt-grid-'+tab);
-    if(!el)return;
-    el.innerHTML=list.length?list.map(p=>`
-      <div class="plt-card">
-        <div class="plt-card-actions">
-          <button class="btn btn-sm btn-secondary btn-icon" onclick="event.stopPropagation();editPlantillaWeb(${p.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
-          <button class="btn btn-sm btn-danger btn-icon" onclick="event.stopPropagation();deletePlantillaWeb(${p.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-        </div>
-        <div class="plt-card-emoji">${p.emoji||'🌐'}</div>
-        <div class="plt-card-type">${PLT_TYPE_LABELS[p.tipo]||p.tipo}</div>
-        <div class="plt-card-name">${p.nombre}</div>
-        <div class="plt-card-desc">${p.desc}</div>
-        <div class="plt-card-footer">
-          <span class="plt-card-price">$${fmt(p.precio)}</span>
-          <span class="plt-card-days"><i class="fa-regular fa-clock" style="margin-right:3px"></i>${p.dias} días</span>
-        </div>
-        <div style="margin-top:10px">
-          <button class="flow-badge" onclick="usarPlantillaEnPresupuesto(${p.id})" style="width:100%;justify-content:center">
-            <i class="fa-solid fa-file-invoice"></i> Generar presupuesto
-          </button>
-        </div>
-      </div>`).join(''):`<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-layer-group"></i></div><h3>Sin plantillas</h3><p>Agrega tu primera plantilla web</p></div>`;
-  });
-}
-
 function savePlantillaWeb(){
   const id=$('plw-id').value;
   const data={
@@ -3490,51 +3630,6 @@ function calcPresupuesto(){
 /* ================================================================
    PRESUPUESTOS — CRUD + flujo hacia Proyectos
    ================================================================ */
-function renderPresupuestos(){
-  /* KPI stats */
-  const total=DB.presupuestos.length;
-  const aprobados=DB.presupuestos.filter(p=>p.estado==='aprobado').length;
-  const pendientes=DB.presupuestos.filter(p=>p.estado==='pendiente').length;
-  const rechazados=DB.presupuestos.filter(p=>p.estado==='rechazado').length;
-  const valorTotal=DB.presupuestos.filter(p=>p.estado!=='rechazado').reduce((a,p)=>a+p.precio,0);
-  $('presupuestos-stats').innerHTML=[
-    {label:'Aprobados',value:aprobados,icon:'fa-circle-check',acc:'acc-green',si:'si-green',ch:'aprobados',dir:'up'},
-    {label:'Pendientes',value:pendientes,icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:'en revisión',dir:'flat'},
-    {label:'Rechazados',value:rechazados,icon:'fa-circle-xmark',acc:'acc-red',si:'si-red',ch:'rechazados',dir:'down'},
-    {label:'Valor Pipeline',value:'$'+fmt(valorTotal),icon:'fa-coins',acc:'acc-brand',si:'si-brand',ch:total+' total',dir:'flat'}
-  ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div><span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span></div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
-
-  /* Table */
-  const tbody=$('presupuestos-tbody');
-  if(!DB.presupuestos.length){
-    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-file-invoice"></i></div><h3>Sin presupuestos</h3><p>Crea tu primer presupuesto</p></div></td></tr>`;
-    return;
-  }
-  const quoteNum=i=>String(i).padStart(4,'0');
-  tbody.innerHTML=DB.presupuestos.map((p,i)=>`
-    <tr>
-      <td><span class="fw-600" style="color:var(--brand)">#${quoteNum(i+1)}</span> <span class="fw-500">${p.nombre}</span></td>
-      <td>${getClienteName(p.clienteId)}</td>
-      <td class="amount-positive">$${fmt(p.precio)}</td>
-      <td class="text-muted text-sm">${fmtD(p.fecha)}</td>
-      <td class="text-muted text-sm">${fmtD(p.valido)}</td>
-      <td>${statusBadge(p.estado)}</td>
-      <td>
-        <div class="flex gap-6">
-          ${p.estado==='aprobado'?`
-            <button class="flow-badge" onclick="crearProyectoDesdePresupuesto(${p.id})" title="Crear proyecto">
-              <i class="fa-solid fa-code-branch"></i> Crear proyecto
-            </button>
-            <button class="flow-badge" onclick="crearFacturaDesdePresupuesto(${p.id})" title="Generar factura" style="background:linear-gradient(90deg,var(--green-soft),var(--teal-soft));border-color:var(--green);color:var(--green)">
-              <i class="fa-solid fa-receipt"></i> Facturar
-            </button>`:''}
-          <button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button>
-          <button class="btn btn-sm btn-danger btn-icon" onclick="deletePresupuesto(${p.id})"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      </td>
-    </tr>`).join('');
-}
-
 function savePresupuesto(){
   const id=$('pr-id').value;
   /* Calculate final price from template + selected extras */
@@ -3793,41 +3888,6 @@ function deleteLead(id){
 /* ================================================================
    FACTURACIÓN — ENHANCED with markAsPaid → Finanzas integration
    ================================================================ */
-function renderFacturacion(){
-  const pagadas=DB.facturas.filter(f=>f.estado==='pagada');
-  const pendientes=DB.facturas.filter(f=>f.estado==='pendiente');
-  const vencidas=DB.facturas.filter(f=>f.estado==='vencida');
-  const totalPagado=pagadas.reduce((a,f)=>a+f.monto,0);
-  const totalPendiente=pendientes.reduce((a,f)=>a+f.monto,0);
-  $('facturacion-stats').innerHTML=[
-    {label:'Pagadas',value:pagadas.length,icon:'fa-circle-check',acc:'acc-green',si:'si-green',ch:'$'+fmt(totalPagado),dir:'up'},
-    {label:'Pendientes',value:pendientes.length,icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:'$'+fmt(totalPendiente),dir:'flat'},
-    {label:'Vencidas',value:vencidas.length,icon:'fa-circle-exclamation',acc:'acc-red',si:'si-red',ch:'acción requerida',dir:'down'},
-    {label:'Total Facturado',value:'$'+fmt(totalPagado+totalPendiente),icon:'fa-receipt',acc:'acc-brand',si:'si-brand',ch:DB.facturas.length+' facturas',dir:'flat'}
-  ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div><span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span></div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
-
-  const factNum=i=>'F-'+String(i+1).padStart(4,'0');
-  $('facturas-tbody').innerHTML=DB.facturas.length?DB.facturas.map((f,i)=>`
-    <tr>
-      <td><span class="fw-600" style="color:var(--brand)">${factNum(i)}</span></td>
-      <td>${getClienteName(f.clienteId)}</td>
-      <td class="text-muted text-sm">${getProyectoName(f.proyectoId)}</td>
-      <td class="amount-positive">$${fmt(f.monto)}</td>
-      <td class="text-muted text-sm">${fmtD(f.fecha)}</td>
-      <td class="text-muted text-sm">${fmtD(f.vence)}</td>
-      <td>${statusBadge(f.estado)}</td>
-      <td>
-        <div class="flex gap-6">
-          ${f.estado==='pendiente'||f.estado==='vencida'?`
-            <button class="flow-badge" onclick="openPagoModal(${f.id})">
-              <i class="fa-solid fa-circle-dollar-to-slot"></i> Registrar pago
-            </button>`:''}
-          <button class="btn btn-sm btn-danger btn-icon" onclick="deleteFactura(${f.id})"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      </td>
-    </tr>`).join(''):`<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-receipt"></i></div><h3>Sin facturas</h3><p>Genera facturas desde proyectos o presupuestos</p></div></td></tr>`;
-}
-
 /* ── FLUJO: factura pagada → registrar en Finanzas ──────────────────────── */
 function marcarFacturaPagada(id){
   const f=DB.facturas.find(f=>f.id===id);
@@ -3877,7 +3937,337 @@ function deleteFactura(id){
 /* ================================================================
    INIT
    ================================================================ */
+/* ================================================================
+   VIEW MODE SYSTEM
+   ================================================================ */
+const _viewModes={};
+function getViewMode(section){
+  if(!_viewModes[section]){
+    _viewModes[section]=localStorage.getItem('view_mode_'+section)||'list';
+  }
+  return _viewModes[section];
+}
+function setViewMode(section,mode){
+  _viewModes[section]=mode;
+  localStorage.setItem('view_mode_'+section,mode);
+  _updateViewBtns(section,mode);
+  // Re-render the relevant section
+  const renders={
+    clientes:renderClientes,proyectos:()=>renderProyectos(_activeFilter('proyectos')),
+    plantillas:renderPlantillasWeb,presupuestos:renderPresupuestos,
+    facturas:renderFacturacion
+  };
+  (renders[section]||function(){})();
+}
+function _activeFilter(section){
+  if(section==='proyectos'){const sel=document.getElementById('proyectos-filter-sel');return sel?sel.value:'';}
+  return '';
+}
+function _updateViewBtns(section,mode){
+  const map={clientes:['vbtn-cli-list','vbtn-cli-grid'],proyectos:['vbtn-proy-list','vbtn-proy-grid'],plantillas:['vbtn-plt-list','vbtn-plt-grid'],presupuestos:['vbtn-pres-list','vbtn-pres-grid'],facturas:['vbtn-fct-list','vbtn-fct-grid']};
+  const btns=map[section]||[];
+  const activeBtn=mode==='list'?btns[0]:btns[1];
+  btns.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  const ae=document.getElementById(activeBtn);if(ae)ae.classList.add('active');
+}
+function _initViewBtns(){
+  ['clientes','proyectos','plantillas','presupuestos','facturas'].forEach(s=>_updateViewBtns(s,getViewMode(s)));
+}
+
+/* ================================================================
+   CURRENCY SYSTEM
+   ================================================================ */
+const CURRENCY_CONFIG={
+  ARS:{symbol:'$',name:'Peso Argentino',code:'ARS'},
+  USD:{symbol:'$',name:'Dólar',code:'USD'},
+  EUR:{symbol:'€',name:'Euro',code:'EUR'},
+  CLP:{symbol:'$',name:'Peso Chileno',code:'CLP'},
+  MXN:{symbol:'$',name:'Peso Mexicano',code:'MXN'}
+};
+function getCurrencySymbol(){
+  const cur=DB.config?.moneda||localStorage.getItem('system_currency')||'ARS';
+  return(CURRENCY_CONFIG[cur]||CURRENCY_CONFIG.ARS).symbol;
+}
+function fmtMoney(n){return getCurrencySymbol()+fmt(n);}
+function updateCurrencyLabels(){
+  const sym=getCurrencySymbol();
+  document.querySelectorAll('.currency-sym-label').forEach(el=>el.textContent=sym);
+}
+
+/* ================================================================
+   renderPlantillasWeb — list + grid view
+   ================================================================ */
+function renderPlantillasWeb(){
+  const mode=getViewMode('plantillas');
+  const tabs={todas:DB.plantillas_web,landing:DB.plantillas_web.filter(p=>p.tipo==='landing'),sitio_web:DB.plantillas_web.filter(p=>p.tipo==='sitio_web'),ecommerce:DB.plantillas_web.filter(p=>p.tipo==='ecommerce')};
+  Object.entries(tabs).forEach(([tab,list])=>{
+    const el=document.getElementById('plt-view-'+tab);
+    if(!el) return;
+    if(mode==='list'){
+      el.innerHTML=list.length?`<div class="catalog-list">${list.map(p=>`
+        <div class="catalog-list-row">
+          <div class="catalog-list-icon">${p.emoji||'🌐'}</div>
+          <div class="catalog-list-name">${p.nombre}</div>
+          <div class="catalog-list-meta">${p.tipo||''} · ${p.desc||''}</div>
+          <div class="catalog-list-price">${fmtMoney(p.precio)}</div>
+          <div class="catalog-list-badge"><span class="tag text-sm">${p.dias||'—'} días</span></div>
+          <div class="catalog-list-actions">
+            <button class="btn btn-sm btn-primary" onclick="generarPresupuestoFromPlt(${p.id})"><i class="fa-solid fa-file-invoice"></i> Presupuesto</button>
+            <button class="btn btn-sm btn-secondary btn-icon" onclick="editPlantillaWeb(${p.id})"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-sm btn-danger btn-icon" onclick="deletePlantillaWeb(${p.id})"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>`).join('')}</div>`:`<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-layer-group"></i></div><h3>Sin plantillas</h3><p>Crea tu primera plantilla</p></div>`;
+    } else {
+      el.innerHTML=list.length?`<div class="catalog-grid">${list.map(p=>`<div class="plt-card"><div class="plt-emoji">${p.emoji||'🌐'}</div><div class="plt-info"><div class="plt-name">${p.nombre}</div><div class="plt-type">${p.tipo||''}</div><div class="plt-desc">${p.desc||''}</div></div><div class="plt-footer"><div class="plt-price">${fmtMoney(p.precio)}</div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-primary" onclick="generarPresupuestoFromPlt(${p.id})"><i class="fa-solid fa-file-invoice"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="editPlantillaWeb(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deletePlantillaWeb(${p.id})"><i class="fa-solid fa-trash"></i></button></div></div></div>`).join('')}</div>`:`<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-layer-group"></i></div><h3>Sin plantillas</h3><p>Crea tu primera plantilla</p></div>`;
+    }
+  });
+}
+
+/* ================================================================
+   renderClientes — with list/grid view
+   ================================================================ */
+function renderClientes(filter=''){
+  const mode=getViewMode('clientes');
+  const list=filter?DB.clientes.filter(c=>c.estado===filter):DB.clientes;
+  const pCount=id=>DB.proyectos.filter(p=>p.clienteId===id).length;
+  const container=document.getElementById('clientes-view-container');
+  if(!container) return;
+  if(mode==='grid'){
+    container.innerHTML=list.length?`<div class="catalog-grid">${list.map(c=>`
+      <div class="card" style="padding:16px;cursor:default">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div class="avatar-sm" style="width:38px;height:38px;font-size:14px">${initials(c.nombre)}</div>
+          <div style="flex:1;min-width:0"><div class="fw-600" style="color:var(--tx-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nombre}</div><div class="text-muted text-sm">${c.empresa||c.email}</div></div>
+          ${statusBadge(c.estado)}
+        </div>
+        <div style="display:flex;gap:12px;font-size:12px;color:var(--tx-3);margin-bottom:12px">
+          <span><i class="fa-solid fa-code-branch" style="margin-right:3px"></i>${pCount(c.id)} proyectos</span>
+          <span><i class="fa-solid fa-envelope" style="margin-right:3px"></i>${c.email}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-secondary" style="flex:1" onclick="verCliente(${c.id})"><i class="fa-solid fa-eye"></i> Ver</button>
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="editCliente(${c.id})"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-sm btn-danger btn-icon" onclick="deleteCliente(${c.id})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`).join('')}</div>`:`<div class="card" style="padding:24px"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-users"></i></div><h3>Sin clientes</h3><p>Agrega tu primer cliente</p></div></div>`;
+  } else {
+    container.innerHTML=`<div class="card"><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Email</th><th>Teléfono</th><th>Empresa</th><th>Estado</th><th>Proyectos</th><th>Acciones</th></tr></thead><tbody>${
+      list.length?list.map(c=>`<tr><td><div class="flex-center gap-8"><div class="avatar-sm">${initials(c.nombre)}</div><span class="fw-500">${c.nombre}</span></div></td><td class="text-muted">${c.email}</td><td class="text-muted">${c.telefono||'—'}</td><td>${c.empresa||'—'}</td><td>${statusBadge(c.estado)}</td><td><span class="tag"><i class="fa-solid fa-code-branch" style="margin-right:4px;font-size:10px"></i>${pCount(c.id)}</span></td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="verCliente(${c.id})" title="Ver"><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="editCliente(${c.id})" title="Editar"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteCliente(${c.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-users"></i></div><h3>Sin clientes</h3></div></td></tr>`
+    }</tbody></table></div></div>`;
+    // keep legacy tbody reference working
+    const tb=document.getElementById('clientes-tbody');
+    if(!tb){const newTb=container.querySelector('tbody');if(newTb)newTb.id='clientes-tbody';}
+  }
+}
+function filterClientes(v){renderClientes(v);}
+
+/* ================================================================
+   renderProyectos — with list/grid view
+   ================================================================ */
+function renderProyectos(filter=''){
+  const mode=getViewMode('proyectos');
+  const list=filter?DB.proyectos.filter(p=>p.estado===filter):DB.proyectos;
+  const container=document.getElementById('proyectos-view-container');
+  if(!container) return;
+  if(mode==='grid'){
+    container.innerHTML=list.length?`<div class="catalog-grid">${list.map(p=>{const pct=calcProgress(p.checklist);return`
+      <div class="card" style="padding:16px;cursor:default">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px">
+          <div class="fw-600" style="color:var(--tx-1);flex:1">${p.nombre}</div>
+          ${statusBadge(p.estado)}
+        </div>
+        <div class="text-muted text-sm mb-10">${getClienteName(p.clienteId)}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div class="progress" style="flex:1"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <span class="text-sm fw-600" style="color:var(--brand)">${pct}%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tx-3);margin-bottom:12px">
+          <span>Entrega: ${fmtD(p.entrega)}</span>
+          <span class="amount-positive fw-600">${fmtMoney(p.precio)}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-secondary" style="flex:1" onclick="verProyecto(${p.id})"><i class="fa-solid fa-eye"></i> Ver</button>
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="editProyecto(${p.id})"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-sm btn-danger btn-icon" onclick="deleteProyecto(${p.id})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`;}).join('')}</div>`:`<div class="card" style="padding:24px"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-code-branch"></i></div><h3>Sin proyectos</h3></div></div>`;
+  } else {
+    container.innerHTML=`<div class="card"><div class="table-wrap"><table><thead><tr><th>Proyecto</th><th>Cliente</th><th>Estado</th><th>Inicio</th><th>Entrega</th><th>Precio</th><th>Avance</th><th>Acciones</th></tr></thead><tbody id="proyectos-tbody">${
+      list.length?list.map(p=>{const pct=calcProgress(p.checklist);return`<tr><td><span class="fw-500">${p.nombre}</span></td><td class="text-muted">${getClienteName(p.clienteId)}</td><td>${statusBadge(p.estado)}</td><td class="text-muted text-sm">${fmtD(p.inicio)}</td><td class="text-muted text-sm">${fmtD(p.entrega)}</td><td class="amount-positive">${fmtMoney(p.precio)}</td><td style="min-width:110px"><div style="display:flex;align-items:center;gap:8px"><div class="progress" style="flex:1"><div class="progress-fill" style="width:${pct}%"></div></div><span class="text-sm text-muted fw-600">${pct}%</span></div></td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="verProyecto(${p.id})"><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="editProyecto(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteProyecto(${p.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`;}).join(''):`<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-code-branch"></i></div><h3>Sin proyectos</h3></div></td></tr>`
+    }</tbody></table></div></div>`;
+  }
+}
+function filterProyectos(v){renderProyectos(v);}
+
+/* ================================================================
+   renderPresupuestos — with list/grid view
+   ================================================================ */
+function renderPresupuestos(){
+  const mode=getViewMode('presupuestos');
+  const total=DB.presupuestos.reduce((a,p)=>a+p.precio,0);
+  const aprobados=DB.presupuestos.filter(p=>p.estado==='aprobado').reduce((a,p)=>a+p.precio,0);
+  const pendCount=DB.presupuestos.filter(p=>p.estado==='pendiente').length;
+  const sym=getCurrencySymbol();
+  document.getElementById('presupuestos-stats').innerHTML=[
+    {label:'Total Presupuestado',value:sym+fmt(total),icon:'fa-file-invoice',acc:'acc-brand',si:'si-brand',ch:'',dir:'flat'},
+    {label:'Aprobados',value:sym+fmt(aprobados),icon:'fa-circle-check',acc:'acc-green',si:'si-green',ch:`${DB.presupuestos.filter(p=>p.estado==='aprobado').length}`,dir:'up'},
+    {label:'Pendientes',value:pendCount,icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:'Esperando',dir:'flat'},
+    {label:'Rechazados',value:DB.presupuestos.filter(p=>p.estado==='rechazado').length,icon:'fa-ban',acc:'acc-red',si:'si-red',ch:'',dir:'down'}
+  ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div>${s.ch?`<span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span>`:''}</div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+
+  const container=document.getElementById('presupuestos-view-container');
+  if(!container) return;
+  if(mode==='grid'){
+    container.innerHTML=DB.presupuestos.length?`<div class="catalog-grid">${DB.presupuestos.map(p=>`
+      <div class="card" style="padding:16px;cursor:default">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+          <div class="fw-600">${p.nombre||p.desc||'Presupuesto'}</div>
+          ${statusBadge(p.estado)}
+        </div>
+        <div class="text-muted text-sm mb-8">${getClienteName(p.clienteId)}</div>
+        <div style="font-size:20px;font-weight:800;color:var(--green);margin-bottom:4px">${sym+fmt(p.precio)}</div>
+        <div class="text-muted text-sm mb-12">Válido hasta: ${fmtD(p.valido||p.valido_hasta)}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('presupuesto',${p.id})" title="PDF"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button>
+          ${p.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="approvePresupuesto(${p.id})"><i class="fa-solid fa-check"></i></button>`:''}
+          <button class="btn btn-sm btn-danger btn-icon" onclick="deletePresupuesto(${p.id})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`).join('')}</div>`:`<div class="card" style="padding:24px"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-file-invoice"></i></div><h3>Sin presupuestos</h3></div></div>`;
+  } else {
+    container.innerHTML=`<div class="card"><div class="table-wrap"><table><thead><tr><th>Presupuesto</th><th>Cliente</th><th>Precio</th><th>Fecha</th><th>Válido hasta</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="presupuestos-tbody">${
+      DB.presupuestos.length?DB.presupuestos.map(p=>`<tr><td><span class="fw-500">${p.nombre||p.desc||'Presupuesto'}</span></td><td>${getClienteName(p.clienteId)}</td><td class="amount-positive">${sym+fmt(p.precio)}</td><td class="text-muted text-sm">${fmtD(p.fecha)}</td><td class="text-muted text-sm">${fmtD(p.valido||p.valido_hasta)}</td><td>${statusBadge(p.estado)}</td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('presupuesto',${p.id})" title="PDF"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>${p.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="approvePresupuesto(${p.id})"><i class="fa-solid fa-check"></i> Aprobar</button>`:''}<button class="btn btn-sm btn-danger btn-icon" onclick="deletePresupuesto(${p.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-file-invoice"></i></div><h3>Sin presupuestos</h3></div></td></tr>`
+    }</tbody></table></div></div>`;
+  }
+}
+
+/* ================================================================
+   renderFacturacion — with list/grid view + dynamic currency
+   ================================================================ */
+function renderFacturacion(){
+  const mode=getViewMode('facturas');
+  const sym=getCurrencySymbol();
+  const totalFacturado=DB.facturas.reduce((a,f)=>a+f.monto,0);
+  const totalPagado=DB.facturas.filter(f=>f.estado==='pagada').reduce((a,f)=>a+f.monto,0);
+  const totalPendiente=DB.facturas.filter(f=>f.estado==='pendiente').reduce((a,f)=>a+f.monto,0);
+  document.getElementById('facturacion-stats').innerHTML=[
+    {label:'Total Facturado',value:sym+fmt(totalFacturado),icon:'fa-receipt',acc:'acc-brand',si:'si-brand',ch:'',dir:'flat'},
+    {label:'Cobrado',value:sym+fmt(totalPagado),icon:'fa-circle-check',acc:'acc-green',si:'si-green',ch:`${DB.facturas.filter(f=>f.estado==='pagada').length} facturas`,dir:'up'},
+    {label:'Pendiente',value:sym+fmt(totalPendiente),icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:`${DB.facturas.filter(f=>f.estado==='pendiente').length} facturas`,dir:'down'},
+    {label:'Vencidas',value:DB.facturas.filter(f=>f.estado==='vencida').length,icon:'fa-exclamation-triangle',acc:'acc-red',si:'si-red',ch:'',dir:'down'}
+  ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div>${s.ch?`<span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span>`:''}</div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+
+  const container=document.getElementById('facturas-view-container');
+  if(!container) return;
+  if(mode==='grid'){
+    container.innerHTML=DB.facturas.length?`<div class="catalog-grid">${DB.facturas.map((f,i)=>`
+      <div class="card" style="padding:16px;cursor:default">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span class="tag">#${1000+i}</span>${statusBadge(f.estado)}
+        </div>
+        <div class="fw-600 mb-4">${getClienteName(f.clienteId)}</div>
+        <div class="text-muted text-sm mb-8">${f.desc||getProyectoName(f.proyectoId)}</div>
+        <div style="font-size:22px;font-weight:800;color:var(--green);margin-bottom:4px">${sym+fmt(f.monto)}</div>
+        <div class="text-muted text-sm mb-12">Vence: ${fmtD(f.vence)}</div>
+        ${f.metodoPago?`<span class="pay-method mb-8">${f.metodoPago}</span>`:''}
+        <div style="display:flex;gap:6px;margin-top:8px">
+          ${f.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="openPagoModal(${f.id})" style="flex:1"><i class="fa-solid fa-circle-dollar-to-slot"></i> Cobrar</button>`:''}
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('factura',${f.id})"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>
+          <button class="btn btn-sm btn-danger btn-icon" onclick="deleteFactura(${f.id})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`).join('')}</div>`:`<div class="card" style="padding:24px"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-receipt"></i></div><h3>Sin facturas</h3></div></div>`;
+  } else {
+    container.innerHTML=`<div class="card"><div class="table-wrap"><table><thead><tr><th>#</th><th>Cliente</th><th>Proyecto</th><th>Monto</th><th>Fecha</th><th>Vence</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="facturas-tbody">${
+      DB.facturas.length?DB.facturas.map((f,i)=>`<tr><td><span class="tag">#${1000+i}</span></td><td>${getClienteName(f.clienteId)}</td><td class="text-muted">${getProyectoName(f.proyectoId)}</td><td class="amount-positive">${sym+fmt(f.monto)}</td><td class="text-muted text-sm">${fmtD(f.fecha)}</td><td class="text-muted text-sm">${fmtD(f.vence)}</td><td>${statusBadge(f.estado)}</td><td><div class="flex gap-6">${f.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="openPagoModal(${f.id})"><i class="fa-solid fa-circle-dollar-to-slot"></i></button>`:''}<button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('factura',${f.id})"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteFactura(${f.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join(''):`<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-receipt"></i></div><h3>Sin facturas</h3></div></td></tr>`
+    }</tbody></table></div></div>`;
+  }
+}
+
+/* ================================================================
+   PDF DOCUMENTS — upload/preview/download
+   ================================================================ */
+function handleDocUpload(tipo, input){
+  if(!input.files||!input.files[0]) return;
+  const file=input.files[0];
+  if(!file.name.toLowerCase().endsWith('.pdf')&&file.type!=='application/pdf'){toast('error','Solo se aceptan archivos PDF');return;}
+  if(file.size>2*1024*1024){toast('error','El archivo excede los 2MB');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const b64=e.target.result;
+    try{localStorage.setItem('adm_doc_'+tipo,b64);localStorage.setItem('adm_doc_'+tipo+'_name',file.name);}catch(ex){toast('error','No hay espacio disponible en el navegador');return;}
+    renderDocumentosPanel();toast('success',`Documento "${file.name}" guardado`);
+  };
+  reader.readAsDataURL(file);
+}
+function previewDoc(tipo){
+  const b64=localStorage.getItem('adm_doc_'+tipo);
+  if(!b64){toast('info','No hay documento cargado');return;}
+  const win=window.open('');
+  win.document.write(`<html><body style="margin:0"><iframe src="${b64}" style="width:100%;height:100vh;border:none"></iframe></body></html>`);
+}
+function downloadDoc(tipo){
+  const b64=localStorage.getItem('adm_doc_'+tipo);
+  const name=localStorage.getItem('adm_doc_'+tipo+'_name')||tipo+'.pdf';
+  if(!b64){toast('info','No hay documento cargado');return;}
+  const a=document.createElement('a');a.href=b64;a.download=name;a.click();
+}
+function deleteDoc(tipo){
+  if(!confirm('¿Eliminar este documento?')) return;
+  localStorage.removeItem('adm_doc_'+tipo);
+  localStorage.removeItem('adm_doc_'+tipo+'_name');
+  renderDocumentosPanel();toast('info','Documento eliminado');
+}
+function renderDocumentosPanel(){
+  ['contrato','guia'].forEach(tipo=>{
+    const b64=localStorage.getItem('adm_doc_'+tipo);
+    const name=localStorage.getItem('adm_doc_'+tipo+'_name')||'';
+    const prevEl=document.getElementById('doc-'+tipo+'-preview');
+    const btnPrev=document.getElementById('btn-preview-'+tipo);
+    const btnDl=document.getElementById('btn-dl-'+tipo);
+    const btnDel=document.getElementById('btn-del-'+tipo);
+    if(prevEl){prevEl.innerHTML=b64?`<div class="doc-preview-bar"><i class="fa-solid fa-file-pdf" style="font-size:16px"></i><span style="flex:1">${name}</span><span style="font-size:11px;opacity:.7">Cargado</span></div>`:'';}
+    if(btnPrev) btnPrev.style.display=b64?'':'none';
+    if(btnDl) btnDl.style.display=b64?'':'none';
+    if(btnDel) btnDel.style.display=b64?'':'none';
+  });
+}
+function renderClienteDocuments(clienteId){
+  const el=document.getElementById('ver-cliente-docs');
+  if(!el) return;
+  const docs=[
+    {tipo:'contrato',label:'Contrato Base',icon:'fa-file-contract',color:'brand'},
+    {tipo:'guia',label:'Guía de Trabajo',icon:'fa-book-open',color:'purple'}
+  ];
+  el.innerHTML=docs.map(d=>{
+    const b64=localStorage.getItem('adm_doc_'+d.tipo);
+    const name=localStorage.getItem('adm_doc_'+d.tipo+'_name')||d.label+'.pdf';
+    return`<div class="doc-upload-card">
+      <div class="doc-upload-header">
+        <div class="doc-upload-ico" style="${d.color==='purple'?'background:var(--purple-soft);color:var(--purple)':''}"><i class="fa-solid ${d.icon}"></i></div>
+        <div><div class="doc-upload-title">${d.label}</div><div class="doc-upload-sub">${b64?name:'No cargado en Configuración → Documentos'}</div></div>
+      </div>
+      ${b64?`<div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-sm btn-secondary" onclick="previewDoc('${d.tipo}')"><i class="fa-solid fa-eye"></i> Ver</button>
+        <button class="btn btn-sm btn-secondary" onclick="downloadDoc('${d.tipo}')"><i class="fa-solid fa-download"></i> Descargar</button>
+      </div>`:`<div style="margin-top:8px"><a onclick="closeModal('modal-ver-cliente');navigate('configuracion');setTimeout(()=>switchCfgPanel('documentos',null),200)" class="btn btn-sm btn-secondary" style="cursor:pointer"><i class="fa-solid fa-upload"></i> Subir en Configuración</a></div>`}
+    </div>`;
+  }).join('');
+}
+
+/* ================================================================
+   MOBILE MENU
+   ================================================================ */
+function openMobMenu(){
+  document.getElementById('main-sidebar')?.classList.add('mob-open');
+  document.getElementById('mob-overlay')?.classList.add('open');
+}
+function closeMobMenu(){
+  document.getElementById('main-sidebar')?.classList.remove('mob-open');
+  document.getElementById('mob-overlay')?.classList.remove('open');
+}
+
 // Restore config
+
 try{const saved=localStorage.getItem('adm_config');if(saved)DB.config={...DB.config,...JSON.parse(saved)};}catch(e){}
 // Restore sistema settings
 try{const saved=localStorage.getItem('adm_sistema');if(saved)DB.sistema={...DB.sistema,...JSON.parse(saved)};}catch(e){}
@@ -4070,6 +4460,7 @@ function verCliente(id){
   const editBtn=document.getElementById('ver-cliente-edit-btn');
   if(editBtn) editBtn.setAttribute('onclick',`closeModal('modal-ver-cliente');editCliente(${id})`);
   /* Switch to first tab */
+  renderClienteDocuments(id);
   switchTab('vcli','info',document.querySelector('#modal-ver-cliente .tab-btn'));
   openModal('modal-ver-cliente');
 }
@@ -4570,7 +4961,7 @@ try{const pt=localStorage.getItem('adm_proy_tareas');if(pt)DB.proyecto_tareas={.
 })();
 
 // Apply branding
-setTimeout(()=>{applySystemSettings();_applyTopbarLogo();},0);
+setTimeout(()=>{applySystemSettings();_applyTopbarLogo();_initViewBtns();renderDocumentosPanel();},0);
 
 // Populate client timeline with initial data
 (function(){
