@@ -207,24 +207,25 @@ textarea.form-input{resize:vertical;min-height:88px}
   display:flex;flex-direction:column;height:100vh;overflow:hidden;
   transition:background .2s,border-color .2s;
 }
-.sidebar-header{padding:18px 16px 16px;border-bottom:1px solid var(--bd);flex-shrink:0}
-/* v9 sidebar logo */
-.s-logo-v9{display:flex;align-items:center;gap:12px}
-.s-logo-mark-v9{
-  width:44px;height:44px;border-radius:12px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--brand),var(--brand-mid));
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 3px 12px rgba(79,70,229,.32);
-  overflow:hidden;
+.sidebar-header{padding:0;border-bottom:1px solid var(--bd);flex-shrink:0}
+.sidebar-logo-area{
+  padding:16px 18px 14px;
+  display:flex;align-items:center;
+  min-height:68px;
 }
-.s-logo-mark-v9 i{color:#fff;font-size:18px}
-.s-logo-name{
-  font-size:15px;font-weight:800;line-height:1.2;color:var(--tx-1);
-  letter-spacing:-.3px;
+.sidebar-logo-img{
+  max-height:44px;max-width:180px;
+  width:auto;object-fit:contain;
+  display:none;
+}
+.sidebar-logo-fallback{
+  display:flex;flex-direction:column;gap:2px;
+}
+#s-sys-name{
+  font-size:15px;font-weight:800;color:var(--tx-1);letter-spacing:-.3px;
 }
 .s-logo-sub{
-  font-size:11px;font-weight:400;color:var(--tx-3);margin-top:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;
+  font-size:11px;color:var(--tx-3);
 }
 /* legacy compat */
 .s-logo{display:flex;align-items:center;gap:10px}
@@ -985,16 +986,15 @@ tbody tr:hover{background:var(--bg-3)}
   <div class="mob-overlay" id="mob-overlay" onclick="closeMobMenu()"></div>
   <!-- SIDEBAR -->
   <aside class="sidebar" id="main-sidebar">
-    <div class="sidebar-header">
-      <div class="s-logo-v9" id="s-logo-wrap">
-        <div class="s-logo-mark-v9" id="s-logo-mark">
-          <img id="s-logo-img" src="" style="display:none;width:44px;height:44px;object-fit:contain;border-radius:10px">
-          <span id="s-logo-emoji" style="font-size:24px;line-height:1;display:none"></span>
-        </div>
-        <div>
-          <div class="s-logo-name" id="s-logo-text-wrap"><span id="s-sys-name">AlexisDigital</span></div>
-          <div class="s-logo-sub" id="s-logo-sub"></div>
-        </div>
+    <div class="sidebar-header sidebar-logo-area">
+      <!-- Logo modo claro -->
+      <img id="s-logo-light" class="sidebar-logo-img" src="" alt="Logo" style="display:none">
+      <!-- Logo modo oscuro -->
+      <img id="s-logo-dark" class="sidebar-logo-img" src="" alt="Logo" style="display:none">
+      <!-- Fallback: nombre de la agencia si no hay logo -->
+      <div class="sidebar-logo-fallback" id="s-logo-fallback">
+        <span id="s-sys-name">AlexisDigital</span>
+        <span class="s-logo-sub" id="s-logo-sub"></span>
       </div>
     </div>
     <nav class="sidebar-nav">
@@ -1071,11 +1071,7 @@ tbody tr:hover{background:var(--bg-3)}
     <header class="topbar">
       <div class="topbar-left">
         <button class="mob-menu-btn" onclick="openMobMenu()" title="Menú"><i class="fa-solid fa-bars"></i></button>
-        <div class="topbar-logo" id="topbar-logo-wrap">
-          <img id="topbar-logo-light" class="topbar-logo-img" src="" alt="Logo">
-          <img id="topbar-logo-dark" class="topbar-logo-img" src="" alt="Logo" style="display:none">
-          <span class="topbar-logo-fallback" id="topbar-logo-fallback" style="display:none"></span>
-        </div>
+
         <div class="topbar-icon" id="topbar-icon"><i class="fa-solid fa-chart-pie"></i></div>
         <div>
           <div class="topbar-title" id="topbar-title">Dashboard</div>
@@ -4971,6 +4967,8 @@ function toggleDarkMode(){
   html.setAttribute('data-theme',next);
   localStorage.setItem('adm_theme',next);window.db&&window.db.setItem('adm_theme',next);
   updateDMToggle(next);
+  // Swap sidebar logo for new theme
+  _applySidebarLogo();
   // Redraw visible charts with new colors
   const sec=document.querySelector('.section.active');
   if(sec){
@@ -5486,11 +5484,17 @@ function renderDashboard(){
   const clienteActiv=DB.clientes.filter(c=>c.estado==='activo').length;
   const tareasPend=DB.tareas.filter(t=>t.estado==='pendiente').length;
   $('badge-tareas').textContent=tareasPend;
+  // Dynamic deltas
+  const factPagadas=DB.facturas.filter(f=>f.estado==='pagada').reduce((a,f)=>a+f.monto,0);
+  const proyTotal=DB.proyectos.length;
+  const tareasComp=DB.tareas.filter(t=>t.estado==='completada').length;
+  const tareasTotal=DB.tareas.length;
+  const convRate=DB.presupuestos.length?Math.round(DB.presupuestos.filter(p=>p.estado==='aprobado').length/DB.presupuestos.length*100):0;
   $('stats-grid').innerHTML=[
-    {label:'Ingresos del Mes',value:`$${fmt(ingresos)}`,icon:'fa-arrow-trend-up',acc:'acc-green',si:'si-green',ch:'+12%',dir:'up'},
-    {label:'Proyectos Activos',value:proyActivos,icon:'fa-code-branch',acc:'acc-brand',si:'si-brand',ch:`${DB.proyectos.length} total`,dir:'flat'},
-    {label:'Clientes Activos',value:clienteActiv,icon:'fa-users',acc:'acc-purple',si:'si-purple',ch:`${DB.clientes.length} total`,dir:'flat'},
-    {label:'Pagos Pendientes',value:`$${fmt(pendientes)}`,icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:`${DB.transacciones.filter(t=>t.tipo==='pendiente').length} facturas`,dir:'down'}
+    {label:'Facturado Total',value:`$${fmt(factPagadas)}`,icon:'fa-arrow-trend-up',acc:'acc-green',si:'si-green',ch:ingresos>0?`+$${fmt(ingresos)} transacc.`:'Sin ingresos',dir:ingresos>0?'up':'flat'},
+    {label:'Proyectos Activos',value:proyActivos,icon:'fa-code-branch',acc:'acc-brand',si:'si-brand',ch:proyTotal>0?`${proyTotal} total`:'Sin proyectos',dir:'flat'},
+    {label:'Clientes Activos',value:clienteActiv,icon:'fa-users',acc:'acc-purple',si:'si-purple',ch:DB.clientes.length>0?`${DB.clientes.length} total`:'Sin clientes',dir:'flat'},
+    {label:'Pagos Pendientes',value:`$${fmt(pendientes)}`,icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:DB.facturas.filter(f=>f.estado==='pendiente').length>0?`${DB.facturas.filter(f=>f.estado==='pendiente').length} facturas`:'Al día ✓',dir:pendientes>0?'down':'flat'}
   ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div><span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span></div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
   // Projects table
   const tbody=$('dash-projects-table').querySelector('tbody');
@@ -5518,7 +5522,7 @@ function _applyDashWidgets(){
   const pipelineTotal=DB.leads.reduce((a,l)=>a+l.valor,0);
   const leadsCount=DB.leads.filter(l=>l.etapa!=='cerrado').length;
   const ALL_WIDGETS={
-    ingresos_mes:{label:'Ingresos del Mes',value:fmtMoney(ingresos),icon:'fa-arrow-trend-up',acc:'acc-green',si:'si-green',ch:'+12%',dir:'up'},
+    ingresos_mes:{label:'Ingresos del Mes',value:fmtMoney(ingresos),icon:'fa-arrow-trend-up',acc:'acc-green',si:'si-green',ch:ingresos>0?`$${fmt(ingresos)} este mes`:'Sin ingresos',dir:ingresos>0?'up':'flat'},
     proyectos_activos:{label:'Proyectos Activos',value:proyActivos,icon:'fa-code-branch',acc:'acc-brand',si:'si-brand',ch:`${DB.proyectos.length} total`,dir:'flat'},
     clientes:{label:'Clientes Activos',value:clienteActiv,icon:'fa-users',acc:'acc-purple',si:'si-purple',ch:`${DB.clientes.length} total`,dir:'flat'},
     pagos_pendientes:{label:'Pagos Pendientes',value:fmtMoney(pendientes),icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:`${DB.transacciones.filter(t=>t.tipo==='pendiente').length} fact.`,dir:'down'},
@@ -5980,21 +5984,49 @@ function saveSistemaPanel(){
 
 function applySystemSettings(){
   const s=DB.sistema||{};
+  /* ── Sidebar logo ─────────────────────────────────────────── */
+  _applySidebarLogo();
+  /* ── Nombre y subtítulo (fallback cuando no hay logo) ─────── */
   const sn=document.getElementById('s-sys-name');
-  if(sn) sn.textContent=s.nombre||'Manager';
-  // v9: update subtitle (bajada) from config agencia name
+  if(sn) sn.textContent=s.nombre||DB.config?.agencia||'AlexisDigital';
   const sub=document.getElementById('s-logo-sub');
-  if(sub) sub.textContent=s.subtitulo||DB.config?.agencia||'AlexisDigital';
-  const li=document.getElementById('s-logo-icon');
-  if(li){
-    const em=s.logoEmoji||'⚡';
-    if(em.length<=3&&!/^fa-/.test(em)){li.className='';li.textContent=em;}
-    else{li.className='fa-solid '+(s.logoEmoji||'fa-bolt-lightning');li.textContent='';}
-  }
+  if(sub) sub.textContent=s.subtitulo||'';
+  /* ── Brand color ────────────────────────────────────────────  */
   if(s.colorBrand){
     document.documentElement.style.setProperty('--brand',s.colorBrand);
     document.documentElement.style.setProperty('--brand-mid',s.colorBrand);
     document.documentElement.style.setProperty('--bd-focus',s.colorBrand);
+  }
+  /* ── Topbar: remove any stale logo area ─────────────────────  */
+  _applyTopbarLogo();
+  document.title=(s.nombre||'AlexisDigital Manager')+' — Panel';
+}
+
+/** Applies the correct logo (light/dark) to the sidebar */
+function _applySidebarLogo(){
+  const s=DB.sistema||{};
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const imgLight=document.getElementById('s-logo-light');
+  const imgDark=document.getElementById('s-logo-dark');
+  const fallback=document.getElementById('s-logo-fallback');
+  
+  // Pick the right logo for the current theme
+  // If dark logo exists use it in dark, else fallback to light logo
+  const lightSrc = s.logoLight||'';
+  const darkSrc  = s.logoDark||s.logoLight||''; // fallback to light if no dark variant
+  
+  const hasAnyLogo = !!(lightSrc||darkSrc);
+  
+  if(imgLight){
+    imgLight.src = lightSrc;
+    imgLight.style.display = (!isDark && lightSrc) ? 'block' : 'none';
+  }
+  if(imgDark){
+    imgDark.src = darkSrc;
+    imgDark.style.display = (isDark && darkSrc) ? 'block' : 'none';
+  }
+  if(fallback){
+    fallback.style.display = hasAnyLogo ? 'none' : '';
   }
 }
 
