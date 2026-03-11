@@ -940,10 +940,10 @@ tbody tr:hover{background:var(--bg-3)}
   <div class="login-card">
     <div class="login-logo">
       <div class="login-logo-mark"><i class="fa-solid fa-bolt-lightning"></i></div>
-      <div class="login-logo-text">AlexisDigital <span>Manager · v4</span></div>
+      <div class="login-logo-text">AlexisDigital <span>Manager · v9</span></div>
     </div>
     <div class="login-title">Bienvenido de vuelta 👋</div>
-    <div class="login-sub">Ingresa a tu panel de gestión de agencia</div>
+    <div class="login-sub">Ingresa a tu panel de gestión de agencia <span class="v9-badge">SaaS v9</span></div>
     <div class="form-group">
       <label class="form-label"><i class="fa-solid fa-envelope" style="margin-right:5px;color:var(--brand)"></i>Email</label>
       <input type="email" class="form-input" id="login-email" placeholder="admin@alexisdigital.com" value="admin@alexisdigital.com">
@@ -955,6 +955,9 @@ tbody tr:hover{background:var(--bg-3)}
     <button class="btn btn-primary btn-full btn-login" onclick="doLogin()">
       <i class="fa-solid fa-right-to-bracket"></i> Ingresar al sistema
     </button>
+    <div id="sb-auth-notice" style="display:none;margin-top:12px;padding:10px 12px;background:var(--brand-soft);border-radius:8px;font-size:12px;color:var(--brand);text-align:center">
+      <i class="fa-solid fa-cloud"></i> Autenticación Supabase activa
+    </div>
     <div class="login-demo">Demo: <code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b6d7d2dbdfd8f6d7dad3cedfc5d2dfd1dfc2d7da98d5d9db">[email&#160;protected]</a></code> / <code>admin123</code></div>
   </div>
 </div>
@@ -1069,6 +1072,13 @@ tbody tr:hover{background:var(--bg-3)}
         <div class="search-drop" id="search-drop"></div>
       </div>
       <div class="topbar-actions">
+        <!-- DB Connection Status -->
+        <div id="conn-status" class="conn-status conn-local" title="Estado de conexión" onclick="navigate('configuracion');switchCfgPanel('integraciones',document.getElementById('cfgmenu-integraciones'))">
+          <span class="conn-dot"></span>
+          <span class="conn-label" id="conn-label">Local</span>
+        </div>
+        <!-- User role badge -->
+        <div id="topbar-role-badge" class="role-badge role-admin" style="display:none"></div>
         <!-- Dark mode toggle -->
         <div class="dm-toggle" id="dm-toggle" onclick="toggleDarkMode()" title="Cambiar tema">
           <div class="dm-btn" id="dm-light"><i class="fa-solid fa-sun"></i></div>
@@ -1421,6 +1431,7 @@ tbody tr:hover{background:var(--bg-3)}
           </div>
         </div>
         <div class="stats-grid" id="analytics-kpis"></div>
+        <div class="stats-grid" id="analytics-fin-extra" style="margin-top:16px"></div>
         <div class="dash-row">
           <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-line"></i> Ingresos por Mes (últimos 12 meses)</div></div><div class="chart-wrap"><canvas id="chart-analytics-ingresos"></canvas></div></div>
           <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-bar"></i> Proyectos por Estado</div></div><div class="chart-wrap"><canvas id="chart-analytics-proyectos"></canvas></div></div>
@@ -1532,6 +1543,12 @@ tbody tr:hover{background:var(--bg-3)}
             </div>
             <div class="cfg-sidebar-item" onclick="switchCfgPanel('integraciones',this)" id="cfgmenu-integraciones">
               <i class="fa-solid fa-database"></i> Integraciones
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('departamentos',this)" id="cfgmenu-departamentos">
+              <i class="fa-solid fa-sitemap"></i> Departamentos
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('backup',this)" id="cfgmenu-backup">
+              <i class="fa-solid fa-cloud-arrow-down"></i> Backup & Datos
             </div>
           </div>
 
@@ -1755,7 +1772,9 @@ tbody tr:hover{background:var(--bg-3)}
               <div class="admin-table-wrap">
                 <div class="admin-table-header">
                   <span class="admin-table-title"><i class="fa-solid fa-users-gear" style="margin-right:7px;color:var(--brand)"></i>Usuarios del Sistema</span>
-                  <button class="btn btn-primary btn-sm" onclick="openModal('modal-usuario')"><i class="fa-solid fa-plus"></i> Nuevo usuario</button>
+                  <button class="btn btn-primary btn-sm" onclick="openModal('modal-usuario')"><i class="fa-solid fa-plus"></i></button>
+                    <button class="btn btn-secondary btn-sm" onclick="syncUsersFromSupabase()"><i class="fa-solid fa-rotate"></i> Sync Supabase</button>
+                  </div> Nuevo usuario</button>
                 </div>
                 <div class="table-wrap"><table>
                   <thead><tr><th>Avatar</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
@@ -1906,6 +1925,94 @@ tbody tr:hover{background:var(--bg-3)}
                 </div>
               </div>
 
+            </div>
+
+
+            <!-- DEPARTAMENTOS PANEL -->
+            <div id="cfgpanel-departamentos" class="cfg-panel">
+              <div class="config-section" style="margin-bottom:16px">
+                <div class="config-section-header">
+                  <i class="fa-solid fa-sitemap"></i>
+                  <div class="config-section-title">Departamentos</div>
+                </div>
+                <div class="config-section-body">
+                  <p class="text-muted text-sm mb-16">Organiza tu agencia por áreas. Los proyectos y empleados pueden asignarse a un departamento.</p>
+                  <button class="btn btn-primary" style="margin-bottom:16px" onclick="openModal('modal-departamento')">
+                    <i class="fa-solid fa-plus"></i> Nuevo Departamento
+                  </button>
+                  <div class="dept-grid" id="departamentos-grid"></div>
+                </div>
+              </div>
+
+              <div class="config-section">
+                <div class="config-section-header">
+                  <i class="fa-solid fa-chart-pie"></i>
+                  <div class="config-section-title">Asignación por Departamento</div>
+                </div>
+                <div class="config-section-body">
+                  <div id="dept-stats-grid" class="stats-grid"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BACKUP PANEL -->
+            <div id="cfgpanel-backup" class="cfg-panel">
+              <div class="config-section" style="margin-bottom:16px">
+                <div class="config-section-header">
+                  <i class="fa-solid fa-cloud-arrow-down"></i>
+                  <div class="config-section-title">Backup del Sistema</div>
+                </div>
+                <div class="config-section-body">
+                  <p class="text-muted text-sm mb-16">Exporta, importa o restaura todos los datos del sistema.</p>
+                  <div style="display:flex;flex-direction:column;gap:10px">
+                    <div class="backup-action-card" onclick="exportFullBackup()">
+                      <div class="backup-action-icon"><i class="fa-solid fa-file-arrow-down"></i></div>
+                      <div>
+                        <div style="font-weight:700;font-size:14px">Exportar backup completo</div>
+                        <div class="text-muted text-sm">Descarga un JSON con todos los datos del sistema</div>
+                      </div>
+                    </div>
+                    <div class="backup-action-card" onclick="document.getElementById('backup-import-input').click()">
+                      <div class="backup-action-icon" style="background:#fef3c7;color:#b45309"><i class="fa-solid fa-file-arrow-up"></i></div>
+                      <div>
+                        <div style="font-weight:700;font-size:14px">Restaurar desde backup</div>
+                        <div class="text-muted text-sm">Importa un JSON de backup previo</div>
+                      </div>
+                    </div>
+                    <input type="file" id="backup-import-input" accept=".json" style="display:none" onchange="restoreFromBackup(this)">
+                    <div class="backup-action-card" onclick="exportCSVAll()">
+                      <div class="backup-action-icon" style="background:#dcfce7;color:#15803d"><i class="fa-solid fa-table"></i></div>
+                      <div>
+                        <div style="font-weight:700;font-size:14px">Exportar CSV (todos los módulos)</div>
+                        <div class="text-muted text-sm">Exporta clientes, proyectos, facturas en CSV</div>
+                      </div>
+                    </div>
+                    <div class="backup-action-card" onclick="syncAllToSupabase()">
+                      <div class="backup-action-icon" style="background:#ede9fe;color:#7c3aed"><i class="fa-solid fa-rotate"></i></div>
+                      <div>
+                        <div style="font-weight:700;font-size:14px">Sincronizar todo a Supabase</div>
+                        <div class="text-muted text-sm">Fuerza escritura de todos los datos locales a la nube</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="backup-log" class="mt-12" style="font-size:12px;color:var(--tx-3)"></div>
+                </div>
+              </div>
+
+              <div class="config-section">
+                <div class="config-section-header">
+                  <i class="fa-solid fa-clock-rotate-left"></i>
+                  <div class="config-section-title">Historial de backups</div>
+                </div>
+                <div class="config-section-body">
+                  <div id="backup-history-list">
+                    <div class="empty-state" style="padding:20px">
+                      <div class="empty-ico" style="font-size:24px"><i class="fa-solid fa-box-archive"></i></div>
+                      <p>Sin backups registrados</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div><!-- /cfg-panels -->
@@ -2989,8 +3096,27 @@ async function connectSupabase(url, key) {
 }
 
 const SUPABASE_SCHEMA = `
--- AlexisDigital Manager — Supabase SQL Schema
+-- AlexisDigital Manager v9 — Supabase SQL Schema
 -- Run this in your Supabase SQL Editor
+
+-- Users profile table (extends Supabase Auth)
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  name TEXT NOT NULL,
+  email TEXT,
+  role TEXT DEFAULT 'employee' CHECK (role IN ('admin','employee','client')),
+  department_id BIGINT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Departments
+CREATE TABLE IF NOT EXISTS departments (
+  id BIGINT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  emoji TEXT DEFAULT '🏢',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
 CREATE TABLE IF NOT EXISTS kv_store (
   key TEXT PRIMARY KEY, value TEXT,
@@ -4851,6 +4977,13 @@ let DB={
     {id:1,nombre:'Alexis Admin',email:'admin@alexisdigital.com',password:'admin123',rol:'admin',avatar:'AA'},
     {id:2,nombre:'María López',email:'empleado@alexisdigital.com',password:'emp123',rol:'empleado',avatar:'ML'}
   ],
+  departamentos:[
+    {id:1,nombre:'Desarrollo',desc:'Proyectos web y apps',emoji:'🖥️'},
+    {id:2,nombre:'Diseño',desc:'UI/UX y branding',emoji:'🎨'},
+    {id:3,nombre:'Ventas',desc:'Captación y presupuestos',emoji:'💼'},
+    {id:4,nombre:'Soporte',desc:'Atención al cliente',emoji:'🎧'},
+    {id:5,nombre:'Marketing',desc:'Campañas y redes sociales',emoji:'📣'},
+  ],
   config:{agencia:'AlexisDigital',moneda:'ARS',idioma:'es',email_agencia:'contacto@alexisdigital.com',telefono:'+54 11 1234-5678',direccion:'Buenos Aires, Argentina',notificaciones:true,dark_mode:false},
   clientes:[
     {id:1,nombre:'Carlos Martínez',email:'carlos@techcorp.com',telefono:'+54 11 9876-5432',empresa:'TechCorp SA',estado:'activo',notas:'Cliente premium.',creado:'2024-01-15'},
@@ -5136,14 +5269,14 @@ function populateProyectoSelect(sid,selId=null){
 const _SB_TABLE = {
   clientes:'clientes', proyectos:'proyectos', presupuestos:'presupuestos',
   facturas:'facturas', transacciones:'transacciones', tareas:'tareas',
-  leads:'leads', eventos:'eventos',
+  leads:'leads', eventos:'eventos', departamentos:'departments',
 };
 
 /** Map from DB array key → localStorage key */
 const _LS_KEY = {
   clientes:'adm_clientes', proyectos:'adm_proyectos', presupuestos:'adm_presupuestos',
   facturas:'adm_facturas', transacciones:'adm_transacciones', tareas:'adm_tareas',
-  leads:'adm_leads', eventos:'adm_eventos',
+  leads:'adm_leads', eventos:'adm_eventos', departamentos:'adm_departamentos',
 };
 
 /**
@@ -5241,22 +5374,85 @@ function _toSnakeCase(arrayKey, record) {
 /* ================================================================
    AUTH
    ================================================================ */
-function doLogin(){
+async function doLogin(){
   const email=$('login-email').value.trim(),pass=$('login-pass').value;
+  
+  // Try Supabase Auth first if connected
+  if(window.STORAGE_MODE==='supabase'&&window._supabaseClient){
+    try{
+      const {data,error}=await window._supabaseClient.auth.signInWithPassword({email,password:pass});
+      if(error) throw error;
+      // Load user profile from users table
+      const {data:profile}=await window._supabaseClient.from('users').select('*').eq('id',data.user.id).single();
+      if(profile){
+        DB.currentUser={...profile, nombre:profile.name, avatar:(profile.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)};
+      } else {
+        DB.currentUser={id:data.user.id,nombre:data.user.email.split('@')[0],email:data.user.email,rol:'admin',avatar:'AD'};
+      }
+      _finishLogin(DB.currentUser);
+      return;
+    }catch(sbErr){
+      // Fall through to local auth
+      console.warn('[auth] Supabase auth failed, trying local:', sbErr.message);
+    }
+  }
+  
+  // Local auth fallback
   const user=DB.usuarios.find(u=>u.email===email&&u.password===pass);
   if(!user){toast('error','Credenciales incorrectas');return;}
   DB.currentUser=user;
+  _finishLogin(user);
+}
+
+function _finishLogin(user){
   $('login-screen').style.display='none';
   $('app').classList.add('active');
-  $('sidebar-name').textContent=user.nombre.split(' ')[0];
-  $('sidebar-avatar').textContent=user.avatar;
+  $('sidebar-name').textContent=(user.nombre||user.name||'').split(' ')[0];
+  $('sidebar-avatar').textContent=user.avatar||'AD';
+  
+  // Show role badge
+  const rb=document.getElementById('topbar-role-badge');
+  if(rb){
+    const rol=user.rol||user.role||'admin';
+    const labels={admin:'Admin',employee:'Empleado',client:'Cliente'};
+    rb.textContent=labels[rol]||rol;
+    rb.className='role-badge role-'+rol;
+    rb.style.display='';
+  }
+  
+  // Apply role-based navigation visibility
+  _applyRoleNav(user.rol||user.role||'admin');
+  
   // Populate portal select
   const ps=$('portal-cliente-select');
-  ps.innerHTML='<option value="">— Seleccionar cliente —</option>'+DB.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
-  navigate('dashboard');
-  /* Apply any saved system brand on login */
+  if(ps) ps.innerHTML='<option value="">— Seleccionar cliente —</option>'+DB.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+  
+  // Role-based initial section
+  const rol=user.rol||user.role||'admin';
+  if(rol==='client') navigate('portal');
+  else if(rol==='employee') navigate('tareas');
+  else navigate('dashboard');
+  
   if(DB.sistema?.colorBrand) applySystemSettings();
-  toast('success',`Bienvenido, ${user.nombre.split(' ')[0]}!`);
+  updateConnectionStatus();
+  toast('success',`Bienvenido, ${(user.nombre||user.name||'').split(' ')[0]}! <span class="role-badge role-${rol}" style="margin-left:6px">${rol}</span>`);
+}
+
+function _applyRoleNav(rol){
+  // Admin sees everything. Employee hides client-only items. Client sees only portal.
+  const adminOnly = ['pipeline','plantillas_web','presupuestos','contratos','analytics','configuracion','actividad'];
+  const employeeHide = ['configuracion'];
+  const clientOnly  = ['portal'];
+  document.querySelectorAll('.nav-item[data-section]').forEach(el=>{
+    const sec = el.dataset.section;
+    if(rol==='client'){
+      el.classList.toggle('role-hidden', !clientOnly.includes(sec));
+    } else if(rol==='employee'){
+      el.classList.toggle('role-hidden', employeeHide.includes(sec));
+    } else {
+      el.classList.remove('role-hidden');
+    }
+  });
 }
 function doLogout(){
   DB.currentUser=null;Object.keys(_charts).forEach(_dc);
@@ -6968,7 +7164,7 @@ function previewDoc(tipo){
   const b64=localStorage.getItem('adm_doc_'+tipo);
   if(!b64){toast('info','No hay documento cargado');return;}
   const win=window.open('');
-  win.document.write('<html><body style="margin:0"><iframe src="'+b64+'" style="width:100%;height:100vh;border:none"></iframe></body></html>');
+  win.document.write('<html><body style="margin:0"><iframe src="'+b64+'" style="width:100%;height:100vh;border:none"></iframe>'+'<\/body><\/html>');
   win.document.close();
 }
 function downloadDoc(tipo){
@@ -7585,6 +7781,7 @@ function renderAnalytics(){
     {label:'Leads en Pipeline',value:totalLeads,icon:'fa-filter',acc:'acc-teal',si:'si-teal',ch:convRate+'% conversión',dir:'flat'}
   ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div><span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span></div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
   setTimeout(()=>renderAnalyticsCharts(cc),80);
+  renderFinancialKPIs();
 }
 
 function renderAnalyticsCharts(cc){
@@ -7938,7 +8135,138 @@ function downloadPDF(){
   win.document.write(`<!DOCTYPE html><html><head>
     <meta charset="UTF-8"><title>Documento</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>body{margin:32px;font-family:'Poppins',sans-serif;background:#fff}@media print{body{margin:16px}}</style>
+    <style>body{margin:32px;font-family:'Poppins',sans-serif;background:#fff}@media print{body{margin:16px}}
+/* ══════════════════════════════════════════════════════════════
+   V9 SaaS — Connection Status, Role Badges, Dept chips
+   ══════════════════════════════════════════════════════════════ */
+
+/* Connection status indicator */
+.conn-status {
+  display:flex;align-items:center;gap:6px;
+  padding:5px 10px;border-radius:99px;cursor:pointer;
+  font-size:11px;font-weight:600;letter-spacing:.3px;
+  border:1.5px solid transparent;transition:all var(--ease);
+  white-space:nowrap;
+}
+.conn-status:hover { opacity:.85; }
+.conn-dot {
+  width:7px;height:7px;border-radius:50%;
+  animation:connPulse 2s infinite;
+}
+.conn-local  { background:var(--bg-2);border-color:var(--bd);color:var(--tx-2); }
+.conn-local  .conn-dot { background:#94a3b8;animation:none; }
+.conn-syncing { background:#fffbeb;border-color:#f59e0b;color:#b45309; }
+[data-theme=dark] .conn-syncing { background:#2d2005;color:#fbbf24; }
+.conn-syncing .conn-dot { background:#f59e0b; }
+.conn-online { background:#f0fdf4;border-color:#22c55e;color:#15803d; }
+[data-theme=dark] .conn-online { background:#052e16;color:#4ade80; }
+.conn-online .conn-dot { background:#22c55e; }
+.conn-offline { background:#fef2f2;border-color:#ef4444;color:#b91c1c; }
+[data-theme=dark] .conn-offline { background:#2d0a0a;color:#f87171; }
+.conn-offline .conn-dot { background:#ef4444;animation:none; }
+@keyframes connPulse {
+  0%,100%{opacity:1;box-shadow:0 0 0 0 currentColor}
+  50%{opacity:.7;box-shadow:0 0 0 4px transparent}
+}
+
+/* Role badge */
+.role-badge {
+  padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase;
+}
+.role-admin    { background:#ede9fe;color:#7c3aed; }
+.role-employee { background:#dbeafe;color:#1d4ed8; }
+.role-client   { background:#dcfce7;color:#15803d; }
+[data-theme=dark] .role-admin    { background:#2e1065;color:#c4b5fd; }
+[data-theme=dark] .role-employee { background:#0f172a;color:#7dd3fc; }
+[data-theme=dark] .role-client   { background:#052e16;color:#86efac; }
+
+/* Department chip */
+.dept-chip {
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;
+  background:var(--brand-soft);color:var(--brand);
+}
+
+/* Saas user table */
+.user-row { display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--bd); }
+.user-row:last-child { border-bottom:none; }
+.user-avatar-sm {
+  width:34px;height:34px;border-radius:50%;
+  background:var(--brand);color:#fff;display:flex;
+  align-items:center;justify-content:center;font-size:12px;font-weight:700;
+  flex-shrink:0;
+}
+.user-info-col { flex:1;min-width:0; }
+.user-name { font-size:13px;font-weight:600;color:var(--tx-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.user-email { font-size:11px;color:var(--tx-3); }
+.user-actions { display:flex;gap:6px; }
+
+/* Financial dashboard enhancements */
+.fin-metric-card {
+  background:var(--bg-1);border:1px solid var(--bd);border-radius:var(--r-lg);
+  padding:20px 24px;position:relative;overflow:hidden;
+}
+.fin-metric-card::after {
+  content:'';position:absolute;top:0;right:0;
+  width:80px;height:80px;border-radius:0 0 0 80px;
+  background:var(--brand-soft);opacity:.6;
+}
+.fin-metric-value { font-size:28px;font-weight:800;color:var(--tx-1);letter-spacing:-1px; }
+.fin-metric-label { font-size:12px;color:var(--tx-3);margin-top:4px; }
+.fin-metric-delta { font-size:12px;font-weight:600;margin-top:6px; }
+.fin-metric-delta.up   { color:#22c55e; }
+.fin-metric-delta.down { color:#ef4444; }
+
+/* Departments panel */
+.dept-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px; }
+.dept-card {
+  background:var(--bg-1);border:1px solid var(--bd);border-radius:var(--r-lg);
+  padding:18px 20px;cursor:pointer;transition:all var(--ease);
+}
+.dept-card:hover { border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft); }
+.dept-card-icon { font-size:24px;margin-bottom:10px; }
+.dept-card-name { font-size:14px;font-weight:700;color:var(--tx-1); }
+.dept-card-count { font-size:12px;color:var(--tx-3);margin-top:4px; }
+
+/* Backup panel */
+.backup-action-card {
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;background:var(--bg-1);border:1px solid var(--bd);
+  border-radius:var(--r-lg);transition:all var(--ease);cursor:pointer;
+}
+.backup-action-card:hover { border-color:var(--brand);box-shadow:var(--sh-sm); }
+.backup-action-icon { width:40px;height:40px;border-radius:10px;background:var(--brand-soft);
+  color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:16px; }
+
+/* Role-restricted nav items */
+.nav-item[data-role-required] { transition: opacity .2s; }
+.nav-item.role-hidden { display:none!important; }
+
+/* Sync toast style */
+.sync-badge {
+  display:inline-flex;align-items:center;gap:5px;
+  padding:2px 8px;background:var(--brand-soft);color:var(--brand);
+  border-radius:6px;font-size:11px;font-weight:600;
+}
+
+/* Portal enhanced */
+.portal-header-bar {
+  background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2,#7c3aed) 100%);
+  border-radius:var(--r-lg);padding:28px 32px;color:#fff;margin-bottom:20px;
+}
+.portal-header-bar h2 { font-size:22px;font-weight:800;margin:0 0 6px; }
+.portal-header-bar p  { font-size:13px;opacity:.85;margin:0; }
+
+/* v9 badge in login */
+.v9-badge {
+  display:inline-block;padding:2px 8px;background:linear-gradient(90deg,var(--brand),#7c3aed);
+  color:#fff;border-radius:99px;font-size:10px;font-weight:700;
+  letter-spacing:.5px;vertical-align:middle;margin-left:6px;
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+</style>
     </head><body>${content}</body></html>`);
   win.document.close();
   win.focus();
@@ -8119,6 +8447,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   try{const saved=localStorage.getItem('adm_config');if(saved)DB.config={...DB.config,...JSON.parse(saved)};}catch(e){}
   try{const saved=localStorage.getItem('adm_sistema');if(saved)DB.sistema={...DB.sistema,...JSON.parse(saved)};}catch(e){}
   try{const pt=localStorage.getItem('adm_proy_tareas');if(pt)DB.proyecto_tareas={...DB.proyecto_tareas,...JSON.parse(pt)};}catch(e){}
+  // Load departamentos from localStorage
+  try{const depts=localStorage.getItem('adm_departamentos');if(depts){const parsed=JSON.parse(depts);if(parsed.length)DB.departamentos=parsed;}}catch(e){}
+  // v9: update connection status after boot
+  setTimeout(updateConnectionStatus,200);
 
   // 2. If db layer available, also sync via db (supports Supabase future)
   if(window.db){
@@ -8171,6 +8503,478 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   console.log('AlexisDigital Manager v8 — ready 🚀 [storage: '+(window.STORAGE_MODE||'local')+']');
 })();
+
+/* ================================================================
+   V9 SAAS — Core Functions
+   ================================================================ */
+
+/* ── CONNECTION STATUS ──────────────────────────────────────── */
+function updateConnectionStatus(){
+  const el    = document.getElementById('conn-status');
+  const label = document.getElementById('conn-label');
+  if(!el) return;
+  const mode = window.STORAGE_MODE||'local';
+  el.className = 'conn-status ' + (mode==='supabase'?'conn-online':'conn-local');
+  if(label) label.textContent = mode==='supabase'?'Supabase':'Local';
+}
+
+/* ── DEPARTMENTS ────────────────────────────────────────────── */
+function renderDepartamentos(){
+  const grid = document.getElementById('departamentos-grid');
+  if(!grid) return;
+  const depts = DB.departamentos||[];
+  if(!depts.length){
+    grid.innerHTML='<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-sitemap"></i></div><p>Sin departamentos creados</p></div>';
+    return;
+  }
+  grid.innerHTML = depts.map(d=>{
+    const emps  = (DB.usuarios||[]).filter(u=>(u.departamentoId||u.department_id)===d.id).length;
+    const projs = (DB.proyectos||[]).filter(p=>(p.departamentoId||p.department_id)===d.id).length;
+    return `<div class="dept-card" onclick="editDepartamento(${d.id})">
+      <div class="dept-card-icon">${d.emoji||'🏢'}</div>
+      <div class="dept-card-name">${d.nombre}</div>
+      <div class="dept-card-count">${emps} empleado${emps!==1?'s':''} · ${projs} proyecto${projs!==1?'s':''}</div>
+      ${d.desc?`<div class="text-muted text-sm" style="margin-top:6px">${d.desc}</div>`:''}
+    </div>`;
+  }).join('');
+  
+  // Dept stats
+  const statsGrid = document.getElementById('dept-stats-grid');
+  if(statsGrid){
+    statsGrid.innerHTML = depts.map(d=>{
+      const ingresos = (DB.facturas||[])
+        .filter(f=>f.estado==='pagada')
+        .filter(f=>{
+          const p=(DB.proyectos||[]).find(p=>p.id===f.proyectoId);
+          return p&&(p.departamentoId||p.department_id)===d.id;
+        })
+        .reduce((a,f)=>a+f.monto,0);
+      return `<div class="stat-card">
+        <div class="stat-value">${d.emoji||'🏢'} ${d.nombre}</div>
+        <div class="stat-sub" style="margin-top:6px">
+          <span class="badge badge-brand">${fmtMoney(ingresos)}</span> facturado
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function saveDepartamento(){
+  const id  = $('dept-id').value;
+  const data = {
+    nombre: $('dept-nombre').value.trim(),
+    desc:   $('dept-desc').value.trim(),
+    emoji:  $('dept-emoji').value.trim()||'🏢',
+  };
+  if(!data.nombre){toast('error','El nombre es obligatorio');return;}
+  if(id){
+    const idx=DB.departamentos.findIndex(d=>d.id==id);
+    DB.departamentos[idx]={...DB.departamentos[idx],...data};
+  } else {
+    data.id=nextId();
+    DB.departamentos.push(data);
+  }
+  _persistArray('departamentos');
+  _syncRecord('departamentos',id?DB.departamentos.find(d=>d.id==id)||data:data);
+  closeModal('modal-departamento');
+  renderDepartamentos();
+  toast('success','Departamento guardado');
+}
+
+function editDepartamento(id){
+  const d=DB.departamentos.find(d=>d.id===id);
+  if(!d) return;
+  $('modal-departamento-title').textContent='Editar Departamento';
+  $('dept-id').value=d.id;
+  $('dept-nombre').value=d.nombre;
+  $('dept-desc').value=d.desc||'';
+  $('dept-emoji').value=d.emoji||'';
+  openModal('modal-departamento');
+}
+
+function deleteDepartamento(id){
+  if(!confirm('¿Eliminar departamento?')) return;
+  DB.departamentos=DB.departamentos.filter(d=>d.id!==id);
+  _persistArray('departamentos');
+  renderDepartamentos();
+  toast('info','Departamento eliminado');
+}
+
+/* ── BACKUP SYSTEM ──────────────────────────────────────────── */
+const _backupHistory=[];
+
+function exportFullBackup(){
+  const stamp = new Date().toISOString().replace(/[:.]/g,'-');
+  const data = {
+    version:'v9',
+    timestamp: new Date().toISOString(),
+    app:'AlexisDigital Manager',
+    data:{
+      clientes:    DB.clientes,
+      proyectos:   DB.proyectos,
+      presupuestos:DB.presupuestos,
+      facturas:    DB.facturas,
+      transacciones:DB.transacciones,
+      tareas:      DB.tareas,
+      leads:       DB.leads,
+      departamentos:DB.departamentos,
+      usuarios:    DB.usuarios.map(u=>({...u,password:'[redacted]'})),
+      config:      DB.config,
+      sistema:     DB.sistema,
+    }
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`alexisdigital-backup-${stamp}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  const entry={id:Date.now(),fecha:new Date().toLocaleString('es'),tipo:'export',size:blob.size};
+  _backupHistory.unshift(entry);
+  _renderBackupHistory();
+  const log=document.getElementById('backup-log');
+  if(log) log.textContent=`✓ Backup exportado: ${(blob.size/1024).toFixed(1)} KB`;
+  showToast('success','Backup exportado correctamente');
+}
+
+function restoreFromBackup(input){
+  const file=input.files?.[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const bk=JSON.parse(e.target.result);
+      if(!bk.data){showToast('error','Formato de backup inválido');return;}
+      if(!confirm(`¿Restaurar backup del ${bk.timestamp||'?'}? Esto sobreescribirá los datos actuales.`)) return;
+      const d=bk.data;
+      if(d.clientes)     DB.clientes=d.clientes;
+      if(d.proyectos)    DB.proyectos=d.proyectos;
+      if(d.presupuestos) DB.presupuestos=d.presupuestos;
+      if(d.facturas)     DB.facturas=d.facturas;
+      if(d.transacciones)DB.transacciones=d.transacciones;
+      if(d.tareas)       DB.tareas=d.tareas;
+      if(d.leads)        DB.leads=d.leads;
+      if(d.departamentos)DB.departamentos=d.departamentos;
+      if(d.config)       DB.config={...DB.config,...d.config};
+      // Persist all
+      ['clientes','proyectos','presupuestos','facturas','transacciones','tareas','leads','departamentos'].forEach(_persistArray);
+      _persistAll();
+      showToast('success','Backup restaurado correctamente');
+      navigate(window._currentSection||'dashboard');
+    }catch(err){
+      showToast('error','Error al leer el backup: '+err.message);
+    }
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+function exportCSVAll(){
+  const sections=[
+    {name:'clientes',    data:DB.clientes,    cols:['id','nombre','email','telefono','empresa','estado']},
+    {name:'proyectos',   data:DB.proyectos,   cols:['id','nombre','estado','precio','inicio','entrega']},
+    {name:'facturas',    data:DB.facturas,    cols:['id','monto','estado','fecha','vence']},
+    {name:'transacciones',data:DB.transacciones,cols:['id','tipo','fecha','descripcion','monto','categoria']},
+  ];
+  sections.forEach(s=>{
+    const header=s.cols.join(',');
+    const rows=s.data.map(r=>s.cols.map(k=>`"${(r[k]||'').toString().replace(/"/g,'""')}"`).join(','));
+    const csv=[header,...rows].join('\n');
+    const blob=new Blob([csv],{type:'text/csv'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=`${s.name}-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  showToast('success','CSV exportados ('+sections.length+' archivos)');
+}
+
+async function syncAllToSupabase(){
+  if(window.STORAGE_MODE!=='supabase'||!window._supabaseClient){
+    showToast('warning','Conecta Supabase primero'); return;
+  }
+  showToast('info','Sincronizando todos los datos…');
+  const tables=['clientes','proyectos','presupuestos','facturas','transacciones','tareas','leads'];
+  let total=0;
+  for(const t of tables){
+    const arr=DB[t]||[];
+    for(const record of arr){
+      await _syncRecord(t,record);
+      total++;
+    }
+  }
+  showToast('success',`Sincronización completada: ${total} registros`);
+  const log=document.getElementById('backup-log');
+  if(log) log.textContent=`✓ Sincronización completada: ${total} registros — ${new Date().toLocaleString('es')}`;
+}
+
+function _renderBackupHistory(){
+  const el=document.getElementById('backup-history-list');
+  if(!el) return;
+  if(!_backupHistory.length){
+    el.innerHTML='<div class="empty-state" style="padding:20px"><div class="empty-ico" style="font-size:24px"><i class="fa-solid fa-box-archive"></i></div><p>Sin backups registrados</p></div>';
+    return;
+  }
+  el.innerHTML=_backupHistory.map(b=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--bd)">
+      <i class="fa-solid fa-file-zipper" style="color:var(--brand)"></i>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${b.tipo==='export'?'Backup exportado':'Backup restaurado'}</div>
+        <div style="font-size:11px;color:var(--tx-3)">${b.fecha} · ${b.size?(b.size/1024).toFixed(1)+' KB':''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ── GLOBAL SUPABASE CONFIG INIT ───────────────────────────── */
+(function _initGlobalSBConfig(){
+  // Try to restore saved credentials and auto-connect
+  try{
+    const url=localStorage.getItem('sb_url');
+    const key=localStorage.getItem('sb_key');
+    if(url&&key&&window.supabase){
+      window.SUPABASE_CONFIG={url,anonKey:key};
+      window._supabaseClient=window.supabase.createClient(url,key,{
+        auth:{autoRefreshToken:true,persistSession:true}
+      });
+      window.STORAGE_MODE='supabase';
+      console.log('[v9] Supabase auto-initialized ✓');
+      // Update status after DOM ready
+      setTimeout(updateConnectionStatus,100);
+      // Show notice on login
+      const notice=document.getElementById('sb-auth-notice');
+      if(notice) notice.style.display='';
+    }
+  }catch(e){console.warn('[v9] Supabase init failed:',e);}
+})();
+
+/* ── FINANCIAL DASHBOARD ENHANCEMENTS ──────────────────────── */
+function renderFinancialKPIs(){
+  const container=document.getElementById('analytics-kpis');
+  if(!container) return;
+  
+  const now=new Date();
+  const thisMonth=now.getMonth();
+  const thisYear=now.getFullYear();
+  
+  const totalRev = DB.facturas.filter(f=>f.estado==='pagada').reduce((a,f)=>a+f.monto,0);
+  const pendingInv = DB.facturas.filter(f=>f.estado==='pendiente').reduce((a,f)=>a+f.monto,0);
+  const monthRev = DB.facturas
+    .filter(f=>f.estado==='pagada'&&f.fechaPago)
+    .filter(f=>{const d=new Date(f.fechaPago);return d.getMonth()===thisMonth&&d.getFullYear()===thisYear;})
+    .reduce((a,f)=>a+f.monto,0);
+  const convRate = DB.presupuestos.length
+    ? Math.round((DB.presupuestos.filter(p=>p.estado==='aprobado').length/DB.presupuestos.length)*100)
+    : 0;
+  const topClient = DB.clientes.length ? (() => {
+    const clientRevs = DB.clientes.map(cl=>({
+      cl,rev:DB.facturas.filter(f=>f.clienteId===cl.id&&f.estado==='pagada').reduce((a,f)=>a+f.monto,0)
+    })).sort((a,b)=>b.rev-a.rev)[0];
+    return clientRevs;
+  })() : null;
+  
+  // Inject enhanced KPI cards into existing analytics container
+  const extra=document.getElementById('analytics-fin-extra');
+  if(extra){
+    extra.innerHTML=`
+      <div class="fin-metric-card"><div class="fin-metric-value">${fmtMoney(totalRev)}</div><div class="fin-metric-label">Ingresos totales</div></div>
+      <div class="fin-metric-card"><div class="fin-metric-value">${fmtMoney(pendingInv)}</div><div class="fin-metric-label">Facturas pendientes</div><div class="fin-metric-delta down"><i class="fa-solid fa-circle-exclamation"></i> Por cobrar</div></div>
+      <div class="fin-metric-card"><div class="fin-metric-value">${fmtMoney(monthRev)}</div><div class="fin-metric-label">Ingresos este mes</div></div>
+      <div class="fin-metric-card"><div class="fin-metric-value">${convRate}%</div><div class="fin-metric-label">Tasa de conversión</div><div class="fin-metric-delta ${convRate>50?'up':'down'}">${convRate>50?'↑ Buena':'↓ Mejorar'}</div></div>
+      ${topClient?`<div class="fin-metric-card"><div class="fin-metric-value" style="font-size:16px">${topClient.cl.nombre}</div><div class="fin-metric-label">Top cliente</div><div class="fin-metric-delta up">${fmtMoney(topClient.rev)}</div></div>`:''}
+    `;
+  }
+}
+
+/* ── ENHANCED USER MANAGEMENT WITH SUPABASE ────────────────── */
+async function createUserSupabase(userData){
+  if(window.STORAGE_MODE!=='supabase'||!window._supabaseClient){
+    // Local fallback — add to DB.usuarios
+    userData.id=nextId();
+    userData.avatar=(userData.nombre||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    DB.usuarios.push(userData);
+    showToast('success','Usuario creado (modo local)');
+    renderUsuarios();
+    return;
+  }
+  try{
+    // Create auth user
+    const {data,error}=await window._supabaseClient.auth.admin.createUser({
+      email:userData.email,
+      password:userData.password||'temporal123',
+      email_confirm:true,
+    });
+    if(error) throw error;
+    // Save profile
+    await window._supabaseClient.from('users').insert({
+      id:data.user.id,
+      name:userData.nombre,
+      email:userData.email,
+      role:userData.rol||'employee',
+      department_id:userData.departamentoId||null,
+    });
+    showToast('success','Usuario creado en Supabase');
+    renderUsuarios();
+  }catch(err){
+    showToast('error','Error al crear usuario: '+err.message);
+  }
+}
+
+/* ── ENHANCED PORTAL CLIENT VIEW ───────────────────────────── */
+function renderPortalEnhanced(clientId){
+  const container=document.getElementById('portal-content');
+  if(!container) return;
+  const cl=DB.clientes.find(c=>c.id===clientId||c.id===+clientId);
+  if(!cl){
+    container.innerHTML='<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-user"></i></div><h3>Selecciona un cliente</h3></div>';
+    return;
+  }
+  const projs   = DB.proyectos.filter(p=>p.clienteId===cl.id);
+  const facts   = DB.facturas.filter(f=>f.clienteId===cl.id);
+  const pending = facts.filter(f=>f.estado==='pendiente').reduce((a,f)=>a+f.monto,0);
+  const paid    = facts.filter(f=>f.estado==='pagada').reduce((a,f)=>a+f.monto,0);
+  
+  container.innerHTML=`
+    <div class="portal-header-bar">
+      <h2><i class="fa-solid fa-globe" style="margin-right:10px"></i>${cl.nombre}</h2>
+      <p>${cl.empresa?cl.empresa+' · ':''}${cl.email}</p>
+    </div>
+    <div class="stats-grid" style="margin-bottom:20px">
+      <div class="stat-card"><div class="stat-value">${projs.length}</div><div class="stat-label">Proyectos</div></div>
+      <div class="stat-card"><div class="stat-value">${projs.filter(p=>p.estado==='completado').length}</div><div class="stat-label">Completados</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--green)">${fmtMoney(paid)}</div><div class="stat-label">Total pagado</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--amber)">${fmtMoney(pending)}</div><div class="stat-label">Pendiente de pago</div></div>
+    </div>
+    <div class="dash-row">
+      <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-code-branch"></i> Proyectos</div></div>
+        <div class="card-body">
+          ${projs.length?projs.map(p=>`
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)">
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:13px">${p.nombre}</div>
+                <div style="font-size:11px;color:var(--tx-3)">${p.inicio||''} ${p.entrega?'→ '+p.entrega:''}</div>
+              </div>
+              <span class="badge badge-${p.estado==='completado'?'green':p.estado==='en desarrollo'?'brand':'gray'}">${p.estado}</span>
+            </div>
+          `).join(''):'<div class="text-muted">Sin proyectos</div>'}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-receipt"></i> Facturas</div></div>
+        <div class="card-body">
+          ${facts.length?facts.map(f=>`
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)">
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:13px">${fmtMoney(f.monto)}</div>
+                <div style="font-size:11px;color:var(--tx-3)">${f.fecha||''} ${f.vence?'· vence '+f.vence:''}</div>
+              </div>
+              <span class="badge badge-${f.estado==='pagada'?'green':'amber'}">${f.estado}</span>
+            </div>
+          `).join(''):'<div class="text-muted">Sin facturas</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ── OVERRIDE renderPortal to use enhanced version ─────────── */
+const _origRenderPortal = typeof renderPortal==='function' ? renderPortal : null;
+function renderPortal(){
+  const sel=document.getElementById('portal-cliente-select');
+  if(sel&&sel.value){
+    renderPortalEnhanced(parseInt(sel.value));
+  } else if(_origRenderPortal){
+    _origRenderPortal();
+  }
+}
+
+/* ── WIRE switchCfgPanel to render departamentos/backup ──── */
+const _origSwitchCfgPanel=typeof switchCfgPanel==='function'?switchCfgPanel:null;
+function switchCfgPanel(name,btn){
+  if(_origSwitchCfgPanel) _origSwitchCfgPanel(name,btn);
+  if(name==='departamentos') setTimeout(renderDepartamentos,50);
+  if(name==='backup')        setTimeout(_renderBackupHistory,50);
+  if(name==='integraciones') setTimeout(renderDbStatus,50);
+}
+
+/* ── INIT v9 ─────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded',()=>{
+  updateConnectionStatus();
+  // Add financial extra container to analytics section if not present
+  const analyticsKpis=document.getElementById('analytics-kpis');
+  if(analyticsKpis&&!document.getElementById('analytics-fin-extra')){
+    const div=document.createElement('div');
+    div.id='analytics-fin-extra';
+    div.className='stats-grid';
+    div.style.cssText='margin-top:16px';
+    analyticsKpis.parentNode.insertBefore(div,analyticsKpis.nextSibling);
+  }
+});
+
+
+async function syncUsersFromSupabase(){
+  if(window.STORAGE_MODE!=='supabase'||!window._supabaseClient){
+    showToast('warning','Conecta Supabase primero'); return;
+  }
+  try{
+    const {data,error}=await window._supabaseClient.from('users').select('*');
+    if(error) throw error;
+    if(data&&data.length){
+      data.forEach(u=>{
+        const exists=DB.usuarios.find(lu=>lu.email===u.email);
+        if(!exists){
+          DB.usuarios.push({
+            id:u.id,nombre:u.name,email:u.email,
+            rol:u.role||'employee',departamentoId:u.department_id,
+            avatar:(u.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2),
+            password:'[supabase]'
+          });
+        }
+      });
+      renderUsuarios();
+      showToast('success',data.length+' usuarios sincronizados desde Supabase');
+    } else {
+      showToast('info','No hay usuarios en Supabase todavía');
+    }
+  }catch(err){
+    showToast('error','Error: '+err.message);
+  }
+}
+
+console.log('[v9] SaaS core loaded ✓');
+
 </script>
+  <!-- MODAL: DEPARTAMENTO -->
+  <div class="modal-overlay" id="modal-departamento">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-departamento-title">Nuevo Departamento</div>
+        <button class="modal-close" onclick="closeModal('modal-departamento')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="dept-id">
+        <div class="form-group">
+          <label class="form-label">Nombre <span style="color:var(--red)">*</span></label>
+          <input type="text" class="form-input" id="dept-nombre" placeholder="ej. Desarrollo, Diseño, Ventas">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descripción</label>
+          <input type="text" class="form-input" id="dept-desc" placeholder="Descripción breve">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Emoji / Ícono</label>
+          <input type="text" class="form-input" id="dept-emoji" placeholder="🖥️" maxlength="4">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-departamento')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveDepartamento()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
