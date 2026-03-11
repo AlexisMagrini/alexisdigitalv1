@@ -806,12 +806,14 @@ tbody tr:hover{background:var(--bg-3)}
 .proj-task-add{display:flex;gap:8px;margin-top:8px}
 
 /* ── CONFIG SUB-TABS ────────────────────────────────────────── */
-.cfg-layout{display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start}
+.cfg-layout{display:flex;gap:20px;align-items:flex-start}
 .cfg-sidebar{
   background:var(--bg-1);border:1px solid var(--bd);
-  border-radius:var(--r-lg);overflow-y:auto;box-shadow:var(--sh-sm);
-  position:sticky;top:0;max-height:calc(100vh - 120px);
+  border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);
+  flex:0 0 220px;width:220px;
+  position:sticky;top:16px;
 }
+#cfg-panels{flex:1;min-width:0}
 .cfg-sidebar-item{
   display:flex;align-items:center;gap:10px;
   padding:11px 16px;cursor:pointer;font-size:13px;font-weight:500;
@@ -3222,6 +3224,26 @@ CREATE POLICY "Users see own tareas"       ON tareas       FOR ALL USING (auth.u
 CREATE POLICY "Users see own activity"     ON activity_log FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users see own reminders"    ON reminders    FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users see own kv"           ON kv_store     FOR ALL USING (auth.uid() = user_id);
+
+-- ══════════════════════════════════════════════
+-- RLS POLICIES (ejecutar DESPUÉS de crear tablas)
+-- ══════════════════════════════════════════════
+
+-- Opción A: Deshabilitar RLS (más simple para uso privado)
+ALTER TABLE clientes        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE proyectos       DISABLE ROW LEVEL SECURITY;
+ALTER TABLE presupuestos    DISABLE ROW LEVEL SECURITY;
+ALTER TABLE facturas        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE transacciones   DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tareas          DISABLE ROW LEVEL SECURITY;
+ALTER TABLE leads           DISABLE ROW LEVEL SECURITY;
+ALTER TABLE kv_store        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_log    DISABLE ROW LEVEL SECURITY;
+ALTER TABLE reminders       DISABLE ROW LEVEL SECURITY;
+
+-- Opción B: Permitir todo a usuarios autenticados
+-- ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
+-- CREATE POLICY "allow_all" ON clientes FOR ALL TO authenticated USING (true) WITH CHECK (true);
 `;
 
 window.SUPABASE_SCHEMA = SUPABASE_SCHEMA;
@@ -5280,7 +5302,13 @@ async function _syncRecord(arrayKey, record, isDelete = false) {
     }
   } catch(e) {
     console.error('[sync] Supabase write failed:', e.message);
-    showToast('warning', 'Guardado local ✓ — Supabase: ' + e.message);
+    // Give actionable message for RLS errors
+    const msg = e.message||'';
+    if(msg.includes('row-level security')||msg.includes('RLS')||msg.includes('policy')){
+      showToast('warning', '⚠️ RLS activo en Supabase — ejecuta las políticas SQL desde Configuración → Integraciones');
+    } else {
+      showToast('warning', 'Local ✓ — Supabase: ' + msg.slice(0,60));
+    }
   }
 }
 
