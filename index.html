@@ -965,11 +965,11 @@ tbody tr:hover{background:var(--bg-3)}
     <div class="login-sub">Ingresa a tu panel de gestión de agencia <span class="v9-badge">SaaS v9</span></div>
     <div class="form-group">
       <label class="form-label"><i class="fa-solid fa-envelope" style="margin-right:5px;color:var(--brand)"></i>Email</label>
-      <input type="email" class="form-input" id="login-email" placeholder="admin@alexisdigital.com" value="admin@alexisdigital.com">
+      <input type="email" class="form-input" id="login-email" placeholder="tu@email.com">
     </div>
     <div class="form-group">
       <label class="form-label"><i class="fa-solid fa-lock" style="margin-right:5px;color:var(--brand)"></i>Contraseña</label>
-      <input type="password" class="form-input" id="login-pass" placeholder="••••••••" value="admin123">
+      <input type="password" class="form-input" id="login-pass" placeholder="••••••••">
     </div>
     <button class="btn btn-primary btn-full btn-login" onclick="doLogin()">
       <i class="fa-solid fa-right-to-bracket"></i> Ingresar al sistema
@@ -977,7 +977,6 @@ tbody tr:hover{background:var(--bg-3)}
     <div id="sb-auth-notice" style="display:none;margin-top:12px;padding:10px 12px;background:var(--brand-soft);border-radius:8px;font-size:12px;color:var(--brand);text-align:center">
       <i class="fa-solid fa-cloud"></i> Autenticación Supabase activa
     </div>
-    <div class="login-demo">Demo: <code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b6d7d2dbdfd8f6d7dad3cedfc5d2dfd1dfc2d7da98d5d9db">[email&#160;protected]</a></code> / <code>admin123</code></div>
   </div>
 </div>
 
@@ -990,11 +989,11 @@ tbody tr:hover{background:var(--bg-3)}
       <div class="s-logo-v9" id="s-logo-wrap">
         <div class="s-logo-mark-v9" id="s-logo-mark">
           <img id="s-logo-img" src="" style="display:none;width:44px;height:44px;object-fit:contain;border-radius:10px">
-          <span id="s-logo-emoji" style="font-size:24px;line-height:1">⚡</span>
+          <span id="s-logo-emoji" style="font-size:24px;line-height:1;display:none"></span>
         </div>
         <div>
-          <div class="s-logo-name" id="s-logo-text-wrap">AlexisDigital <span id="s-sys-name">Manager</span></div>
-          <div class="s-logo-sub" id="s-logo-sub">AlexisDigital</div>
+          <div class="s-logo-name" id="s-logo-text-wrap"><span id="s-sys-name">AlexisDigital</span></div>
+          <div class="s-logo-sub" id="s-logo-sub"></div>
         </div>
       </div>
     </div>
@@ -5007,93 +5006,19 @@ let DB={
     {id:5,nombre:'Marketing',desc:'Campañas y redes sociales',emoji:'📣'},
   ],
   config:{agencia:'AlexisDigital',moneda:'ARS',idioma:'es',email_agencia:'contacto@alexisdigital.com',telefono:'+54 11 1234-5678',direccion:'Buenos Aires, Argentina',notificaciones:true,dark_mode:false},
-  clientes:[
-    {id:1,nombre:'Carlos Martínez',email:'carlos@techcorp.com',telefono:'+54 11 9876-5432',empresa:'TechCorp SA',estado:'activo',notas:'Cliente premium.',creado:'2024-01-15'},
-    {id:2,nombre:'Laura Sánchez',email:'laura@modabella.ar',telefono:'+54 11 5555-1234',empresa:'Moda Bella',estado:'activo',notas:'Rediseño e-commerce.',creado:'2024-02-20'},
-    {id:3,nombre:'Roberto Díaz',email:'roberto@inmobdiaz.com',telefono:'+54 351 444-7890',empresa:'Inmobiliaria Díaz',estado:'lead',notas:'Interesado en landing page.',creado:'2024-03-05'},
-    {id:4,nombre:'Valentina Ruiz',email:'vale@consultora.com',telefono:'+54 261 333-2222',empresa:'Consultora VR',estado:'finalizado',notas:'Proyecto finalizado.',creado:'2023-11-10'},
-    {id:5,nombre:'Marcos Fernández',email:'marcos@restaurante.com',telefono:'+54 11 7777-8888',empresa:'El Rincón',estado:'activo',notas:'Sistema de reservas.',creado:'2024-04-01'}
-  ],
-  proyectos:[
-    {id:1,nombre:'Sitio Corporativo TechCorp',clienteId:1,estado:'en desarrollo',inicio:'2024-03-01',entrega:'2024-04-30',precio:250000,checklist:[{id:1,texto:'Diseño UX/UI',done:true},{id:2,texto:'Desarrollo frontend',done:true},{id:3,texto:'Integración backend',done:false},{id:4,texto:'Testing QA',done:false},{id:5,texto:'Deploy',done:false}]},
-    {id:2,nombre:'E-commerce Moda Bella',clienteId:2,estado:'en desarrollo',inicio:'2024-03-15',entrega:'2024-05-31',precio:420000,checklist:[{id:1,texto:'Diseño catálogo',done:true},{id:2,texto:'Carrito',done:false},{id:3,texto:'Pasarela de pago',done:false},{id:4,texto:'Panel admin',done:false}]},
-    {id:3,nombre:'Landing Page Inmobiliaria',clienteId:3,estado:'pendiente',inicio:'2024-04-10',entrega:'2024-04-25',precio:85000,checklist:[{id:1,texto:'Brief',done:false},{id:2,texto:'Wireframes',done:false},{id:3,texto:'Desarrollo',done:false}]},
-    {id:4,nombre:'Portal Consultora VR',clienteId:4,estado:'entregado',inicio:'2023-10-01',entrega:'2023-12-15',precio:180000,checklist:[{id:1,texto:'Diseño',done:true},{id:2,texto:'Desarrollo',done:true},{id:3,texto:'Entrega',done:true}]},
-    {id:5,nombre:'Sistema Reservas El Rincón',clienteId:5,estado:'pendiente',inicio:'2024-05-01',entrega:'2024-06-15',precio:320000,checklist:[{id:1,texto:'Análisis',done:false},{id:2,texto:'BD',done:false},{id:3,texto:'Frontend',done:false},{id:4,texto:'Notificaciones',done:false}]}
-  ],
-  transacciones:[
-    {id:1,tipo:'ingreso',fecha:'2024-04-01',descripcion:'Pago inicial TechCorp',clienteId:1,categoria:'Desarrollo web',monto:125000},
-    {id:2,tipo:'ingreso',fecha:'2024-04-05',descripcion:'50% E-commerce Moda Bella',clienteId:2,categoria:'Desarrollo web',monto:210000},
-    {id:3,tipo:'ingreso',fecha:'2024-04-12',descripcion:'Mantenimiento mensual',clienteId:1,categoria:'Mantenimiento',monto:25000},
-    {id:4,tipo:'gasto',fecha:'2024-04-02',descripcion:'Adobe Creative Cloud',clienteId:null,categoria:'Herramientas',monto:8500},
-    {id:5,tipo:'gasto',fecha:'2024-04-03',descripcion:'Hosting servidor VPS',clienteId:null,categoria:'Herramientas',monto:12000},
-    {id:6,tipo:'gasto',fecha:'2024-04-08',descripcion:'Publicidad redes sociales',clienteId:null,categoria:'Marketing',monto:15000},
-    {id:7,tipo:'pendiente',fecha:'2024-04-08',descripcion:'Saldo TechCorp',clienteId:1,categoria:'Desarrollo web',monto:125000,vence:'2024-04-30'},
-    {id:8,tipo:'pendiente',fecha:'2024-04-10',descripcion:'50% restante E-commerce',clienteId:2,categoria:'Desarrollo web',monto:210000,vence:'2024-05-31'},
-    {id:9,tipo:'pendiente',fecha:'2024-04-15',descripcion:'Landing Page Inmobiliaria',clienteId:3,categoria:'Desarrollo web',monto:85000,vence:'2024-04-25'}
-  ],
-  archivos:[
-    {id:1,nombre:'Contrato_TechCorp_2024.pdf',categoria:'contratos',tipo:'pdf',desc:'Contrato de desarrollo',fecha:'2024-03-01',size:'245 KB'},
-    {id:2,nombre:'Contrato_ModaBella.pdf',categoria:'contratos',tipo:'pdf',desc:'Contrato e-commerce',fecha:'2024-03-15',size:'189 KB'},
-    {id:3,nombre:'Brief_TechCorp.docx',categoria:'documentos',tipo:'doc',desc:'Brief inicial',fecha:'2024-02-28',size:'56 KB'},
-    {id:4,nombre:'Logo_ModaBella.zip',categoria:'documentos',tipo:'zip',desc:'Assets del cliente',fecha:'2024-03-16',size:'3.2 MB'},
-    {id:5,nombre:'Propuesta_comercial.docx',categoria:'plantillas',tipo:'doc',desc:'Plantilla de propuesta',fecha:'2024-01-10',size:'78 KB'},
-    {id:6,nombre:'Contrato_base.docx',categoria:'plantillas',tipo:'doc',desc:'Contrato base',fecha:'2024-01-10',size:'92 KB'},
-    {id:7,nombre:'Guía_onboarding.pdf',categoria:'recursos',tipo:'pdf',desc:'Manual empleados',fecha:'2024-01-15',size:'1.1 MB'},
-    {id:8,nombre:'Procesos_internos.pdf',categoria:'recursos',tipo:'pdf',desc:'Guía de procesos',fecha:'2024-02-01',size:'340 KB'}
-  ],
-  tareas:[
-    {id:1,titulo:'Revisar diseño home TechCorp',estado:'en progreso',prioridad:'alta',proyectoId:1,vence:'2024-04-20',desc:''},
-    {id:2,titulo:'Integrar API MercadoPago',estado:'pendiente',prioridad:'alta',proyectoId:2,vence:'2024-04-25',desc:''},
-    {id:3,titulo:'Call con Inmobiliaria Díaz',estado:'pendiente',prioridad:'media',proyectoId:3,vence:'2024-04-18',desc:''},
-    {id:4,titulo:'Subir propuesta E-commerce',estado:'completada',prioridad:'media',proyectoId:2,vence:'2024-04-15',desc:''},
-    {id:5,titulo:'Testing responsive TechCorp',estado:'en progreso',prioridad:'media',proyectoId:1,vence:'2024-04-22',desc:''},
-    {id:6,titulo:'Facturación mes de abril',estado:'pendiente',prioridad:'alta',proyectoId:null,vence:'2024-04-30',desc:''},
-    {id:7,titulo:'Backup base de datos',estado:'completada',prioridad:'baja',proyectoId:null,vence:'2024-04-10',desc:''},
-    {id:8,titulo:'Actualizar dependencias npm',estado:'pendiente',prioridad:'baja',proyectoId:null,vence:'2024-04-28',desc:''}
-  ],
+  clientes:[],
+  proyectos:[],
+  transacciones:[],
+  archivos:[],
+  tareas:[],
   actividad:[
-    {icon:'fa-user-plus',color:'brand',texto:'Nuevo cliente: <strong>Marcos Fernández</strong>',tiempo:'Hace 2h'},
-    {icon:'fa-file-invoice-dollar',color:'green',texto:'Pago recibido: <strong>$125.000</strong>',tiempo:'Hace 5h'},
-    {icon:'fa-list-check',color:'purple',texto:'Tarea completada: <strong>Subir propuesta</strong>',tiempo:'Ayer 14:30'},
-    {icon:'fa-code-branch',color:'amber',texto:'Proyecto actualizado: <strong>Moda Bella</strong>',tiempo:'Ayer 10:15'},
-    {icon:'fa-file-arrow-up',color:'teal',texto:'Archivo subido: <strong>Contrato_TechCorp.pdf</strong>',tiempo:'Hace 2 días'}
   ],
   /* NEW DATA for new modules */
-  eventos:[
-    {id:1,titulo:'Reunión TechCorp – revisión diseño',fecha:'2024-04-22',tipo:'reunion',clienteId:1,notas:'Revisar mockups del home'},
-    {id:2,titulo:'Entrega Landing Page Inmobiliaria',fecha:'2024-04-25',tipo:'entrega',clienteId:3,notas:'Entrega parcial'},
-    {id:3,titulo:'Call cierre E-commerce',fecha:'2024-04-28',tipo:'llamada',clienteId:2,notas:'Revisar avance carrito'},
-    {id:4,titulo:'Pago vencimiento TechCorp',fecha:'2024-04-30',tipo:'recordatorio',clienteId:1,notas:'Cobrar saldo pendiente'},
-    {id:5,titulo:'Inicio proyecto El Rincón',fecha:'2024-05-01',tipo:'reunion',clienteId:5,notas:'Kickoff del proyecto'}
-  ],
-  leads:[
-    {id:1,nombre:'Ana Torres',empresa:'Clínica Vitalia',contacto:'ana@vitalia.com',valor:180000,etapa:'lead'},
-    {id:2,nombre:'Pedro Gómez',empresa:'AutoZone Sur',contacto:'pgomez@autozone.ar',valor:95000,etapa:'contactado'},
-    {id:3,nombre:'Sofía Herrera',empresa:'Estudiantina',contacto:'sofia@estud.ar',valor:250000,etapa:'propuesta'},
-    {id:4,nombre:'Luis Mora',empresa:'Mora Abogados',contacto:'lmora@abog.com',valor:120000,etapa:'negociacion'},
-    {id:5,nombre:'Carla Ibáñez',empresa:'FitLife Club',contacto:'carla@fitlife.com',valor:80000,etapa:'cerrado'}
-  ],
-  presupuestos:[
-    {id:1,nombre:'Rediseño sitio web corporativo',clienteId:1,desc:'Rediseño completo del sitio web',precio:250000,estado:'aprobado',fecha:'2024-03-20',valido:'2024-04-20'},
-    {id:2,nombre:'E-commerce completo',clienteId:2,desc:'Tienda online con pasarela de pago',precio:420000,estado:'aprobado',fecha:'2024-03-15',valido:'2024-04-15'},
-    {id:3,nombre:'Landing + SEO',clienteId:3,desc:'Landing page optimizada para SEO',precio:85000,estado:'pendiente',fecha:'2024-04-05',valido:'2024-04-25'},
-    {id:4,nombre:'App de reservas',clienteId:5,desc:'Sistema de reservas online',precio:320000,estado:'pendiente',fecha:'2024-04-10',valido:'2024-05-10'},
-    {id:5,nombre:'Portal de clientes',clienteId:4,desc:'Portal privado para clientes',precio:150000,estado:'rechazado',fecha:'2024-02-01',valido:'2024-03-01'}
-  ],
-  contratos:[
-    {id:1,nombre:'Contrato Desarrollo Web TechCorp',clienteId:1,proyectoId:1,tipo:'servicio',estado:'firmado',fecha:'2024-03-01'},
-    {id:2,nombre:'Contrato E-commerce Moda Bella',clienteId:2,proyectoId:2,tipo:'servicio',estado:'firmado',fecha:'2024-03-15'},
-    {id:3,nombre:'Contrato Landing Inmobiliaria',clienteId:3,proyectoId:3,tipo:'servicio',estado:'pendiente_firma',fecha:'2024-04-10'},
-    {id:4,nombre:'Contrato Sistema El Rincón',clienteId:5,proyectoId:5,tipo:'servicio',estado:'enviado',fecha:'2024-04-12'},
-    {id:5,nombre:'Plantilla Mantenimiento Mensual',clienteId:null,proyectoId:null,tipo:'plantilla',estado:'borrador',fecha:'2024-01-10'}
-  ],
+  eventos:[],
+  leads:[],
+  presupuestos:[],
+  contratos:[],
   facturas:[
-    {id:1,clienteId:1,proyectoId:1,desc:'50% inicial Sitio TechCorp',monto:125000,fecha:'2024-04-01',vence:'2024-04-15',estado:'pagada'},
-    {id:2,clienteId:2,proyectoId:2,desc:'50% inicial E-commerce',monto:210000,fecha:'2024-04-05',vence:'2024-04-20',estado:'pagada'},
-    {id:3,clienteId:1,proyectoId:1,desc:'50% final Sitio TechCorp',monto:125000,fecha:'2024-04-08',vence:'2024-04-30',estado:'pendiente'},
-    {id:4,clienteId:2,proyectoId:2,desc:'50% final E-commerce',monto:210000,fecha:'2024-04-10',vence:'2024-05-31',estado:'pendiente'},
-    {id:5,clienteId:3,proyectoId:3,desc:'Pago único Landing',monto:85000,fecha:'2024-04-15',vence:'2024-04-25',estado:'pendiente'}
   ],
   /* ── PLANTILLAS WEB ─────────────────────────────────── */
   plantillas_web:[
@@ -5175,8 +5100,6 @@ let DB={
   ],
   /* ── HISTORIAL DE EMAILS ────────────────────────────────── */
   email_history:[
-    {id:1,clienteId:1,asunto:'Presupuesto sitio web enviado',fecha:'2024-01-15',evento:'presupuesto_enviado',estado:'enviado'},
-    {id:2,clienteId:2,asunto:'Proyecto Clínica del Valle iniciado',fecha:'2024-01-20',evento:'proyecto_iniciado',estado:'enviado'}
   ],
   /* ── TAREAS POR PROYECTO ────────────────────────────────── */
   proyecto_tareas:{},
@@ -8532,7 +8455,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   });
   _saveReminders();
 
-  console.log('AlexisDigital Manager v8 — ready 🚀 [storage: '+(window.STORAGE_MODE||'local')+']');
+  console.log('AlexisDigital Manager v9 SaaS — ready 🚀 [storage: '+(window.STORAGE_MODE||'local')+']');
 })();
 
 /* ================================================================
@@ -8774,9 +8697,7 @@ function _renderBackupHistory(){
       console.log('[v9] Supabase auto-initialized ✓');
       // Update status after DOM ready
       setTimeout(updateConnectionStatus,100);
-      // Show notice on login
-      const notice=document.getElementById('sb-auth-notice');
-      if(notice) notice.style.display='';
+
     }
   }catch(e){console.warn('[v9] Supabase init failed:',e);}
 })();
