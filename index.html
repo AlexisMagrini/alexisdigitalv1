@@ -9,7 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 /* ================================================================
-   ALEXISDIGITAL MANAGER  v3
+   ALEXISDIGITAL MANAGER  v4
    Light / Dark dual-theme professional SaaS
    New modules: Calendar, Quotes, Invoices, Analytics, Pipeline,
                 Contracts, Client Portal
@@ -573,13 +573,103 @@ tbody tr:hover{background:var(--bg-3)}
 .info-box-row i{color:var(--brand)}
 .info-box p{font-size:12.5px;color:var(--tx-2)}
 
+/* ── SIDEBAR COLLAPSIBLE ────────────────────────────────────── */
+.sidebar-toggle{
+  width:28px;height:28px;border-radius:7px;
+  background:var(--bg-3);border:1px solid var(--bd);
+  color:var(--tx-2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;transition:all var(--ease);flex-shrink:0;
+}
+.sidebar-toggle:hover{background:var(--brand-soft);color:var(--brand);border-color:var(--brand)}
+
+/* Collapsed state */
+.sidebar.collapsed{width:64px}
+.sidebar.collapsed .s-logo-text,
+.sidebar.collapsed .nav-item span,
+.sidebar.collapsed .nav-group-label,
+.sidebar.collapsed .nav-badge,
+.sidebar.collapsed .user-name,
+.sidebar.collapsed .user-role,
+.sidebar.collapsed .sidebar-toggle-label{display:none}
+.sidebar.collapsed .nav-item{justify-content:center;padding:9px}
+.sidebar.collapsed .nav-icon{width:34px;height:34px;font-size:15px}
+.sidebar.collapsed .user-tile{justify-content:center;padding:9px}
+.sidebar.collapsed .s-logo{justify-content:center}
+.sidebar.collapsed .sidebar-header{padding:12px 8px}
+.sidebar.collapsed .sidebar-footer{padding:8px}
+
+/* Tooltip on collapsed */
+.nav-item{position:relative}
+.nav-tooltip{
+  position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:var(--tx-1);color:var(--bg-1);
+  padding:5px 10px;border-radius:7px;font-size:12px;font-weight:500;
+  white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;
+  z-index:999;box-shadow:var(--sh-md);
+}
+.nav-tooltip::before{
+  content:'';position:absolute;right:100%;top:50%;transform:translateY(-50%);
+  border:5px solid transparent;border-right-color:var(--tx-1);
+}
+.sidebar.collapsed .nav-item:hover .nav-tooltip{opacity:1}
+.sidebar:not(.collapsed) .nav-tooltip{display:none}
+
+/* ── CONFIG SUB-TABS ────────────────────────────────────────── */
+.cfg-layout{display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start}
+.cfg-sidebar{
+  background:var(--bg-1);border:1px solid var(--bd);
+  border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);
+  position:sticky;top:0;
+}
+.cfg-sidebar-item{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 16px;cursor:pointer;font-size:13px;font-weight:500;
+  color:var(--tx-2);transition:all var(--ease);border-left:3px solid transparent;
+}
+.cfg-sidebar-item:hover{background:var(--bg-2);color:var(--tx-1)}
+.cfg-sidebar-item.active{background:var(--brand-soft);color:var(--brand);border-left-color:var(--brand)}
+.cfg-sidebar-item i{width:16px;text-align:center;font-size:13px}
+.cfg-panel{display:none}
+.cfg-panel.active{display:block;animation:sectionIn .22s ease}
+
+/* ── COLOR SWATCH PICKER ─────────────────────────────────────── */
+.color-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.color-swatch{
+  width:32px;height:32px;border-radius:8px;cursor:pointer;
+  border:2px solid var(--bd);transition:all var(--ease);flex-shrink:0;
+}
+.color-swatch:hover{transform:scale(1.1)}
+.color-preview{
+  display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;
+}
+.color-chip{
+  width:28px;height:28px;border-radius:6px;cursor:pointer;
+  border:2px solid transparent;transition:all var(--ease);
+}
+.color-chip:hover,.color-chip.selected{border-color:var(--tx-1);transform:scale(1.15)}
+
+/* ── ADMIN TABLE (config sections) ──────────────────────────── */
+.admin-table-wrap{background:var(--bg-1);border:1px solid var(--bd);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm)}
+.admin-table-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 18px;border-bottom:1px solid var(--bd);background:var(--bg-2);
+}
+.admin-table-title{font-size:13.5px;font-weight:600;color:var(--tx-1)}
+.admin-search-wrap{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg-2);border:1.5px solid var(--bd);border-radius:var(--r-sm);
+  padding:6px 10px;
+}
+.admin-search-wrap i{color:var(--tx-3);font-size:12px}
+.admin-search-wrap input{background:transparent;border:none;outline:none;font-family:var(--font);font-size:13px;color:var(--tx-1);width:160px}
+.admin-search-wrap input::placeholder{color:var(--tx-3)}
+
 /* ── RESPONSIVE ────────────────────────────────────────────── */
 @media(max-width:1100px){.kanban-board-5{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1024px){.cfg-layout{grid-template-columns:1fr}}
 @media(max-width:900px){
-  .sidebar{width:60px}
-  .s-logo-text,.nav-item span,.nav-group-label,.nav-badge,.user-name,.user-role{display:none}
-  .nav-item{justify-content:center;padding:9px}.nav-icon{width:34px;height:34px;font-size:15px}
-  .user-tile{justify-content:center;padding:9px}
+  .sidebar.collapsed{width:64px}
   .kanban-board,.kanban-board-5,.grid-2,.grid-3,.config-grid,.dash-row{grid-template-columns:1fr}
 }
 @media(max-width:600px){
@@ -594,7 +684,7 @@ tbody tr:hover{background:var(--bg-3)}
   <div class="login-card">
     <div class="login-logo">
       <div class="login-logo-mark"><i class="fa-solid fa-bolt-lightning"></i></div>
-      <div class="login-logo-text">AlexisDigital <span>Manager · v3</span></div>
+      <div class="login-logo-text">AlexisDigital <span>Manager · v4</span></div>
     </div>
     <div class="login-title">Bienvenido de vuelta 👋</div>
     <div class="login-sub">Ingresa a tu panel de gestión de agencia</div>
@@ -617,11 +707,14 @@ tbody tr:hover{background:var(--bg-3)}
 <div id="app">
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="s-logo">
-        <div class="s-logo-mark"><i class="fa-solid fa-bolt-lightning"></i></div>
-        <div class="s-logo-text">AlexisDigital <span>Manager</span></div>
+    <div class="sidebar-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div class="s-logo" id="s-logo-wrap">
+        <div class="s-logo-mark" id="s-logo-mark"><i class="fa-solid fa-bolt-lightning" id="s-logo-icon"></i></div>
+        <div class="s-logo-text" id="s-logo-text-wrap">AlexisDigital <span id="s-sys-name">Manager</span></div>
       </div>
+      <button class="sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Colapsar sidebar">
+        <i class="fa-solid fa-bars"></i>
+      </button>
     </div>
     <nav class="sidebar-nav">
       <span class="nav-group-label">Principal</span>
@@ -1003,10 +1096,259 @@ tbody tr:hover{background:var(--bg-3)}
       <!-- CONFIGURACIÓN -->
       <section class="section" id="sec-configuracion">
         <div class="sec-header">
-          <div><div class="sec-title">Configuración</div><div class="sec-sub">Ajustes del sistema y preferencias</div></div>
-          <button class="btn btn-primary" onclick="saveConfig()"><i class="fa-solid fa-floppy-disk"></i> Guardar cambios</button>
+          <div><div class="sec-title">Configuración</div><div class="sec-sub">Panel de administración completo del sistema</div></div>
+          <button class="btn btn-primary" id="cfg-save-btn" onclick="saveCurrentCfgPanel()"><i class="fa-solid fa-floppy-disk"></i> Guardar cambios</button>
         </div>
-        <div class="config-grid" id="config-grid"></div>
+        <div class="cfg-layout">
+          <!-- Sidebar de categorías -->
+          <div class="cfg-sidebar">
+            <div class="cfg-sidebar-item active" onclick="switchCfgPanel('sistema',this)" id="cfgmenu-sistema">
+              <i class="fa-solid fa-sliders"></i> Sistema
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('agencia',this)" id="cfgmenu-agencia">
+              <i class="fa-solid fa-building"></i> Agencia
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('plantillas',this)" id="cfgmenu-plantillas">
+              <i class="fa-solid fa-layer-group"></i> Plantillas Web
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('extras',this)" id="cfgmenu-extras">
+              <i class="fa-solid fa-puzzle-piece"></i> Extras Presupuesto
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('tipos_proyecto',this)" id="cfgmenu-tipos_proyecto">
+              <i class="fa-solid fa-tag"></i> Tipos de Proyecto
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('pipeline_estados',this)" id="cfgmenu-pipeline_estados">
+              <i class="fa-solid fa-filter"></i> Estados Pipeline
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('contratos_tpl',this)" id="cfgmenu-contratos_tpl">
+              <i class="fa-solid fa-file-contract"></i> Contratos
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('categorias',this)" id="cfgmenu-categorias">
+              <i class="fa-solid fa-folder-tree"></i> Categorías
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('usuarios',this)" id="cfgmenu-usuarios">
+              <i class="fa-solid fa-users-gear"></i> Usuarios
+            </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('integraciones',this)" id="cfgmenu-integraciones">
+              <i class="fa-solid fa-database"></i> Integraciones
+            </div>
+          </div>
+
+          <!-- Paneles de contenido -->
+          <div id="cfg-panels">
+
+            <!-- ─── SISTEMA ─── -->
+            <div class="cfg-panel active" id="cfgpanel-sistema">
+              <div class="config-section" style="margin-bottom:16px">
+                <div class="config-section-header"><i class="fa-solid fa-palette"></i><div class="config-section-title">Apariencia del Sistema</div></div>
+                <div class="config-section-body">
+                  <div class="grid-2 mb-16">
+                    <div class="form-group">
+                      <label class="form-label">Nombre del sistema</label>
+                      <input type="text" class="form-input" id="cfg-sysname" placeholder="AlexisDigital Manager">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Ícono del logo (emoji o texto)</label>
+                      <input type="text" class="form-input" id="cfg-logo-emoji" placeholder="⚡" style="font-size:20px;text-align:center">
+                    </div>
+                  </div>
+                  <div class="grid-2 mb-16">
+                    <div class="form-group">
+                      <label class="form-label">Color primario (brand)</label>
+                      <div style="display:flex;align-items:center;gap:10px">
+                        <input type="color" class="form-input" id="cfg-color-brand" style="height:40px;padding:2px;cursor:pointer;width:60px" oninput="previewBrandColor(this.value)">
+                        <div class="color-preview" id="brand-presets">
+                          <div class="color-chip" style="background:#4f46e5" onclick="setBrandColor('#4f46e5')" title="Indigo"></div>
+                          <div class="color-chip" style="background:#0ea5e9" onclick="setBrandColor('#0ea5e9')" title="Blue"></div>
+                          <div class="color-chip" style="background:#10b981" onclick="setBrandColor('#10b981')" title="Emerald"></div>
+                          <div class="color-chip" style="background:#f59e0b" onclick="setBrandColor('#f59e0b')" title="Amber"></div>
+                          <div class="color-chip" style="background:#ef4444" onclick="setBrandColor('#ef4444')" title="Red"></div>
+                          <div class="color-chip" style="background:#8b5cf6" onclick="setBrandColor('#8b5cf6')" title="Purple"></div>
+                          <div class="color-chip" style="background:#ec4899" onclick="setBrandColor('#ec4899')" title="Pink"></div>
+                          <div class="color-chip" style="background:#14b8a6" onclick="setBrandColor('#14b8a6')" title="Teal"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Vista previa del color</label>
+                      <div id="color-preview-demo" style="padding:12px 16px;border-radius:var(--r);background:var(--brand);color:#fff;font-weight:600;font-size:13px;text-align:center">
+                        <i class="fa-solid fa-bolt-lightning"></i> AlexisDigital Manager
+                      </div>
+                    </div>
+                  </div>
+                  <div class="grid-2 mb-16">
+                    <div class="form-group">
+                      <label class="form-label">Modo visual por defecto</label>
+                      <select class="form-select" id="cfg-theme-default">
+                        <option value="light">☀️ Claro</option>
+                        <option value="dark">🌙 Oscuro</option>
+                        <option value="system">🖥️ Sistema</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Moneda</label>
+                      <select class="form-select" id="cfg-moneda">
+                        <option value="ARS">🇦🇷 ARS — Peso Argentino</option>
+                        <option value="USD">🇺🇸 USD — Dólar</option>
+                        <option value="EUR">🇪🇺 EUR — Euro</option>
+                        <option value="CLP">🇨🇱 CLP — Peso Chileno</option>
+                        <option value="MXN">🇲🇽 MXN — Peso Mexicano</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="grid-2">
+                    <div class="config-item"><div class="config-item-label"><i class="fa-solid fa-bell" style="margin-right:7px;color:var(--brand)"></i>Notificaciones</div><label class="toggle"><input type="checkbox" id="cfg-notif"><span class="toggle-slider"></span></label></div>
+                    <div class="config-item"><div class="config-item-label"><i class="fa-solid fa-moon" style="margin-right:7px;color:var(--brand)"></i>Modo oscuro activo</div><label class="toggle"><input type="checkbox" id="cfg-dark" onchange="toggleDarkMode()"><span class="toggle-slider"></span></label></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── AGENCIA ─── -->
+            <div class="cfg-panel" id="cfgpanel-agencia">
+              <div class="config-section">
+                <div class="config-section-header"><i class="fa-solid fa-building"></i><div class="config-section-title">Datos de la Agencia</div></div>
+                <div class="config-section-body">
+                  <div class="grid-2 mb-16">
+                    <div class="form-group"><label class="form-label">Nombre de la agencia</label><input type="text" class="form-input" id="cfg-agencia" placeholder="Mi Agencia Digital"></div>
+                    <div class="form-group"><label class="form-label">Sitio web</label><input type="text" class="form-input" id="cfg-web" placeholder="https://miagencia.com"></div>
+                  </div>
+                  <div class="grid-2 mb-16">
+                    <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="cfg-email" placeholder="contacto@agencia.com"></div>
+                    <div class="form-group"><label class="form-label">Teléfono</label><input type="text" class="form-input" id="cfg-tel" placeholder="+54 11 1234-5678"></div>
+                  </div>
+                  <div class="form-group mb-16"><label class="form-label">Dirección</label><input type="text" class="form-input" id="cfg-dir" placeholder="Buenos Aires, Argentina"></div>
+                  <div class="form-group"><label class="form-label">Descripción / Slogan</label><input type="text" class="form-input" id="cfg-slogan" placeholder="Diseño y desarrollo web profesional"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── PLANTILLAS WEB ─── -->
+            <div class="cfg-panel" id="cfgpanel-plantillas">
+              <div class="admin-table-wrap">
+                <div class="admin-table-header">
+                  <span class="admin-table-title"><i class="fa-solid fa-layer-group" style="margin-right:7px;color:var(--brand)"></i>Gestión de Plantillas Web</span>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <div class="admin-search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Buscar plantilla..." oninput="filterCfgPlantillas(this.value)" id="cfg-plt-search"></div>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('modal-plantilla_web')"><i class="fa-solid fa-plus"></i> Nueva</button>
+                  </div>
+                </div>
+                <div class="table-wrap"><table>
+                  <thead><tr><th>Emoji</th><th>Nombre</th><th>Tipo</th><th>Precio Base</th><th>Días</th><th>Acciones</th></tr></thead>
+                  <tbody id="cfg-plantillas-tbody"></tbody>
+                </table></div>
+              </div>
+            </div>
+
+            <!-- ─── EXTRAS PRESUPUESTO ─── -->
+            <div class="cfg-panel" id="cfgpanel-extras">
+              <div class="admin-table-wrap">
+                <div class="admin-table-header">
+                  <span class="admin-table-title"><i class="fa-solid fa-puzzle-piece" style="margin-right:7px;color:var(--brand)"></i>Extras de Presupuesto</span>
+                  <button class="btn btn-primary btn-sm" onclick="openModal('modal-extra')"><i class="fa-solid fa-plus"></i> Nuevo extra</button>
+                </div>
+                <div class="table-wrap"><table>
+                  <thead><tr><th>Ícono</th><th>Nombre</th><th>Descripción</th><th>Precio</th><th>Acciones</th></tr></thead>
+                  <tbody id="cfg-extras-tbody"></tbody>
+                </table></div>
+              </div>
+            </div>
+
+            <!-- ─── TIPOS DE PROYECTO ─── -->
+            <div class="cfg-panel" id="cfgpanel-tipos_proyecto">
+              <div class="admin-table-wrap">
+                <div class="admin-table-header">
+                  <span class="admin-table-title"><i class="fa-solid fa-tag" style="margin-right:7px;color:var(--brand)"></i>Tipos de Proyecto</span>
+                  <button class="btn btn-primary btn-sm" onclick="openModal('modal-tipo_proyecto')"><i class="fa-solid fa-plus"></i> Nuevo tipo</button>
+                </div>
+                <div class="table-wrap"><table>
+                  <thead><tr><th>Emoji</th><th>Nombre</th><th>Descripción</th><th>Acciones</th></tr></thead>
+                  <tbody id="cfg-tipos-tbody"></tbody>
+                </table></div>
+              </div>
+            </div>
+
+            <!-- ─── ESTADOS PIPELINE ─── -->
+            <div class="cfg-panel" id="cfgpanel-pipeline_estados">
+              <div class="admin-table-wrap">
+                <div class="admin-table-header">
+                  <span class="admin-table-title"><i class="fa-solid fa-filter" style="margin-right:7px;color:var(--brand)"></i>Estados del Pipeline</span>
+                  <button class="btn btn-primary btn-sm" onclick="openModal('modal-pipeline_estado')"><i class="fa-solid fa-plus"></i> Nuevo estado</button>
+                </div>
+                <div class="table-wrap"><table>
+                  <thead><tr><th>Color</th><th>Nombre</th><th>ID / Slug</th><th>Orden</th><th>Acciones</th></tr></thead>
+                  <tbody id="cfg-pipeline-tbody"></tbody>
+                </table></div>
+                <div style="padding:12px 16px;border-top:1px solid var(--bd)">
+                  <div class="info-box" style="margin:0"><div class="info-box-row"><i class="fa-solid fa-circle-info"></i><strong>Nota:</strong></div><p>Los cambios a los estados del pipeline se aplican en tiempo real. Leads existentes mantienen su etapa actual.</p></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── CONTRATOS / PLANTILLAS ─── -->
+            <div class="cfg-panel" id="cfgpanel-contratos_tpl">
+              <div class="admin-table-wrap">
+                <div class="admin-table-header">
+                  <span class="admin-table-title"><i class="fa-solid fa-file-contract" style="margin-right:7px;color:var(--brand)"></i>Plantillas de Contratos</span>
+                  <button class="btn btn-primary btn-sm" onclick="openModal('modal-contrato_tpl')"><i class="fa-solid fa-plus"></i> Nueva plantilla</button>
+                </div>
+                <div class="table-wrap"><table>
+                  <thead><tr><th>Nombre</th><th>Tipo</th><th>Contenido (preview)</th><th>Acciones</th></tr></thead>
+                  <tbody id="cfg-contratos-tpl-tbody"></tbody>
+                </table></div>
+              </div>
+            </div>
+
+            <!-- ─── CATEGORÍAS ─── -->
+            <div class="cfg-panel" id="cfgpanel-categorias">
+              <div class="grid-2">
+                <div class="admin-table-wrap">
+                  <div class="admin-table-header">
+                    <span class="admin-table-title"><i class="fa-solid fa-folder-tree" style="margin-right:7px;color:var(--brand)"></i>Categorías de Plantillas</span>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('modal-categoria')"><i class="fa-solid fa-plus"></i> Nueva</button>
+                  </div>
+                  <div class="table-wrap"><table>
+                    <thead><tr><th>Emoji</th><th>Nombre</th><th>Acciones</th></tr></thead>
+                    <tbody id="cfg-categorias-tbody"></tbody>
+                  </table></div>
+                </div>
+                <div style="background:var(--brand-soft);border:1.5px solid var(--brand);border-radius:var(--r-xl);padding:20px">
+                  <div style="font-weight:700;color:var(--brand);margin-bottom:12px;font-size:13.5px"><i class="fa-solid fa-circle-info" style="margin-right:7px"></i>¿Para qué sirven?</div>
+                  <p style="font-size:13px;color:var(--tx-2);line-height:1.7">Las categorías organizan las plantillas web del catálogo.<br><br>
+                  Ejemplos: <strong>Salud</strong>, <strong>Legal</strong>, <strong>Gastronomía</strong>, <strong>Coaching</strong>, <strong>Inmobiliaria</strong>.<br><br>
+                  Aparecen en el filtro del módulo <em>Plantillas Web</em> para ayudarte a encontrar rápidamente la plantilla correcta.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── USUARIOS ─── -->
+            <div class="cfg-panel" id="cfgpanel-usuarios">
+              <div class="admin-table-wrap">
+                <div class="admin-table-header">
+                  <span class="admin-table-title"><i class="fa-solid fa-users-gear" style="margin-right:7px;color:var(--brand)"></i>Usuarios del Sistema</span>
+                  <button class="btn btn-primary btn-sm" onclick="openModal('modal-usuario')"><i class="fa-solid fa-plus"></i> Nuevo usuario</button>
+                </div>
+                <div class="table-wrap"><table>
+                  <thead><tr><th>Avatar</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+                  <tbody id="cfg-usuarios-tbody"></tbody>
+                </table></div>
+              </div>
+            </div>
+
+            <!-- ─── INTEGRACIONES ─── -->
+            <div class="cfg-panel" id="cfgpanel-integraciones">
+              <div class="config-section">
+                <div class="config-section-header"><i class="fa-solid fa-database"></i><div class="config-section-title">Conexión Supabase</div></div>
+                <div class="config-section-body">
+                  <div class="info-box mb-16"><div class="info-box-row"><i class="fa-solid fa-circle-info"></i><strong>Modo Demo — Datos en Memoria</strong></div><p>Para persistencia en la nube, conecta tu proyecto de Supabase.</p></div>
+                  <div class="grid-2 mb-16"><div class="form-group"><label class="form-label">Supabase URL</label><input type="text" class="form-input" id="cfg-sb-url" placeholder="https://xxx.supabase.co"></div><div class="form-group"><label class="form-label">API Key (anon)</label><input type="password" class="form-input" id="cfg-sb-key" placeholder="eyJhbGci..."></div></div>
+                  <button class="btn btn-secondary" onclick="toast('info','Integración Supabase en v5.0')"><i class="fa-solid fa-plug"></i> Conectar</button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /cfg-panels -->
+        </div><!-- /cfg-layout -->
       </section>
 
     </main>
@@ -1368,6 +1710,137 @@ tbody tr:hover{background:var(--bg-3)}
   </div></div>
 </div>
 
+<!-- Modal Extra Presupuesto -->
+<div class="modal-overlay" id="modal-extra">
+  <div class="modal"><div class="modal-header">
+    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-puzzle-piece"></i></div><div class="modal-title" id="modal-extra-title">Nuevo Extra</div></div>
+    <button class="modal-close" onclick="closeModal('modal-extra')"><i class="fa-solid fa-xmark"></i></button>
+  </div><div class="modal-body">
+    <input type="hidden" id="ex-id">
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="form-input" id="ex-label" placeholder="SEO Básico"></div>
+      <div class="form-group"><label class="form-label">Precio adicional (ARS) *</label><input type="number" class="form-input" id="ex-precio" placeholder="25000"></div>
+    </div>
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Ícono Font Awesome</label><input type="text" class="form-input" id="ex-icon" placeholder="fa-magnifying-glass"></div>
+      <div class="form-group"><label class="form-label">ID / slug único</label><input type="text" class="form-input" id="ex-id-slug" placeholder="seo"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descripción</label><input type="text" class="form-input" id="ex-desc" placeholder="Optimización On-Page + Google Search Console"></div>
+  </div><div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-extra')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveExtra()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+  </div></div>
+</div>
+
+<!-- Modal Tipo de Proyecto -->
+<div class="modal-overlay" id="modal-tipo_proyecto">
+  <div class="modal"><div class="modal-header">
+    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-tag"></i></div><div class="modal-title" id="modal-tipo_proyecto-title">Nuevo Tipo de Proyecto</div></div>
+    <button class="modal-close" onclick="closeModal('modal-tipo_proyecto')"><i class="fa-solid fa-xmark"></i></button>
+  </div><div class="modal-body">
+    <input type="hidden" id="tp-id">
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="form-input" id="tp-nombre" placeholder="Landing Page"></div>
+      <div class="form-group"><label class="form-label">Emoji / Ícono</label><input type="text" class="form-input" id="tp-emoji" placeholder="🚀" style="font-size:20px;text-align:center"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descripción</label><input type="text" class="form-input" id="tp-desc" placeholder="Páginas de aterrizaje para captación"></div>
+  </div><div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-tipo_proyecto')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveTipoProyecto()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+  </div></div>
+</div>
+
+<!-- Modal Estado Pipeline -->
+<div class="modal-overlay" id="modal-pipeline_estado">
+  <div class="modal"><div class="modal-header">
+    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-filter"></i></div><div class="modal-title" id="modal-pipeline_estado-title">Nuevo Estado</div></div>
+    <button class="modal-close" onclick="closeModal('modal-pipeline_estado')"><i class="fa-solid fa-xmark"></i></button>
+  </div><div class="modal-body">
+    <input type="hidden" id="pe-id">
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="form-input" id="pe-label" placeholder="Propuesta Enviada"></div>
+      <div class="form-group"><label class="form-label">ID / Slug *</label><input type="text" class="form-input" id="pe-slug" placeholder="propuesta"></div>
+    </div>
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Color</label><input type="color" class="form-input" id="pe-color" value="#4f46e5" style="height:40px;padding:2px;cursor:pointer"></div>
+      <div class="form-group"><label class="form-label">Orden</label><input type="number" class="form-input" id="pe-orden" placeholder="1" min="1"></div>
+    </div>
+  </div><div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-pipeline_estado')">Cancelar</button>
+    <button class="btn btn-primary" onclick="savePipelineEstado()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+  </div></div>
+</div>
+
+<!-- Modal Plantilla de Contrato -->
+<div class="modal-overlay" id="modal-contrato_tpl">
+  <div class="modal modal-lg"><div class="modal-header">
+    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-file-contract"></i></div><div class="modal-title" id="modal-contrato_tpl-title">Nueva Plantilla de Contrato</div></div>
+    <button class="modal-close" onclick="closeModal('modal-contrato_tpl')"><i class="fa-solid fa-xmark"></i></button>
+  </div><div class="modal-body">
+    <input type="hidden" id="ctpl-id">
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="form-input" id="ctpl-nombre" placeholder="Contrato de Desarrollo Web"></div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-select" id="ctpl-tipo">
+          <option value="servicio">Servicio</option>
+          <option value="mantenimiento">Mantenimiento</option>
+          <option value="licencia">Licencia</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Contenido del contrato</label><textarea class="form-input" id="ctpl-contenido" style="min-height:180px;font-family:monospace;font-size:12.5px" placeholder="Por la presente, las partes acuerdan...&#10;&#10;CLÁUSULA 1: OBJETO DEL CONTRATO&#10;..."></textarea></div>
+  </div><div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-contrato_tpl')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveContratoTpl()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+  </div></div>
+</div>
+
+<!-- Modal Categoría -->
+<div class="modal-overlay" id="modal-categoria">
+  <div class="modal"><div class="modal-header">
+    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-folder-tree"></i></div><div class="modal-title" id="modal-categoria-title">Nueva Categoría</div></div>
+    <button class="modal-close" onclick="closeModal('modal-categoria')"><i class="fa-solid fa-xmark"></i></button>
+  </div><div class="modal-body">
+    <input type="hidden" id="cat-id">
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="form-input" id="cat-nombre" placeholder="Salud"></div>
+      <div class="form-group"><label class="form-label">Emoji</label><input type="text" class="form-input" id="cat-emoji" placeholder="🏥" style="font-size:20px;text-align:center"></div>
+    </div>
+  </div><div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-categoria')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveCategoria()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+  </div></div>
+</div>
+
+<!-- Modal Usuario -->
+<div class="modal-overlay" id="modal-usuario">
+  <div class="modal"><div class="modal-header">
+    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-user-plus"></i></div><div class="modal-title" id="modal-usuario-title">Nuevo Usuario</div></div>
+    <button class="modal-close" onclick="closeModal('modal-usuario')"><i class="fa-solid fa-xmark"></i></button>
+  </div><div class="modal-body">
+    <input type="hidden" id="usr-id">
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="form-input" id="usr-nombre" placeholder="María García"></div>
+      <div class="form-group"><label class="form-label">Iniciales (avatar)</label><input type="text" class="form-input" id="usr-avatar" placeholder="MG" maxlength="2" style="text-align:center;font-weight:700;text-transform:uppercase"></div>
+    </div>
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Email *</label><input type="email" class="form-input" id="usr-email" placeholder="usuario@agencia.com"></div>
+      <div class="form-group"><label class="form-label">Contraseña</label><input type="password" class="form-input" id="usr-pass" placeholder="••••••••"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Rol</label>
+      <select class="form-select" id="usr-rol">
+        <option value="admin">Administrador</option>
+        <option value="empleado">Empleado</option>
+        <option value="viewer">Solo lectura</option>
+      </select>
+    </div>
+  </div><div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-usuario')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveUsuario()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+  </div></div>
+</div>
+
 <div id="toast-container"></div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
@@ -1533,7 +2006,48 @@ let DB={
     {id:'speed',label:'Optimización de Velocidad',precio:22000,icon:'fa-gauge-high',desc:'PageSpeed Insights, lazy loading, CDN'},
     {id:'analytics',label:'Analytics & Tracking',precio:15000,icon:'fa-chart-line',desc:'Google Analytics 4, Meta Pixel, heatmaps'},
     {id:'maint',label:'Mantenimiento 3 meses',precio:45000,icon:'fa-wrench',desc:'Soporte técnico y actualizaciones por 3 meses'}
-  ]
+  ],
+  /* ── TIPOS DE PROYECTO ──────────────────────────────── */
+  tipos_proyecto:[
+    {id:1,nombre:'Landing Page',emoji:'🚀',desc:'Páginas de aterrizaje para captación de leads'},
+    {id:2,nombre:'Sitio Institucional',emoji:'🏢',desc:'Web corporativa con secciones, equipo y contacto'},
+    {id:3,nombre:'E-commerce',emoji:'🛒',desc:'Tienda online con carrito y pasarela de pagos'},
+    {id:4,nombre:'Sistema Web',emoji:'⚙️',desc:'Aplicaciones web a medida con lógica de negocio'},
+    {id:5,nombre:'Rediseño',emoji:'🎨',desc:'Rediseño y modernización de sitio existente'},
+    {id:6,nombre:'Mantenimiento',emoji:'🔧',desc:'Soporte y actualizaciones de sitio existente'}
+  ],
+  /* ── ESTADOS PIPELINE ───────────────────────────────── */
+  pipeline_estados:[
+    {id:1,label:'Lead',slug:'lead',dot:'#94a3b8',orden:1},
+    {id:2,label:'Contactado',slug:'contactado',dot:'#3b82f6',orden:2},
+    {id:3,label:'Propuesta',slug:'propuesta',dot:'#8b5cf6',orden:3},
+    {id:4,label:'Negociación',slug:'negociacion',dot:'#f59e0b',orden:4},
+    {id:5,label:'Cerrado',slug:'cerrado',dot:'#10b981',orden:5}
+  ],
+  /* ── PLANTILLAS DE CONTRATOS ────────────────────────── */
+  contratos_tpl:[
+    {id:1,nombre:'Contrato de Desarrollo Web',tipo:'servicio',contenido:'Por la presente, {{AGENCIA}} (en adelante "el Proveedor") y {{CLIENTE}} (en adelante "el Cliente") acuerdan los siguientes términos:\n\nCLÁUSULA 1: OBJETO\nEl Proveedor se compromete a desarrollar {{PROYECTO}} según las especificaciones acordadas.\n\nCLÁUSULA 2: PRECIO\nEl precio total es de {{PRECIO}}, pagadero 50% al inicio y 50% a la entrega.\n\nCLÁUSULA 3: PLAZO\nEl plazo de entrega es de {{DIAS}} días hábiles desde la aprobación del brief.'},
+    {id:2,nombre:'Contrato de Mantenimiento Mensual',tipo:'mantenimiento',contenido:'CONTRATO DE MANTENIMIENTO\n\nEl Proveedor se compromete a prestar servicios mensuales de mantenimiento que incluyen:\n- Actualizaciones de contenido (hasta X cambios/mes)\n- Soporte técnico\n- Respaldo mensual\n\nPrecio mensual: {{PRECIO}}\nDuración mínima: 3 meses'}
+  ],
+  /* ── CATEGORÍAS DE PLANTILLAS ───────────────────────── */
+  categorias:[
+    {id:1,nombre:'Servicios Profesionales',emoji:'💼'},
+    {id:2,nombre:'Salud & Bienestar',emoji:'🏥'},
+    {id:3,nombre:'Legal & Jurídico',emoji:'⚖️'},
+    {id:4,nombre:'Coaching & Educación',emoji:'🎯'},
+    {id:5,nombre:'Inmobiliaria',emoji:'🏠'},
+    {id:6,nombre:'Gastronomía',emoji:'🍽️'},
+    {id:7,nombre:'Moda & Retail',emoji:'👗'},
+    {id:8,nombre:'Tecnología',emoji:'💻'}
+  ],
+  /* ── CONFIGURACIÓN DEL SISTEMA ──────────────────────── */
+  sistema:{
+    nombre:'AlexisDigital Manager',
+    logoEmoji:'⚡',
+    colorBrand:'#4f46e5',
+    themeDefault:'light',
+    slogan:'Gestión profesional de agencia digital'
+  }
 };
 
 /* ================================================================
@@ -1588,6 +2102,15 @@ function openModal(id){
   if(id==='modal-evento'){populateClienteSelect('ev-cliente');$('ev-fecha').value=today();$('modal-evento-title').textContent='Nuevo Evento';$('ev-id').value='';}
   if(id==='modal-lead'){$('modal-lead-title').textContent='Nuevo Lead';$('ld-id').value='';}
   if(id==='modal-plantilla_web'){$('modal-plantilla_web-title').textContent='Nueva Plantilla';$('plw-id').value='';}
+  if(id==='modal-extra'){$('modal-extra-title').textContent='Nuevo Extra';$('ex-id').value='';}
+  if(id==='modal-tipo_proyecto'){$('modal-tipo_proyecto-title').textContent='Nuevo Tipo de Proyecto';$('tp-id').value='';}
+  if(id==='modal-pipeline_estado'){
+    $('modal-pipeline_estado-title').textContent='Nuevo Estado';$('pe-id').value='';
+    $('pe-color').value='#4f46e5';$('pe-orden').value=DB.pipeline_estados.length+1;
+  }
+  if(id==='modal-contrato_tpl'){$('modal-contrato_tpl-title').textContent='Nueva Plantilla';$('ctpl-id').value='';}
+  if(id==='modal-categoria'){$('modal-categoria-title').textContent='Nueva Categoría';$('cat-id').value='';}
+  if(id==='modal-usuario'){$('modal-usuario-title').textContent='Nuevo Usuario';$('usr-id').value='';}
   if(id==='modal-presupuesto'){
     populateClienteSelect('pr-cliente');
     populatePlantillaSelect('pr-plantilla');
@@ -1607,7 +2130,7 @@ function openModal(id){
 function closeModal(id){
   $(id).classList.remove('open');
   $(id).querySelectorAll('input:not([type=hidden]),textarea').forEach(f=>f.value='');
-  ['c-id','p-id','t-id','ar-id','ta-id','ev-id','ld-id','pr-id','ct-id','fct-id','plw-id'].forEach(h=>{const el=$(h);if(el)el.value='';});
+  ['c-id','p-id','t-id','ar-id','ta-id','ev-id','ld-id','pr-id','ct-id','fct-id','plw-id','ex-id','tp-id','pe-id','ctpl-id','cat-id','usr-id'].forEach(h=>{const el=document.getElementById(h);if(el)el.value='';});
 }
 document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});});
 
@@ -1636,6 +2159,8 @@ function doLogin(){
   const ps=$('portal-cliente-select');
   ps.innerHTML='<option value="">— Seleccionar cliente —</option>'+DB.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
   navigate('dashboard');
+  /* Apply any saved system brand on login */
+  if(DB.sistema?.colorBrand) applySystemSettings();
   toast('success',`Bienvenido, ${user.nombre.split(' ')[0]}!`);
 }
 function doLogout(){
@@ -1957,7 +2482,12 @@ function deleteEvento(id){if(!confirm('¿Eliminar?'))return;DB.eventos=DB.evento
 /* ================================================================
    PIPELINE
    ================================================================ */
-const PIPELINE_COLS=[
+/* PIPELINE_COLS is now dynamic from DB.pipeline_estados */
+const getPipelineCols=()=>DB.pipeline_estados
+  .sort((a,b)=>a.orden-b.orden)
+  .map(e=>({id:e.slug,label:e.label+(e.slug==='cerrado'?' ✓':''),dot:e.dot}));
+/* Keep PIPELINE_COLS as a backward-compat alias */
+const PIPELINE_COLS_STATIC=[
   {id:'lead',label:'Lead',dot:'#94a3b8'},
   {id:'contactado',label:'Contactado',dot:'#3b82f6'},
   {id:'propuesta',label:'Propuesta',dot:'#8b5cf6'},
@@ -2137,59 +2667,433 @@ function renderPortal(){
 /* ================================================================
    CONFIGURACIÓN
    ================================================================ */
+/* ================================================================
+   CONFIGURACIÓN v4 — Panel de administración completo
+   ================================================================ */
+
+let _currentCfgPanel = 'sistema';
+
 function renderConfig(){
+  _populateSistemaPanel();
+  _populateAgenciaPanel();
+  renderCfgPlantillas();
+  renderCfgExtras();
+  renderCfgTiposProyecto();
+  renderCfgPipelineEstados();
+  renderCfgContratosTpl();
+  renderCfgCategorias();
+  renderCfgUsuarios();
+}
+
+function switchCfgPanel(name, btn){
+  _currentCfgPanel = name;
+  document.querySelectorAll('.cfg-panel').forEach(p=>p.classList.remove('active'));
+  const panel=document.getElementById('cfgpanel-'+name);
+  if(panel) panel.classList.add('active');
+  document.querySelectorAll('.cfg-sidebar-item').forEach(i=>i.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const renderers={
+    sistema:_populateSistemaPanel,agencia:_populateAgenciaPanel,
+    plantillas:renderCfgPlantillas,extras:renderCfgExtras,
+    tipos_proyecto:renderCfgTiposProyecto,pipeline_estados:renderCfgPipelineEstados,
+    contratos_tpl:renderCfgContratosTpl,categorias:renderCfgCategorias,
+    usuarios:renderCfgUsuarios
+  };
+  (renderers[name]||function(){})();
+}
+
+function saveCurrentCfgPanel(){
+  const savers={
+    sistema:saveSistemaPanel, agencia:saveAgenciaPanel,
+    plantillas:()=>toast('info','Usa los botones inline para guardar plantillas'),
+    extras:()=>toast('info','Usa los botones inline para guardar extras'),
+    tipos_proyecto:()=>toast('info','Usa los botones inline'),
+    pipeline_estados:()=>toast('info','Usa los botones inline'),
+    contratos_tpl:()=>toast('info','Usa los botones inline'),
+    categorias:()=>toast('info','Usa los botones inline'),
+    usuarios:()=>toast('info','Usa los botones inline'),
+    integraciones:()=>toast('info','Configuración guardada')
+  };
+  (savers[_currentCfgPanel]||function(){})();
+}
+
+/* ── SISTEMA ───────────────────────────────────────────────── */
+function _populateSistemaPanel(){
+  const s=DB.sistema||{};
+  const m=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
+  m('cfg-sysname',s.nombre||'AlexisDigital Manager');
+  m('cfg-logo-emoji',s.logoEmoji||'⚡');
+  m('cfg-color-brand',s.colorBrand||'#4f46e5');
+  const td=document.getElementById('cfg-theme-default');
+  if(td) td.value=s.themeDefault||'light';
+  const cm=document.getElementById('cfg-moneda');
+  if(cm) cm.value=DB.config.moneda||'ARS';
+  const cn=document.getElementById('cfg-notif');
+  if(cn) cn.checked=DB.config.notificaciones;
+  const cd=document.getElementById('cfg-dark');
+  if(cd) cd.checked=document.documentElement.getAttribute('data-theme')==='dark';
+}
+
+function saveSistemaPanel(){
+  const g=id=>document.getElementById(id);
+  const nombre=g('cfg-sysname')?.value.trim()||'AlexisDigital Manager';
+  const emoji=g('cfg-logo-emoji')?.value.trim()||'⚡';
+  const color=g('cfg-color-brand')?.value||'#4f46e5';
+  const theme=g('cfg-theme-default')?.value||'light';
+  DB.sistema=DB.sistema||{};
+  DB.sistema.nombre=nombre;
+  DB.sistema.logoEmoji=emoji;
+  DB.sistema.colorBrand=color;
+  DB.sistema.themeDefault=theme;
+  DB.config.moneda=g('cfg-moneda')?.value||DB.config.moneda;
+  DB.config.notificaciones=g('cfg-notif')?.checked??true;
+  applySystemSettings();
+  _persistAll();
+  toast('success','¡Configuración del sistema aplicada!');
+}
+
+function applySystemSettings(){
+  const s=DB.sistema||{};
+  const sn=document.getElementById('s-sys-name');
+  if(sn) sn.textContent=s.nombre||'Manager';
+  const li=document.getElementById('s-logo-icon');
+  if(li){
+    const em=s.logoEmoji||'⚡';
+    if(em.length<=3&&!/^fa-/.test(em)){li.className='';li.textContent=em;}
+    else{li.className='fa-solid '+(s.logoEmoji||'fa-bolt-lightning');li.textContent='';}
+  }
+  if(s.colorBrand){
+    document.documentElement.style.setProperty('--brand',s.colorBrand);
+    document.documentElement.style.setProperty('--brand-mid',s.colorBrand);
+    document.documentElement.style.setProperty('--bd-focus',s.colorBrand);
+  }
+}
+
+function previewBrandColor(val){
+  document.documentElement.style.setProperty('--brand',val);
+  document.documentElement.style.setProperty('--brand-mid',val);
+}
+
+function setBrandColor(hex){
+  document.documentElement.style.setProperty('--brand',hex);
+  document.documentElement.style.setProperty('--brand-mid',hex);
+  if(DB.sistema) DB.sistema.colorBrand=hex;
+  const el=document.getElementById('cfg-color-brand');if(el)el.value=hex;
+  document.querySelectorAll('.color-chip').forEach(ch=>{
+    ch.classList.toggle('selected',ch.getAttribute('onclick')&&ch.getAttribute('onclick').includes(hex));
+  });
+}
+
+/* ── AGENCIA ───────────────────────────────────────────────── */
+function _populateAgenciaPanel(){
   const cfg=DB.config;
-  $('config-grid').innerHTML=`
-    <div class="config-section">
-      <div class="config-section-header"><i class="fa-solid fa-building"></i><div class="config-section-title">Datos de la Agencia</div></div>
-      <div class="config-section-body">
-        <div class="form-group mb-16"><label class="form-label">Nombre</label><input type="text" class="form-input" id="cfg-agencia" value="${cfg.agencia}"></div>
-        <div class="form-group mb-16"><label class="form-label">Email</label><input type="email" class="form-input" id="cfg-email" value="${cfg.email_agencia}"></div>
-        <div class="form-group mb-16"><label class="form-label">Teléfono</label><input type="text" class="form-input" id="cfg-tel" value="${cfg.telefono}"></div>
-        <div class="form-group"><label class="form-label">Dirección</label><input type="text" class="form-input" id="cfg-dir" value="${cfg.direccion}"></div>
-      </div>
-    </div>
-    <div class="config-section">
-      <div class="config-section-header"><i class="fa-solid fa-sliders"></i><div class="config-section-title">Preferencias del Sistema</div></div>
-      <div class="config-section-body">
-        <div class="form-group mb-16"><label class="form-label">Moneda</label>
-          <select class="form-select" id="cfg-moneda"><option value="ARS" ${cfg.moneda==='ARS'?'selected':''}>🇦🇷 ARS</option><option value="USD" ${cfg.moneda==='USD'?'selected':''}>🇺🇸 USD</option><option value="EUR" ${cfg.moneda==='EUR'?'selected':''}>🇪🇺 EUR</option></select>
-        </div>
-        <div class="form-group mb-16"><label class="form-label">Idioma</label>
-          <select class="form-select" id="cfg-idioma"><option value="es" ${cfg.idioma==='es'?'selected':''}>Español</option><option value="en" ${cfg.idioma==='en'?'selected':''}>Inglés</option></select>
-        </div>
-        <div class="config-item"><div class="config-item-label"><i class="fa-solid fa-bell" style="margin-right:7px;color:var(--brand)"></i>Notificaciones</div><label class="toggle"><input type="checkbox" id="cfg-notif" ${cfg.notificaciones?'checked':''}><span class="toggle-slider"></span></label></div>
-        <div class="config-item"><div class="config-item-label"><i class="fa-solid fa-moon" style="margin-right:7px;color:var(--brand)"></i>Modo oscuro</div><label class="toggle"><input type="checkbox" id="cfg-dark" ${document.documentElement.getAttribute('data-theme')==='dark'?'checked':''} onchange="toggleDarkMode()"><span class="toggle-slider"></span></label></div>
-      </div>
-    </div>
-    <div class="config-section" style="grid-column:1/-1">
-      <div class="config-section-header"><i class="fa-solid fa-users-gear"></i><div class="config-section-title">Usuarios del Sistema</div></div>
-      <div class="config-section-body">
-        <div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Estado</th></tr></thead><tbody>
-          ${DB.usuarios.map(u=>`<tr><td><div class="flex-center gap-8"><div class="avatar-sm">${u.avatar}</div><span class="fw-500">${u.nombre}</span>${u.id===DB.currentUser?.id?`<span class="badge badge-brand" style="font-size:10px">Tú</span>`:''}</div></td><td class="text-muted">${u.email}</td><td><span class="badge ${u.rol==='admin'?'badge-purple':'badge-blue'}">${u.rol}</span></td><td><span class="badge badge-green">Activo</span></td></tr>`).join('')}
-        </tbody></table></div>
-      </div>
-    </div>
-    <div class="config-section" style="grid-column:1/-1">
-      <div class="config-section-header"><i class="fa-solid fa-database"></i><div class="config-section-title">Conexión Supabase</div></div>
-      <div class="config-section-body">
-        <div class="info-box mb-16"><div class="info-box-row"><i class="fa-solid fa-circle-info"></i><strong>Modo Demo — Datos en Memoria</strong></div><p>Para persistencia en la nube, conecta tu proyecto de Supabase.</p></div>
-        <div class="grid-2"><div class="form-group"><label class="form-label">Supabase URL</label><input type="text" class="form-input" placeholder="https://xxx.supabase.co"></div><div class="form-group"><label class="form-label">API Key (anon)</label><input type="password" class="form-input" placeholder="eyJhbGci..."></div></div>
-        <button class="btn btn-secondary" style="margin-top:12px" onclick="toast('info','Integración Supabase en v4.0')"><i class="fa-solid fa-plug"></i> Conectar</button>
-      </div>
-    </div>`;
+  const m=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
+  m('cfg-agencia',cfg.agencia);m('cfg-email',cfg.email_agencia);
+  m('cfg-tel',cfg.telefono);m('cfg-dir',cfg.direccion);
+  m('cfg-web',cfg.web||'');m('cfg-slogan',cfg.slogan||'');
 }
-function saveConfig(){
-  DB.config.agencia=$('cfg-agencia')?.value||DB.config.agencia;
-  DB.config.email_agencia=$('cfg-email')?.value||DB.config.email_agencia;
-  DB.config.telefono=$('cfg-tel')?.value||DB.config.telefono;
-  DB.config.direccion=$('cfg-dir')?.value||DB.config.direccion;
-  DB.config.moneda=$('cfg-moneda')?.value||DB.config.moneda;
-  DB.config.idioma=$('cfg-idioma')?.value||DB.config.idioma;
-  DB.config.notificaciones=$('cfg-notif')?.checked??DB.config.notificaciones;
-  try{localStorage.setItem('adm_config',JSON.stringify(DB.config));}catch(e){}
-  toast('success','Configuración guardada');
+
+function saveAgenciaPanel(){
+  const g=id=>document.getElementById(id);
+  DB.config.agencia=g('cfg-agencia')?.value||DB.config.agencia;
+  DB.config.email_agencia=g('cfg-email')?.value||DB.config.email_agencia;
+  DB.config.telefono=g('cfg-tel')?.value||DB.config.telefono;
+  DB.config.direccion=g('cfg-dir')?.value||DB.config.direccion;
+  DB.config.web=g('cfg-web')?.value||'';
+  DB.config.slogan=g('cfg-slogan')?.value||'';
+  _persistAll();
+  toast('success','Datos de agencia guardados');
 }
+
+function _persistAll(){
+  try{
+    localStorage.setItem('adm_config',JSON.stringify(DB.config));
+    if(DB.sistema) localStorage.setItem('adm_sistema',JSON.stringify(DB.sistema));
+  }catch(e){}
+}
+
+function saveConfig(){saveCurrentCfgPanel();}
+
+/* ── CFG PLANTILLAS ────────────────────────────────────────── */
+function renderCfgPlantillas(filter){
+  const tbody=document.getElementById('cfg-plantillas-tbody');
+  if(!tbody)return;
+  const q=(filter||'').toLowerCase();
+  const list=q?DB.plantillas_web.filter(p=>p.nombre.toLowerCase().includes(q)||p.tipo.includes(q)):DB.plantillas_web;
+  const PLT_TYPE_LABELS2={landing:'Landing Page',sitio_web:'Sitio Web',ecommerce:'E-commerce',aplicacion:'App Web'};
+  tbody.innerHTML=list.length?list.map(p=>`
+    <tr>
+      <td style="font-size:22px">${p.emoji||'🌐'}</td>
+      <td class="fw-500">${p.nombre}</td>
+      <td><span class="badge badge-brand">${PLT_TYPE_LABELS2[p.tipo]||p.tipo}</span></td>
+      <td class="amount-positive">$${fmt(p.precio)}</td>
+      <td class="text-muted text-sm">${p.dias} días</td>
+      <td><div class="flex gap-6">
+        <button class="btn btn-sm btn-secondary btn-icon" onclick="editPlantillaWeb(${p.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-sm btn-danger btn-icon" onclick="deletePlantillaWeb(${p.id});renderCfgPlantillas();renderPlantillasWeb()"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join(''):`<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--tx-3)">Sin plantillas</td></tr>`;
+}
+function filterCfgPlantillas(v){renderCfgPlantillas(v);}
+
+/* ── CFG EXTRAS ────────────────────────────────────────────── */
+function renderCfgExtras(){
+  const tbody=document.getElementById('cfg-extras-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=DB.extras_presupuesto.map(ex=>`
+    <tr>
+      <td><i class="fa-solid ${ex.icon}" style="color:var(--brand);font-size:15px"></i></td>
+      <td class="fw-500">${ex.label}</td>
+      <td class="text-muted text-sm">${ex.desc}</td>
+      <td class="amount-positive">$${fmt(ex.precio)}</td>
+      <td><div class="flex gap-6">
+        <button class="btn btn-sm btn-secondary btn-icon" onclick="editExtra('${ex.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-sm btn-danger btn-icon" onclick="deleteExtra('${ex.id}')"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('')||`<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--tx-3)">Sin extras</td></tr>`;
+}
+
+function saveExtra(){
+  const id=document.getElementById('ex-id').value;
+  const slug=document.getElementById('ex-id-slug').value.trim()||(document.getElementById('ex-label').value.trim().toLowerCase().replace(/\s+/g,'_').slice(0,12));
+  const data={id:id||slug,label:document.getElementById('ex-label').value.trim(),
+    precio:parseFloat(document.getElementById('ex-precio').value)||0,
+    icon:document.getElementById('ex-icon').value.trim()||'fa-star',
+    desc:document.getElementById('ex-desc').value.trim()};
+  if(!data.label||!data.precio){toast('error','Nombre y precio son obligatorios');return;}
+  if(id){const idx=DB.extras_presupuesto.findIndex(e=>e.id===id);if(idx>-1)DB.extras_presupuesto[idx]={...DB.extras_presupuesto[idx],...data};}
+  else DB.extras_presupuesto.push(data);
+  closeModal('modal-extra');renderCfgExtras();renderExtrasGrid();
+  toast('success','Extra guardado');
+}
+
+function editExtra(id){
+  const ex=DB.extras_presupuesto.find(e=>e.id===id);if(!ex)return;
+  document.getElementById('modal-extra-title').textContent='Editar Extra';
+  document.getElementById('ex-id').value=ex.id;document.getElementById('ex-label').value=ex.label;
+  document.getElementById('ex-precio').value=ex.precio;document.getElementById('ex-icon').value=ex.icon;
+  document.getElementById('ex-id-slug').value=ex.id;document.getElementById('ex-desc').value=ex.desc;
+  document.getElementById('modal-extra').classList.add('open');
+}
+
+function deleteExtra(id){
+  if(!confirm('¿Eliminar?'))return;
+  DB.extras_presupuesto=DB.extras_presupuesto.filter(e=>e.id!==id);
+  renderCfgExtras();renderExtrasGrid();toast('info','Extra eliminado');
+}
+
+/* ── CFG TIPOS DE PROYECTO ─────────────────────────────────── */
+function renderCfgTiposProyecto(){
+  const tbody=document.getElementById('cfg-tipos-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=DB.tipos_proyecto.map(tp=>`
+    <tr>
+      <td style="font-size:20px">${tp.emoji||'📁'}</td>
+      <td class="fw-500">${tp.nombre}</td>
+      <td class="text-muted text-sm">${tp.desc||'—'}</td>
+      <td><div class="flex gap-6">
+        <button class="btn btn-sm btn-secondary btn-icon" onclick="editTipoProyecto(${tp.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-sm btn-danger btn-icon" onclick="deleteTipoProyecto(${tp.id})"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('')||`<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--tx-3)">Sin tipos</td></tr>`;
+}
+
+function saveTipoProyecto(){
+  const id=document.getElementById('tp-id').value;
+  const data={nombre:document.getElementById('tp-nombre').value.trim(),
+    emoji:document.getElementById('tp-emoji').value.trim()||'📁',
+    desc:document.getElementById('tp-desc').value.trim()};
+  if(!data.nombre){toast('error','El nombre es obligatorio');return;}
+  if(id){const idx=DB.tipos_proyecto.findIndex(t=>t.id==id);DB.tipos_proyecto[idx]={...DB.tipos_proyecto[idx],...data};}
+  else{data.id=nextId();DB.tipos_proyecto.push(data);}
+  closeModal('modal-tipo_proyecto');renderCfgTiposProyecto();toast('success','Tipo guardado');
+}
+
+function editTipoProyecto(id){
+  const tp=DB.tipos_proyecto.find(t=>t.id===id);if(!tp)return;
+  document.getElementById('modal-tipo_proyecto-title').textContent='Editar Tipo';
+  document.getElementById('tp-id').value=tp.id;document.getElementById('tp-nombre').value=tp.nombre;
+  document.getElementById('tp-emoji').value=tp.emoji||'';document.getElementById('tp-desc').value=tp.desc||'';
+  document.getElementById('modal-tipo_proyecto').classList.add('open');
+}
+
+function deleteTipoProyecto(id){
+  if(!confirm('¿Eliminar?'))return;
+  DB.tipos_proyecto=DB.tipos_proyecto.filter(t=>t.id!==id);
+  renderCfgTiposProyecto();toast('info','Eliminado');
+}
+
+/* ── CFG ESTADOS PIPELINE ──────────────────────────────────── */
+function renderCfgPipelineEstados(){
+  const tbody=document.getElementById('cfg-pipeline-tbody');
+  if(!tbody)return;
+  const sorted=[...DB.pipeline_estados].sort((a,b)=>a.orden-b.orden);
+  tbody.innerHTML=sorted.map(pe=>`
+    <tr>
+      <td><div style="width:20px;height:20px;border-radius:50%;background:${pe.dot};display:inline-block"></div></td>
+      <td class="fw-500">${pe.label}</td>
+      <td><code style="background:var(--bg-2);padding:2px 8px;border-radius:5px;font-size:11.5px">${pe.slug}</code></td>
+      <td class="text-muted">${pe.orden}</td>
+      <td><div class="flex gap-6">
+        <button class="btn btn-sm btn-secondary btn-icon" onclick="editPipelineEstado(${pe.id})"><i class="fa-solid fa-pen"></i></button>
+        ${DB.pipeline_estados.length>2?`<button class="btn btn-sm btn-danger btn-icon" onclick="deletePipelineEstado(${pe.id})"><i class="fa-solid fa-trash"></i></button>`:''}
+      </div></td>
+    </tr>`).join('');
+}
+
+function savePipelineEstado(){
+  const id=document.getElementById('pe-id').value;
+  const data={label:document.getElementById('pe-label').value.trim(),
+    slug:document.getElementById('pe-slug').value.trim().toLowerCase().replace(/\s+/g,'_'),
+    dot:document.getElementById('pe-color').value,
+    orden:parseInt(document.getElementById('pe-orden').value)||DB.pipeline_estados.length+1};
+  if(!data.label||!data.slug){toast('error','Nombre y slug obligatorios');return;}
+  if(id){const idx=DB.pipeline_estados.findIndex(e=>e.id==id);DB.pipeline_estados[idx]={...DB.pipeline_estados[idx],...data};}
+  else{data.id=nextId();DB.pipeline_estados.push(data);}
+  closeModal('modal-pipeline_estado');renderCfgPipelineEstados();renderPipeline();
+  toast('success','Estado guardado');
+}
+
+function editPipelineEstado(id){
+  const pe=DB.pipeline_estados.find(e=>e.id===id);if(!pe)return;
+  document.getElementById('modal-pipeline_estado-title').textContent='Editar Estado';
+  document.getElementById('pe-id').value=pe.id;document.getElementById('pe-label').value=pe.label;
+  document.getElementById('pe-slug').value=pe.slug;document.getElementById('pe-color').value=pe.dot;
+  document.getElementById('pe-orden').value=pe.orden;
+  document.getElementById('modal-pipeline_estado').classList.add('open');
+}
+
+function deletePipelineEstado(id){
+  if(DB.pipeline_estados.length<=2){toast('error','Mínimo 2 estados');return;}
+  if(!confirm('¿Eliminar?'))return;
+  DB.pipeline_estados=DB.pipeline_estados.filter(e=>e.id!==id);
+  renderCfgPipelineEstados();renderPipeline();toast('info','Estado eliminado');
+}
+
+/* ── CFG CONTRATOS TPL ─────────────────────────────────────── */
+function renderCfgContratosTpl(){
+  const tbody=document.getElementById('cfg-contratos-tpl-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=DB.contratos_tpl.map(ct=>`
+    <tr>
+      <td class="fw-500">${ct.nombre}</td>
+      <td><span class="badge badge-brand">${ct.tipo}</span></td>
+      <td class="text-muted text-sm" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ct.contenido.slice(0,60)}...</td>
+      <td><div class="flex gap-6">
+        <button class="btn btn-sm btn-secondary btn-icon" onclick="editContratoTpl(${ct.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-sm btn-danger btn-icon" onclick="deleteContratoTpl(${ct.id})"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('')||`<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--tx-3)">Sin plantillas de contrato</td></tr>`;
+}
+
+function saveContratoTpl(){
+  const id=document.getElementById('ctpl-id').value;
+  const data={nombre:document.getElementById('ctpl-nombre').value.trim(),
+    tipo:document.getElementById('ctpl-tipo').value,
+    contenido:document.getElementById('ctpl-contenido').value.trim()};
+  if(!data.nombre){toast('error','El nombre es obligatorio');return;}
+  if(id){const idx=DB.contratos_tpl.findIndex(t=>t.id==id);DB.contratos_tpl[idx]={...DB.contratos_tpl[idx],...data};}
+  else{data.id=nextId();DB.contratos_tpl.push(data);}
+  closeModal('modal-contrato_tpl');renderCfgContratosTpl();toast('success','Plantilla guardada');
+}
+
+function editContratoTpl(id){
+  const ct=DB.contratos_tpl.find(t=>t.id===id);if(!ct)return;
+  document.getElementById('modal-contrato_tpl-title').textContent='Editar Plantilla';
+  document.getElementById('ctpl-id').value=ct.id;document.getElementById('ctpl-nombre').value=ct.nombre;
+  document.getElementById('ctpl-tipo').value=ct.tipo;document.getElementById('ctpl-contenido').value=ct.contenido;
+  document.getElementById('modal-contrato_tpl').classList.add('open');
+}
+
+function deleteContratoTpl(id){
+  if(!confirm('¿Eliminar?'))return;
+  DB.contratos_tpl=DB.contratos_tpl.filter(t=>t.id!==id);renderCfgContratosTpl();toast('info','Eliminada');
+}
+
+/* ── CFG CATEGORÍAS ────────────────────────────────────────── */
+function renderCfgCategorias(){
+  const tbody=document.getElementById('cfg-categorias-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=DB.categorias.map(cat=>`
+    <tr>
+      <td style="font-size:20px">${cat.emoji||'📁'}</td>
+      <td class="fw-500">${cat.nombre}</td>
+      <td><div class="flex gap-6">
+        <button class="btn btn-sm btn-secondary btn-icon" onclick="editCategoria(${cat.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-sm btn-danger btn-icon" onclick="deleteCategoria(${cat.id})"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('')||`<tr><td colspan="3" style="text-align:center;padding:16px;color:var(--tx-3)">Sin categorías</td></tr>`;
+}
+
+function saveCategoria(){
+  const id=document.getElementById('cat-id').value;
+  const data={nombre:document.getElementById('cat-nombre').value.trim(),emoji:document.getElementById('cat-emoji').value.trim()||'📁'};
+  if(!data.nombre){toast('error','El nombre es obligatorio');return;}
+  if(id){const idx=DB.categorias.findIndex(c=>c.id==id);DB.categorias[idx]={...DB.categorias[idx],...data};}
+  else{data.id=nextId();DB.categorias.push(data);}
+  closeModal('modal-categoria');renderCfgCategorias();toast('success','Categoría guardada');
+}
+
+function editCategoria(id){
+  const cat=DB.categorias.find(c=>c.id===id);if(!cat)return;
+  document.getElementById('modal-categoria-title').textContent='Editar Categoría';
+  document.getElementById('cat-id').value=cat.id;document.getElementById('cat-nombre').value=cat.nombre;
+  document.getElementById('cat-emoji').value=cat.emoji||'';
+  document.getElementById('modal-categoria').classList.add('open');
+}
+
+function deleteCategoria(id){
+  if(!confirm('¿Eliminar?'))return;
+  DB.categorias=DB.categorias.filter(c=>c.id!==id);renderCfgCategorias();toast('info','Eliminada');
+}
+
+/* ── CFG USUARIOS ──────────────────────────────────────────── */
+function renderCfgUsuarios(){
+  const tbody=document.getElementById('cfg-usuarios-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=DB.usuarios.map(u=>`
+    <tr>
+      <td><div class="avatar-sm">${u.avatar}</div></td>
+      <td><span class="fw-500">${u.nombre}</span>${u.id===DB.currentUser?.id?' <span class="badge badge-brand" style="font-size:10px">Tú</span>':''}</td>
+      <td class="text-muted text-sm">${u.email}</td>
+      <td><span class="badge ${u.rol==='admin'?'badge-purple':'badge-blue'}">${u.rol}</span></td>
+      <td><span class="badge badge-green">Activo</span></td>
+      <td><div class="flex gap-6">
+        <button class="btn btn-sm btn-secondary btn-icon" onclick="editUsuario(${u.id})"><i class="fa-solid fa-pen"></i></button>
+        ${u.id!==DB.currentUser?.id?`<button class="btn btn-sm btn-danger btn-icon" onclick="deleteUsuario(${u.id})"><i class="fa-solid fa-trash"></i></button>`:''}
+      </div></td>
+    </tr>`).join('');
+}
+
+function saveUsuario(){
+  const id=document.getElementById('usr-id').value;
+  const data={nombre:document.getElementById('usr-nombre').value.trim(),
+    avatar:document.getElementById('usr-avatar').value.trim().toUpperCase().slice(0,2)||'US',
+    email:document.getElementById('usr-email').value.trim(),rol:document.getElementById('usr-rol').value};
+  const pass=document.getElementById('usr-pass').value;
+  if(pass)data.password=pass;
+  if(!data.nombre||!data.email){toast('error','Nombre y email obligatorios');return;}
+  if(id){const idx=DB.usuarios.findIndex(u=>u.id==id);DB.usuarios[idx]={...DB.usuarios[idx],...data};}
+  else{data.id=nextId();DB.usuarios.push(data);}
+  closeModal('modal-usuario');renderCfgUsuarios();toast('success','Usuario guardado');
+}
+
+function editUsuario(id){
+  const u=DB.usuarios.find(u=>u.id===id);if(!u)return;
+  document.getElementById('modal-usuario-title').textContent='Editar Usuario';
+  document.getElementById('usr-id').value=u.id;document.getElementById('usr-nombre').value=u.nombre;
+  document.getElementById('usr-avatar').value=u.avatar;document.getElementById('usr-email').value=u.email;
+  document.getElementById('usr-rol').value=u.rol;document.getElementById('usr-pass').value='';
+  document.getElementById('modal-usuario').classList.add('open');
+}
+
+function deleteUsuario(id){
+  if(id===DB.currentUser?.id){toast('error','No puedes eliminarte a ti mismo');return;}
+  if(!confirm('¿Eliminar?'))return;
+  DB.usuarios=DB.usuarios.filter(u=>u.id!==id);renderCfgUsuarios();toast('info','Usuario eliminado');
+}
+
+
 function showNotifications(){const p=DB.tareas.filter(t=>t.estado==='pendiente').length;const pay=DB.transacciones.filter(t=>t.tipo==='pendiente').length;toast('info',`${p} tareas pendientes · ${pay} pagos por cobrar`);}
 
 /* ================================================================
@@ -2545,6 +3449,7 @@ function crearFacturaDesdeProyecto(proyId){
 const PLT_TYPE_LABELS_SHORT={landing:'Landing',sitio_web:'Sitio Web',ecommerce:'E-commerce',aplicacion:'App Web',mantenimiento:'Mantenimiento'};
 
 function renderPipeline(){
+  const PIPELINE_COLS=getPipelineCols();
   const totalVal=DB.leads.reduce((a,l)=>a+l.valor,0);
   $('pipeline-board').innerHTML=PIPELINE_COLS.map(col=>{
     const leads=DB.leads.filter(l=>l.etapa===col.id);
@@ -2573,7 +3478,7 @@ function renderPipeline(){
                   ${PIPELINE_COLS.map(c=>`<option value="${c.id}" ${c.id===l.etapa?'selected':''}>${c.label}</option>`).join('')}
                 </select>`:'<span class="badge badge-green">Cerrado ✓</span>'}
             </div>
-            ${col.id==='propuesta'||col.id==='negociacion'||col.id==='cerrado'?`
+            ${(()=>{const cols=getPipelineCols();const idx=cols.findIndex(x=>x.id===col.id);return idx>=2;})()?`
             <div style="margin-top:8px">
               <button class="flow-badge" onclick="generarPresupuestoDesdeLead(${l.id})" style="width:100%;justify-content:center;font-size:11px">
                 <i class="fa-solid fa-file-invoice"></i> Generar presupuesto
@@ -2589,7 +3494,7 @@ function renderPipeline(){
   /* Summary */
   $('pipeline-summary').innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px">
-      ${PIPELINE_COLS.map(col=>{
+      ${getPipelineCols().map(col=>{
         const leads=DB.leads.filter(l=>l.etapa===col.id);
         const val=leads.reduce((a,l)=>a+l.valor,0);
         return`<div style="text-align:center;padding:14px;background:var(--bg-2);border-radius:var(--r-lg);border:1px solid var(--bd)">
@@ -2723,18 +3628,63 @@ function deleteFactura(id){
 /* ── FLUJO: Proyectos — add "Generar factura" button ─────────────────────── */
 
 /* ================================================================
+   SIDEBAR COLLAPSIBLE
+   ================================================================ */
+function toggleSidebar(){
+  const sb=document.querySelector('.sidebar');
+  const btn=document.getElementById('sidebar-toggle-btn');
+  const collapsed=sb.classList.toggle('collapsed');
+  localStorage.setItem('adm_sidebar_collapsed',collapsed?'1':'0');
+  if(btn){
+    btn.querySelector('i').className=collapsed?'fa-solid fa-bars-staggered':'fa-solid fa-bars';
+    btn.title=collapsed?'Expandir sidebar':'Colapsar sidebar';
+  }
+}
+
+/* ================================================================
    INIT
    ================================================================ */
+// Restore config
 try{const saved=localStorage.getItem('adm_config');if(saved)DB.config={...DB.config,...JSON.parse(saved)};}catch(e){}
-// Apply saved dark mode on init (before login)
+// Restore sistema settings
+try{const saved=localStorage.getItem('adm_sistema');if(saved)DB.sistema={...DB.sistema,...JSON.parse(saved)};}catch(e){}
+
+// Apply theme
+(function(){
+  const saved=localStorage.getItem('adm_theme')||'light';
+  document.documentElement.setAttribute('data-theme',saved);
+  updateDMToggle(saved);
+})();
+
+// Apply system brand color on page load
+setTimeout(()=>{if(DB.sistema?.colorBrand)applySystemSettings();},0);
+
+// Restore sidebar state
 try{
-  const dm=localStorage.getItem('adm_darkmode');
-  if(dm==='dark'||(!dm&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
-    document.documentElement.setAttribute('data-theme','dark');
+  const col=localStorage.getItem('adm_sidebar_collapsed');
+  if(col==='1'){
+    const sb=document.querySelector('.sidebar');
+    if(sb){sb.classList.add('collapsed');
+      const btn=document.getElementById('sidebar-toggle-btn');
+      if(btn)btn.querySelector('i').className='fa-solid fa-bars-staggered';
+    }
   }
 }catch(e){}
 
-console.log('AlexisDigital Manager v3 — ready 🚀');
+// Add tooltips to all nav items dynamically
+document.querySelectorAll('.nav-item[data-section]').forEach(item=>{
+  if(!item.querySelector('.nav-tooltip')){
+    const span=item.querySelector('span');
+    if(span){
+      const tt=document.createElement('div');
+      tt.className='nav-tooltip';
+      tt.textContent=span.textContent;
+      item.appendChild(tt);
+    }
+  }
+});
+
+console.log('AlexisDigital Manager v4 — ready 🚀');
 </script>
 </body>
 </html>
