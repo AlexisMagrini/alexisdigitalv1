@@ -3674,6 +3674,13 @@ function _checkOverdueReminders() {
   if (typeof _loadReminders !== 'function') return;
   const tod = typeof today === 'function' ? today() : new Date().toISOString().split('T')[0];
   _loadReminders();
+  // Purge stale auto-reminders for invoices that no longer exist
+  const existingFacturaIds = new Set((window.DB?.facturas||[]).map(f=>`auto-fact-${f.id}`));
+  if(window._reminders){
+    const before = window._reminders.length;
+    window._reminders = window._reminders.filter(r => !r.ref?.startsWith('auto-fact-') || existingFacturaIds.has(r.ref));
+    if(window._reminders.length !== before && typeof _saveReminders==='function') _saveReminders();
+  }
   (window.DB?.facturas || [])
     .filter(f => f.estado === 'pendiente' && f.vence && f.vence < tod)
     .forEach(f => {
@@ -5376,7 +5383,7 @@ function _finishLogin(user){
   else if(rol==='employee') navigate('tareas');
   else navigate('dashboard');
   
-  if(DB.sistema?.colorBrand) applySystemSettings();
+  applySystemSettings(); // always apply logo + branding on login
   updateConnectionStatus();
   toast('success',`Bienvenido, ${(user.nombre||user.name||'').split(' ')[0]}! <span class="role-badge role-${rol}" style="margin-left:6px">${rol}</span>`);
 }
@@ -5999,7 +6006,13 @@ function applySystemSettings(){
   }
   /* ── Topbar: remove any stale logo area ─────────────────────  */
   _applyTopbarLogo();
-  document.title=(s.nombre||'AlexisDigital Manager')+' — Panel';
+  document.title=(s.nombre||DB.config?.agencia||'AlexisDigital')+' — Panel';
+  /* ── Favicon ─────────────────────────────────────────────────  */
+  if(s.favicon){
+    let link=document.querySelector("link[rel~='icon']");
+    if(!link){link=document.createElement('link');link.rel='icon';document.head.appendChild(link);}
+    link.href=s.favicon;
+  }
 }
 
 /** Applies the correct logo (light/dark) to the sidebar */
@@ -7473,34 +7486,7 @@ setTimeout(()=>{if(DB.sistema?.colorBrand)applySystemSettings();},0);
 /* ================================================================
    BRANDING — LOGO / FAVICON / TITLE
    ================================================================ */
-function applySystemSettings(){
-  const s=DB.sistema||{};
-  /* System name in sidebar and title */
-  const sn=document.getElementById('s-sys-name');
-  if(sn) sn.textContent=s.nombre||'Manager';
-  document.title=(s.nombre||'AlexisDigital Manager')+' — Panel';
-  /* Topbar logo */
-  _applyTopbarLogo();
-  /* Sidebar logo emoji */
-  const emojiEl=document.getElementById('s-logo-emoji');
-  const imgEl=document.getElementById('s-logo-img');
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-  const logoB64=isDark?(s.logoDark||s.logoLight):s.logoLight;
-  if(logoB64&&imgEl){imgEl.src=logoB64;imgEl.style.display='block';if(emojiEl)emojiEl.style.display='none';}
-  else{if(imgEl)imgEl.style.display='none';if(emojiEl){emojiEl.textContent=s.logoEmoji||'⚡';emojiEl.style.display='';}}
-  /* Brand color */
-  if(s.colorBrand){
-    document.documentElement.style.setProperty('--brand',s.colorBrand);
-    document.documentElement.style.setProperty('--brand-mid',s.colorBrand);
-    document.documentElement.style.setProperty('--bd-focus',s.colorBrand);
-  }
-  /* Favicon */
-  if(s.favicon){
-    let link=document.querySelector("link[rel~='icon']");
-    if(!link){link=document.createElement('link');link.rel='icon';document.head.appendChild(link);}
-    link.href=s.favicon;
-  }
-}
+/* applySystemSettings defined above — single canonical version */
 
 function _applyTopbarLogo(){
   const s=DB.sistema||{};
