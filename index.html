@@ -505,6 +505,56 @@ tbody tr:hover{background:var(--bg-3)}
 .portal-card{background:var(--bg-1);border:1px solid var(--bd);border-radius:var(--r-lg);padding:16px;box-shadow:var(--sh-xs)}
 .portal-card-title{font-size:12px;font-weight:700;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
 
+/* ── PLANTILLAS WEB ────────────────────────────────────────── */
+.plt-card{
+  background:var(--bg-1);border:1.5px solid var(--bd);
+  border-radius:var(--r-xl);padding:22px 20px;
+  box-shadow:var(--sh-sm);transition:all .22s ease;
+  display:flex;flex-direction:column;gap:8px;
+  cursor:pointer;position:relative;overflow:hidden;
+}
+.plt-card:hover{box-shadow:var(--sh-lg);transform:translateY(-3px);border-color:var(--brand)}
+.plt-card-emoji{font-size:40px;line-height:1;margin-bottom:4px}
+.plt-card-name{font-size:14px;font-weight:700;color:var(--tx-1)}
+.plt-card-type{font-size:11px;font-weight:600;color:var(--brand);text-transform:uppercase;letter-spacing:.5px}
+.plt-card-desc{font-size:12.5px;color:var(--tx-2);line-height:1.5;flex:1}
+.plt-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:10px;border-top:1px solid var(--bd)}
+.plt-card-price{font-size:16px;font-weight:800;color:var(--green)}
+.plt-card-days{font-size:11.5px;color:var(--tx-3)}
+.plt-card-actions{position:absolute;top:10px;right:10px;display:none;gap:4px;z-index:1}
+.plt-card:hover .plt-card-actions{display:flex}
+
+/* ── EXTRA CHECKBOX (Presupuesto) ───────────────────────────── */
+.extra-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 12px;background:var(--bg-1);
+  border:1.5px solid var(--bd);border-radius:var(--r);
+  cursor:pointer;transition:all var(--ease);
+}
+.extra-item:hover{border-color:var(--brand);background:var(--brand-soft)}
+.extra-item.selected{border-color:var(--brand);background:var(--brand-soft)}
+.extra-cb{width:16px;height:16px;accent-color:var(--brand);flex-shrink:0;margin-top:2px}
+.extra-label{font-size:12.5px;font-weight:600;color:var(--tx-1)}
+.extra-price{font-size:11px;color:var(--green);font-weight:600;margin-top:1px}
+.extra-desc{font-size:11px;color:var(--tx-3);margin-top:1px}
+
+/* ── FLOW BADGE (conecta módulos) ───────────────────────────── */
+.flow-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:99px;font-size:11.5px;font-weight:600;
+  background:linear-gradient(90deg,var(--brand-soft),var(--green-soft));
+  border:1px solid var(--brand);color:var(--brand);
+  cursor:pointer;transition:all var(--ease);
+}
+.flow-badge:hover{background:var(--brand);color:#fff;transform:translateY(-1px)}
+.flow-badge i{font-size:10px}
+
+/* ── PRESUPUESTO DETAIL ─────────────────────────────────────── */
+.bd-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.bd-row:last-child{border-bottom:none}
+.bd-row .name{color:var(--tx-2);display:flex;align-items:center;gap:6px}
+.bd-row .price{font-weight:600;color:var(--tx-1)}
+
 /* ── EMPTY STATE ───────────────────────────────────────────── */
 .empty-state{text-align:center;padding:48px 20px}
 .empty-ico{width:58px;height:58px;border-radius:var(--r-lg);background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:23px;margin:0 auto 14px}
@@ -595,6 +645,9 @@ tbody tr:hover{background:var(--bg-3)}
       <span class="nav-group-label">Ventas</span>
       <div class="nav-item" onclick="navigate('pipeline')" data-section="pipeline">
         <div class="nav-icon"><i class="fa-solid fa-filter"></i></div><span>Pipeline</span>
+      </div>
+      <div class="nav-item" onclick="navigate('plantillas_web')" data-section="plantillas_web">
+        <div class="nav-icon"><i class="fa-solid fa-layer-group"></i></div><span>Plantillas Web</span>
       </div>
       <div class="nav-item" onclick="navigate('presupuestos')" data-section="presupuestos">
         <div class="nav-icon"><i class="fa-solid fa-file-invoice"></i></div><span>Presupuestos</span>
@@ -858,6 +911,24 @@ tbody tr:hover{background:var(--bg-3)}
             <tbody id="presupuestos-tbody"></tbody></table>
           </div>
         </div>
+      </section>
+
+      <!-- PLANTILLAS WEB -->
+      <section class="section" id="sec-plantillas_web">
+        <div class="sec-header">
+          <div><div class="sec-title">Plantillas Web</div><div class="sec-sub">Catálogo de plantillas disponibles para proyectos rápidos</div></div>
+          <button class="btn btn-primary" onclick="openModal('modal-plantilla_web')"><i class="fa-solid fa-plus"></i> Nueva plantilla</button>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('plt','todas',this)">Todas</button>
+          <button class="tab-btn" onclick="switchTab('plt','landing',this)">Landing Pages</button>
+          <button class="tab-btn" onclick="switchTab('plt','sitio_web',this)">Sitios Web</button>
+          <button class="tab-btn" onclick="switchTab('plt','ecommerce',this)">E-commerce</button>
+        </div>
+        <div id="plt-todas-tab"><div class="file-grid" id="plt-grid-todas"></div></div>
+        <div id="plt-landing-tab" style="display:none"><div class="file-grid" id="plt-grid-landing"></div></div>
+        <div id="plt-sitio_web-tab" style="display:none"><div class="file-grid" id="plt-grid-sitio_web"></div></div>
+        <div id="plt-ecommerce-tab" style="display:none"><div class="file-grid" id="plt-grid-ecommerce"></div></div>
       </section>
 
       <!-- CONTRATOS -->
@@ -1144,10 +1215,21 @@ tbody tr:hover{background:var(--bg-3)}
       <div class="form-group"><label class="form-label">Contacto</label><input type="text" class="form-input" id="ld-contacto" placeholder="juan@empresa.com"></div>
       <div class="form-group"><label class="form-label">Valor Estimado (ARS)</label><input type="number" class="form-input" id="ld-valor" placeholder="0"></div>
     </div>
-    <div class="form-group"><label class="form-label">Etapa</label>
-      <select class="form-select" id="ld-etapa">
-        <option value="lead">Lead</option><option value="contactado">Contactado</option><option value="propuesta">Propuesta Enviada</option><option value="negociacion">Negociación</option><option value="cerrado">Cerrado</option>
-      </select>
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Etapa</label>
+        <select class="form-select" id="ld-etapa">
+          <option value="lead">Lead</option><option value="contactado">Contactado</option><option value="propuesta">Propuesta Enviada</option><option value="negociacion">Negociación</option><option value="cerrado">Cerrado</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Tipo de Proyecto</label>
+        <select class="form-select" id="ld-tipo">
+          <option value="landing">Landing Page</option>
+          <option value="sitio_web">Sitio Web</option>
+          <option value="ecommerce">E-commerce</option>
+          <option value="aplicacion">Aplicación Web</option>
+          <option value="mantenimiento">Mantenimiento</option>
+        </select>
+      </div>
     </div>
   </div><div class="modal-footer">
     <button class="btn btn-secondary" onclick="closeModal('modal-lead')">Cancelar</button>
@@ -1155,7 +1237,7 @@ tbody tr:hover{background:var(--bg-3)}
   </div></div>
 </div>
 
-<!-- Modal Presupuesto -->
+<!-- Modal Presupuesto — Generador Automático -->
 <div class="modal-overlay" id="modal-presupuesto">
   <div class="modal modal-lg"><div class="modal-header">
     <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-file-invoice"></i></div><div class="modal-title" id="modal-presupuesto-title">Nuevo Presupuesto</div></div>
@@ -1166,11 +1248,29 @@ tbody tr:hover{background:var(--bg-3)}
       <div class="form-group"><label class="form-label">Nombre del proyecto *</label><input type="text" class="form-input" id="pr-nombre" placeholder="Nombre del servicio"></div>
       <div class="form-group"><label class="form-label">Cliente *</label><select class="form-select" id="pr-cliente"></select></div>
     </div>
-    <div class="form-group mb-16"><label class="form-label">Descripción</label><textarea class="form-input" id="pr-desc" placeholder="Descripción del presupuesto..."></textarea></div>
     <div class="grid-2 mb-16">
-      <div class="form-group"><label class="form-label">Precio Estimado (ARS) *</label><input type="number" class="form-input" id="pr-precio" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Plantilla base</label><select class="form-select" id="pr-plantilla" onchange="calcPresupuesto()"><option value="">— Sin plantilla —</option></select></div>
       <div class="form-group"><label class="form-label">Estado</label>
         <select class="form-select" id="pr-estado"><option value="pendiente">Pendiente</option><option value="aprobado">Aprobado</option><option value="rechazado">Rechazado</option></select>
+      </div>
+    </div>
+    <div class="form-group mb-16"><label class="form-label">Descripción del proyecto</label><textarea class="form-input" id="pr-desc" placeholder="Descripción detallada del servicio..." style="min-height:72px"></textarea></div>
+    <!-- Extras / Add-ons -->
+    <div style="background:var(--bg-2);border:1px solid var(--bd);border-radius:var(--r-lg);padding:16px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--tx-2);margin-bottom:12px;letter-spacing:.3px;text-transform:uppercase">
+        <i class="fa-solid fa-puzzle-piece" style="margin-right:6px;color:var(--brand)"></i>Extras opcionales
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="pr-extras-grid"></div>
+    </div>
+    <!-- Price breakdown -->
+    <div style="background:var(--brand-soft);border:1.5px solid var(--brand);border-radius:var(--r-lg);padding:16px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--brand);margin-bottom:10px;text-transform:uppercase;letter-spacing:.3px">
+        <i class="fa-solid fa-calculator" style="margin-right:6px"></i>Resumen de precio
+      </div>
+      <div id="pr-breakdown" style="font-size:13px"></div>
+      <div style="border-top:1.5px solid var(--brand);margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:700;color:var(--tx-1);font-size:14px">Total del proyecto</span>
+        <span id="pr-total" style="font-size:22px;font-weight:800;color:var(--brand)">$0</span>
       </div>
     </div>
     <div class="grid-2">
@@ -1179,7 +1279,37 @@ tbody tr:hover{background:var(--bg-3)}
     </div>
   </div><div class="modal-footer">
     <button class="btn btn-secondary" onclick="closeModal('modal-presupuesto')">Cancelar</button>
-    <button class="btn btn-primary" onclick="savePresupuesto()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+    <button class="btn btn-primary" onclick="savePresupuesto()"><i class="fa-solid fa-floppy-disk"></i> Guardar presupuesto</button>
+  </div></div>
+</div>
+
+<!-- Modal Plantilla Web -->
+<div class="modal-overlay" id="modal-plantilla_web">
+  <div class="modal modal-lg"><div class="modal-header">
+    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-layer-group"></i></div><div class="modal-title" id="modal-plantilla_web-title">Nueva Plantilla</div></div>
+    <button class="modal-close" onclick="closeModal('modal-plantilla_web')"><i class="fa-solid fa-xmark"></i></button>
+  </div><div class="modal-body">
+    <input type="hidden" id="plw-id">
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="form-input" id="plw-nombre" placeholder="Landing para Abogados"></div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-select" id="plw-tipo">
+          <option value="landing">Landing Page</option>
+          <option value="sitio_web">Sitio Web Institucional</option>
+          <option value="ecommerce">E-commerce</option>
+          <option value="aplicacion">Aplicación Web</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group mb-16"><label class="form-label">Descripción</label><textarea class="form-input" id="plw-desc" placeholder="Describe la plantilla y su uso ideal..."></textarea></div>
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Precio base (ARS) *</label><input type="number" class="form-input" id="plw-precio" placeholder="0" oninput="calcPresupuesto()"></div>
+      <div class="form-group"><label class="form-label">Entrega estimada (días)</label><input type="number" class="form-input" id="plw-dias" placeholder="14"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Emoji / Ícono representativo</label><input type="text" class="form-input" id="plw-emoji" placeholder="🌐" style="font-size:24px;text-align:center;letter-spacing:4px"></div>
+  </div><div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-plantilla_web')">Cancelar</button>
+    <button class="btn btn-primary" onclick="savePlantillaWeb()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
   </div></div>
 </div>
 
@@ -1382,6 +1512,27 @@ let DB={
     {id:3,clienteId:1,proyectoId:1,desc:'50% final Sitio TechCorp',monto:125000,fecha:'2024-04-08',vence:'2024-04-30',estado:'pendiente'},
     {id:4,clienteId:2,proyectoId:2,desc:'50% final E-commerce',monto:210000,fecha:'2024-04-10',vence:'2024-05-31',estado:'pendiente'},
     {id:5,clienteId:3,proyectoId:3,desc:'Pago único Landing',monto:85000,fecha:'2024-04-15',vence:'2024-04-25',estado:'pendiente'}
+  ],
+  /* ── PLANTILLAS WEB ─────────────────────────────────── */
+  plantillas_web:[
+    {id:1,nombre:'Landing para Abogados',tipo:'landing',desc:'Diseño profesional para estudios jurídicos. Incluye sección de servicios, equipo y formulario de consulta.',precio:65000,dias:10,emoji:'⚖️'},
+    {id:2,nombre:'Landing para Coaches',tipo:'landing',desc:'Página de captación para coaches y mentores. CTA optimizado, testimonios y sección de programas.',precio:55000,dias:8,emoji:'🎯'},
+    {id:3,nombre:'Sitio para Clínicas',tipo:'sitio_web',desc:'Web completa para clínicas y consultorios. Agenda online, ficha médica y blog de salud.',precio:120000,dias:18,emoji:'🏥'},
+    {id:4,nombre:'Web para Inmobiliarias',tipo:'sitio_web',desc:'Sitio con buscador de propiedades, filtros, galería y formulario de contacto integrado.',precio:150000,dias:21,emoji:'🏠'},
+    {id:5,nombre:'E-commerce Moda',tipo:'ecommerce',desc:'Tienda de ropa y accesorios. Catálogo, carrito, wishlist y pasarela de pagos.',precio:280000,dias:30,emoji:'👗'},
+    {id:6,nombre:'E-commerce Alimentos',tipo:'ecommerce',desc:'Tienda de alimentos y delivery. Menú digital, pedidos online y seguimiento.',precio:240000,dias:25,emoji:'🍕'},
+    {id:7,nombre:'Landing para Restaurantes',tipo:'landing',desc:'Presencia digital para gastronomía. Menú visual, reservas y ubicación.',precio:50000,dias:7,emoji:'🍽️'},
+    {id:8,nombre:'Sitio para Consultoras',tipo:'sitio_web',desc:'Web corporativa para consultoras. Servicios, equipo, casos de éxito y contacto.',precio:95000,dias:14,emoji:'💼'}
+  ],
+  /* ── EXTRAS DISPONIBLES para presupuestos ────────────── */
+  extras_presupuesto:[
+    {id:'seo',label:'SEO Básico',precio:25000,icon:'fa-magnifying-glass',desc:'Optimización On-Page + Google Search Console'},
+    {id:'blog',label:'Blog / Noticias',precio:30000,icon:'fa-newspaper',desc:'Sistema de artículos con categorías y etiquetas'},
+    {id:'forms',label:'Formularios Avanzados',precio:18000,icon:'fa-wpforms',desc:'Formularios multi-paso con validación y notificaciones'},
+    {id:'integ',label:'Integraciones Externas',precio:35000,icon:'fa-plug',desc:'APIs externas: CRM, WhatsApp, Redes Sociales'},
+    {id:'speed',label:'Optimización de Velocidad',precio:22000,icon:'fa-gauge-high',desc:'PageSpeed Insights, lazy loading, CDN'},
+    {id:'analytics',label:'Analytics & Tracking',precio:15000,icon:'fa-chart-line',desc:'Google Analytics 4, Meta Pixel, heatmaps'},
+    {id:'maint',label:'Mantenimiento 3 meses',precio:45000,icon:'fa-wrench',desc:'Soporte técnico y actualizaciones por 3 meses'}
   ]
 };
 
@@ -1436,6 +1587,18 @@ function openModal(id){
   if(id==='modal-tarea'){populateProyectoSelect('ta-proyecto');$('modal-tarea-title').textContent='Nueva Tarea';$('ta-id').value='';}
   if(id==='modal-evento'){populateClienteSelect('ev-cliente');$('ev-fecha').value=today();$('modal-evento-title').textContent='Nuevo Evento';$('ev-id').value='';}
   if(id==='modal-lead'){$('modal-lead-title').textContent='Nuevo Lead';$('ld-id').value='';}
+  if(id==='modal-plantilla_web'){$('modal-plantilla_web-title').textContent='Nueva Plantilla';$('plw-id').value='';}
+  if(id==='modal-presupuesto'){
+    populateClienteSelect('pr-cliente');
+    populatePlantillaSelect('pr-plantilla');
+    renderExtrasGrid();
+    calcPresupuesto();
+    $('pr-fecha').value=today();
+    // Valid until = 30 days from now
+    const v=new Date();v.setDate(v.getDate()+30);
+    $('pr-valido').value=v.toISOString().split('T')[0];
+    $('modal-presupuesto-title').textContent='Nuevo Presupuesto';$('pr-id').value='';
+  }
   if(id==='modal-presupuesto'){populateClienteSelect('pr-cliente');$('pr-fecha').value=today();$('modal-presupuesto-title').textContent='Nuevo Presupuesto';$('pr-id').value='';}
   if(id==='modal-contrato'){populateClienteSelect('ct-cliente');populateProyectoSelect('ct-proyecto');$('ct-fecha').value=today();$('modal-contrato-title').textContent='Nuevo Contrato';$('ct-id').value='';}
   if(id==='modal-factura'){populateClienteSelect('fct-cliente');populateProyectoSelect('fct-proyecto');$('fct-fecha').value=today();$('modal-factura-title').textContent='Nueva Factura';$('fct-id').value='';}
@@ -1444,7 +1607,7 @@ function openModal(id){
 function closeModal(id){
   $(id).classList.remove('open');
   $(id).querySelectorAll('input:not([type=hidden]),textarea').forEach(f=>f.value='');
-  ['c-id','p-id','t-id','ar-id','ta-id','ev-id','ld-id','pr-id','ct-id','fct-id'].forEach(h=>{const el=$(h);if(el)el.value='';});
+  ['c-id','p-id','t-id','ar-id','ta-id','ev-id','ld-id','pr-id','ct-id','fct-id','plw-id'].forEach(h=>{const el=$(h);if(el)el.value='';});
 }
 document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});});
 
@@ -1501,6 +1664,7 @@ const NAV_META={
   facturacion:{title:'Facturación',sub:'Facturas emitidas',icon:'fa-receipt'},
   analytics:{title:'Analytics',sub:'Métricas e indicadores clave',icon:'fa-chart-line'},
   archivos:{title:'Archivos',sub:'Intranet de documentos',icon:'fa-folder-open'},
+  plantillas_web:{title:'Plantillas Web',sub:'Catálogo de plantillas para proyectos',icon:'fa-layer-group'},
   portal:{title:'Portal del Cliente',sub:'Vista conceptual del portal',icon:'fa-globe'},
   configuracion:{title:'Configuración',sub:'Ajustes del sistema',icon:'fa-gear'}
 };
@@ -1517,6 +1681,7 @@ function navigate(id){
     finanzas:renderFinanzas,archivos:renderArchivos,tareas:renderTareas,
     configuracion:renderConfig,calendario:renderCalendario,pipeline:renderPipeline,
     presupuestos:renderPresupuestos,contratos:renderContratos,facturacion:renderFacturacion,
+    plantillas_web:renderPlantillasWeb,
     analytics:renderAnalytics,portal:renderPortal}[id]||function(){})();
 }
 
@@ -1685,7 +1850,7 @@ function saveTransaccion(){
   closeModal('modal-transaccion');renderFinanzas();toast('success','Transacción guardada');
 }
 function deleteTransaccion(id){if(!confirm('¿Eliminar?'))return;DB.transacciones=DB.transacciones.filter(t=>t.id!==id);renderFinanzas();toast('info','Eliminada');}
-function markAsPaid(id){const t=DB.transacciones.find(t=>t.id===id);if(t){t.tipo='ingreso';delete t.vence;DB.actividad.unshift({icon:'fa-file-invoice-dollar',color:'green',texto:`Pago cobrado: <strong>$${fmt(t.monto)}</strong>`,tiempo:'Ahora'});renderFinanzas();toast('success','Marcado como cobrado');}}
+function _markAsPaid_REPLACED(id){const t=DB.transacciones.find(t=>t.id===id);if(t){t.tipo='ingreso';delete t.vence;DB.actividad.unshift({icon:'fa-file-invoice-dollar',color:'green',texto:`Pago cobrado: <strong>$${fmt(t.monto)}</strong>`,tiempo:'Ahora'});renderFinanzas();toast('success','Marcado como cobrado');}}
 
 /* ================================================================
    ARCHIVOS
@@ -1799,7 +1964,7 @@ const PIPELINE_COLS=[
   {id:'negociacion',label:'Negociación',dot:'#f59e0b'},
   {id:'cerrado',label:'Cerrado ✓',dot:'#10b981'}
 ];
-function renderPipeline(){
+function _legacyPipeline_REPLACED(){
   const totalVal=DB.leads.reduce((a,l)=>a+l.valor,0);
   $('pipeline-board').innerHTML=PIPELINE_COLS.map(col=>{
     const leads=DB.leads.filter(l=>l.etapa===col.id);
@@ -1812,21 +1977,14 @@ function advanceLead(id){
   const l=DB.leads.find(l=>l.id===id);const idx=PIPELINE_COLS.findIndex(c=>c.id===l.etapa);
   if(idx<PIPELINE_COLS.length-1){l.etapa=PIPELINE_COLS[idx+1].id;renderPipeline();toast('success',`Lead movido a: ${PIPELINE_COLS[idx+1].label}`);}
 }
-function saveLead(){
-  const id=$('ld-id').value;
-  const data={nombre:$('ld-nombre').value.trim(),empresa:$('ld-empresa').value.trim(),contacto:$('ld-contacto').value.trim(),valor:parseFloat($('ld-valor').value)||0,etapa:$('ld-etapa').value};
-  if(!data.nombre){toast('error','El nombre es obligatorio');return;}
-  if(id){const idx=DB.leads.findIndex(l=>l.id==id);DB.leads[idx]={...DB.leads[idx],...data};}
-  else{data.id=nextId();DB.leads.push(data);}
-  closeModal('modal-lead');renderPipeline();toast('success','Lead guardado');
-}
+/* saveLead replaced by new version */
 function editLead(id){const l=DB.leads.find(l=>l.id===id);$('modal-lead-title').textContent='Editar Lead';$('ld-id').value=l.id;$('ld-nombre').value=l.nombre;$('ld-empresa').value=l.empresa;$('ld-contacto').value=l.contacto;$('ld-valor').value=l.valor;$('ld-etapa').value=l.etapa;$('modal-lead').classList.add('open');}
 function deleteLead(id){if(!confirm('¿Eliminar?'))return;DB.leads=DB.leads.filter(l=>l.id!==id);renderPipeline();toast('info','Lead eliminado');}
 
 /* ================================================================
-   PRESUPUESTOS
+   PRESUPUESTOS (legacy stub — replaced by new version above)
    ================================================================ */
-function renderPresupuestos(){
+function _legacyPresupuestos_REPLACED(){
   const total=DB.presupuestos.reduce((a,p)=>a+p.precio,0);
   const aprobados=DB.presupuestos.filter(p=>p.estado==='aprobado').reduce((a,p)=>a+p.precio,0);
   const pendCount=DB.presupuestos.filter(p=>p.estado==='pendiente').length;
@@ -1888,14 +2046,7 @@ function renderFacturacion(){
   ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div>${s.ch?`<span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span>`:''}</div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
   $('facturas-tbody').innerHTML=DB.facturas.map((f,i)=>`<tr><td><span class="tag">#${1000+i}</span></td><td>${getClienteName(f.clienteId)}</td><td class="text-muted">${getProyectoName(f.proyectoId)}</td><td class="amount-positive">$${fmt(f.monto)}</td><td class="text-muted text-sm">${fmtD(f.fecha)}</td><td class="text-muted text-sm">${fmtD(f.vence)}</td><td>${statusBadge(f.estado)}</td><td><div class="flex gap-6">${f.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="markFacturaPagada(${f.id})"><i class="fa-solid fa-check"></i> Cobrar</button>`:''}<button class="btn btn-sm btn-danger btn-icon" onclick="deleteFactura(${f.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join('')||`<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-receipt"></i></div><h3>Sin facturas</h3></div></td></tr>`;
 }
-function saveFactura(){
-  const id=$('fct-id').value;
-  const data={clienteId:parseInt($('fct-cliente').value)||null,proyectoId:parseInt($('fct-proyecto').value)||null,desc:$('fct-desc').value.trim(),monto:parseFloat($('fct-monto').value)||0,estado:$('fct-estado').value,fecha:$('fct-fecha').value,vence:$('fct-vence').value};
-  if(!data.desc||!data.monto){toast('error','Descripción y monto son obligatorios');return;}
-  if(id){const idx=DB.facturas.findIndex(f=>f.id==id);DB.facturas[idx]={...DB.facturas[idx],...data};}
-  else{data.id=nextId();DB.facturas.push(data);}
-  closeModal('modal-factura');renderFacturacion();toast('success','Factura guardada');
-}
+/* saveFactura replaced by new version */
 function markFacturaPagada(id){const f=DB.facturas.find(f=>f.id===id);if(f){f.estado='pagada';DB.actividad.unshift({icon:'fa-receipt',color:'green',texto:`Factura cobrada: <strong>$${fmt(f.monto)}</strong>`,tiempo:'Ahora'});renderFacturacion();toast('success','Factura marcada como pagada');}}
 function deleteFactura(id){if(!confirm('¿Eliminar?'))return;DB.facturas=DB.facturas.filter(f=>f.id!==id);renderFacturacion();toast('info','Eliminada');}
 
@@ -2040,6 +2191,536 @@ function saveConfig(){
   toast('success','Configuración guardada');
 }
 function showNotifications(){const p=DB.tareas.filter(t=>t.estado==='pendiente').length;const pay=DB.transacciones.filter(t=>t.tipo==='pendiente').length;toast('info',`${p} tareas pendientes · ${pay} pagos por cobrar`);}
+
+/* ================================================================
+   PLANTILLAS WEB
+   ================================================================ */
+const PLT_TYPE_LABELS={landing:'Landing Page',sitio_web:'Sitio Web',ecommerce:'E-commerce',aplicacion:'App Web'};
+const PLT_TYPE_COLORS={landing:'badge-brand',sitio_web:'badge-blue',ecommerce:'badge-green',aplicacion:'badge-purple'};
+
+function renderPlantillasWeb(){
+  /* populate all 4 grids */
+  ['todas','landing','sitio_web','ecommerce'].forEach(tab=>{
+    const list=tab==='todas'?DB.plantillas_web:DB.plantillas_web.filter(p=>p.tipo===tab);
+    const el=$('plt-grid-'+tab);
+    if(!el)return;
+    el.innerHTML=list.length?list.map(p=>`
+      <div class="plt-card">
+        <div class="plt-card-actions">
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="event.stopPropagation();editPlantillaWeb(${p.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-sm btn-danger btn-icon" onclick="event.stopPropagation();deletePlantillaWeb(${p.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <div class="plt-card-emoji">${p.emoji||'🌐'}</div>
+        <div class="plt-card-type">${PLT_TYPE_LABELS[p.tipo]||p.tipo}</div>
+        <div class="plt-card-name">${p.nombre}</div>
+        <div class="plt-card-desc">${p.desc}</div>
+        <div class="plt-card-footer">
+          <span class="plt-card-price">$${fmt(p.precio)}</span>
+          <span class="plt-card-days"><i class="fa-regular fa-clock" style="margin-right:3px"></i>${p.dias} días</span>
+        </div>
+        <div style="margin-top:10px">
+          <button class="flow-badge" onclick="usarPlantillaEnPresupuesto(${p.id})" style="width:100%;justify-content:center">
+            <i class="fa-solid fa-file-invoice"></i> Generar presupuesto
+          </button>
+        </div>
+      </div>`).join(''):`<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-layer-group"></i></div><h3>Sin plantillas</h3><p>Agrega tu primera plantilla web</p></div>`;
+  });
+}
+
+function savePlantillaWeb(){
+  const id=$('plw-id').value;
+  const data={
+    nombre:$('plw-nombre').value.trim(),tipo:$('plw-tipo').value,
+    desc:$('plw-desc').value.trim(),precio:parseFloat($('plw-precio').value)||0,
+    dias:parseInt($('plw-dias').value)||14,emoji:$('plw-emoji').value.trim()||'🌐'
+  };
+  if(!data.nombre||!data.precio){toast('error','Nombre y precio son obligatorios');return;}
+  if(id){const idx=DB.plantillas_web.findIndex(p=>p.id==id);DB.plantillas_web[idx]={...DB.plantillas_web[idx],...data};}
+  else{data.id=nextId();DB.plantillas_web.push(data);}
+  closeModal('modal-plantilla_web');renderPlantillasWeb();
+  toast('success','Plantilla guardada');
+}
+
+function editPlantillaWeb(id){
+  const p=DB.plantillas_web.find(p=>p.id===id);
+  $('modal-plantilla_web-title').textContent='Editar Plantilla';
+  $('plw-id').value=p.id;$('plw-nombre').value=p.nombre;
+  $('plw-tipo').value=p.tipo;$('plw-desc').value=p.desc;
+  $('plw-precio').value=p.precio;$('plw-dias').value=p.dias;
+  $('plw-emoji').value=p.emoji||'';
+  $('modal-plantilla_web').classList.add('open');
+}
+
+function deletePlantillaWeb(id){
+  if(!confirm('¿Eliminar esta plantilla?'))return;
+  DB.plantillas_web=DB.plantillas_web.filter(p=>p.id!==id);
+  renderPlantillasWeb();toast('info','Plantilla eliminada');
+}
+
+function usarPlantillaEnPresupuesto(plantillaId){
+  /* Navigate to presupuestos, open modal with pre-selected plantilla */
+  navigate('presupuestos');
+  setTimeout(()=>{
+    openModal('modal-presupuesto');
+    setTimeout(()=>{
+      $('pr-plantilla').value=plantillaId;
+      calcPresupuesto();
+    },50);
+  },60);
+}
+
+function populatePlantillaSelect(sid){
+  const s=$(sid);
+  s.innerHTML='<option value="">— Sin plantilla —</option>'+
+    DB.plantillas_web.map(p=>`<option value="${p.id}">${p.emoji||'🌐'} ${p.nombre} — $${fmt(p.precio)}</option>`).join('');
+}
+
+/* ================================================================
+   GENERADOR DE PRESUPUESTOS (extras + cálculo automático)
+   ================================================================ */
+
+/* Render the extras checkbox grid */
+function renderExtrasGrid(){
+  const grid=$('pr-extras-grid');
+  if(!grid)return;
+  grid.innerHTML=DB.extras_presupuesto.map(ex=>`
+    <label class="extra-item" id="extra-label-${ex.id}" onclick="toggleExtra('${ex.id}')">
+      <input type="checkbox" class="extra-cb" id="extra-${ex.id}" onchange="calcPresupuesto()">
+      <div style="flex:1">
+        <div class="extra-label"><i class="fa-solid ${ex.icon}" style="margin-right:5px;color:var(--brand)"></i>${ex.label}</div>
+        <div class="extra-price">+$${fmt(ex.precio)}</div>
+        <div class="extra-desc">${ex.desc}</div>
+      </div>
+    </label>`).join('');
+}
+
+function toggleExtra(id){
+  const cb=$('extra-'+id);
+  const label=$('extra-label-'+id);
+  if(!cb)return;
+  cb.checked=!cb.checked;
+  label.classList.toggle('selected',cb.checked);
+  calcPresupuesto();
+}
+
+/* Live price calculation */
+function calcPresupuesto(){
+  const plantillaId=$('pr-plantilla')?.value;
+  const plt=plantillaId?DB.plantillas_web.find(p=>p.id==plantillaId):null;
+  const basePrice=plt?plt.precio:0;
+
+  const selectedExtras=DB.extras_presupuesto.filter(ex=>{
+    const cb=$('extra-'+ex.id);
+    return cb&&cb.checked;
+  });
+  const extrasTotal=selectedExtras.reduce((a,ex)=>a+ex.precio,0);
+  const total=basePrice+extrasTotal;
+
+  /* Build breakdown HTML */
+  let bdHTML='';
+  if(plt){
+    bdHTML+=`<div class="bd-row"><span class="name"><i class="fa-solid fa-layer-group" style="color:var(--brand)"></i>${plt.nombre} (base)</span><span class="price">$${fmt(basePrice)}</span></div>`;
+  } else {
+    bdHTML+=`<div class="bd-row"><span class="name" style="color:var(--tx-3)"><i class="fa-solid fa-circle-info"></i>Sin plantilla seleccionada</span><span class="price" style="color:var(--tx-3)">$0</span></div>`;
+  }
+  selectedExtras.forEach(ex=>{
+    bdHTML+=`<div class="bd-row"><span class="name"><i class="fa-solid ${ex.icon}" style="color:var(--brand)"></i>${ex.label}</span><span class="price" style="color:var(--green)">+$${fmt(ex.precio)}</span></div>`;
+  });
+  if(!plt&&!selectedExtras.length){
+    bdHTML+=`<div style="font-size:12px;color:var(--tx-3);text-align:center;padding:6px 0">Selecciona una plantilla o extras para calcular el precio</div>`;
+  }
+
+  const bd=$('pr-breakdown');
+  const tot=$('pr-total');
+  if(bd)bd.innerHTML=bdHTML;
+  if(tot)tot.textContent='$'+fmt(total);
+}
+
+/* ================================================================
+   PRESUPUESTOS — CRUD + flujo hacia Proyectos
+   ================================================================ */
+function renderPresupuestos(){
+  /* KPI stats */
+  const total=DB.presupuestos.length;
+  const aprobados=DB.presupuestos.filter(p=>p.estado==='aprobado').length;
+  const pendientes=DB.presupuestos.filter(p=>p.estado==='pendiente').length;
+  const rechazados=DB.presupuestos.filter(p=>p.estado==='rechazado').length;
+  const valorTotal=DB.presupuestos.filter(p=>p.estado!=='rechazado').reduce((a,p)=>a+p.precio,0);
+  $('presupuestos-stats').innerHTML=[
+    {label:'Aprobados',value:aprobados,icon:'fa-circle-check',acc:'acc-green',si:'si-green',ch:'aprobados',dir:'up'},
+    {label:'Pendientes',value:pendientes,icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:'en revisión',dir:'flat'},
+    {label:'Rechazados',value:rechazados,icon:'fa-circle-xmark',acc:'acc-red',si:'si-red',ch:'rechazados',dir:'down'},
+    {label:'Valor Pipeline',value:'$'+fmt(valorTotal),icon:'fa-coins',acc:'acc-brand',si:'si-brand',ch:total+' total',dir:'flat'}
+  ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div><span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span></div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+
+  /* Table */
+  const tbody=$('presupuestos-tbody');
+  if(!DB.presupuestos.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-file-invoice"></i></div><h3>Sin presupuestos</h3><p>Crea tu primer presupuesto</p></div></td></tr>`;
+    return;
+  }
+  const quoteNum=i=>String(i).padStart(4,'0');
+  tbody.innerHTML=DB.presupuestos.map((p,i)=>`
+    <tr>
+      <td><span class="fw-600" style="color:var(--brand)">#${quoteNum(i+1)}</span> <span class="fw-500">${p.nombre}</span></td>
+      <td>${getClienteName(p.clienteId)}</td>
+      <td class="amount-positive">$${fmt(p.precio)}</td>
+      <td class="text-muted text-sm">${fmtD(p.fecha)}</td>
+      <td class="text-muted text-sm">${fmtD(p.valido)}</td>
+      <td>${statusBadge(p.estado)}</td>
+      <td>
+        <div class="flex gap-6">
+          ${p.estado==='aprobado'?`
+            <button class="flow-badge" onclick="crearProyectoDesdePresupuesto(${p.id})" title="Crear proyecto">
+              <i class="fa-solid fa-code-branch"></i> Crear proyecto
+            </button>
+            <button class="flow-badge" onclick="crearFacturaDesdePresupuesto(${p.id})" title="Generar factura" style="background:linear-gradient(90deg,var(--green-soft),var(--teal-soft));border-color:var(--green);color:var(--green)">
+              <i class="fa-solid fa-receipt"></i> Facturar
+            </button>`:''}
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-sm btn-danger btn-icon" onclick="deletePresupuesto(${p.id})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function savePresupuesto(){
+  const id=$('pr-id').value;
+  /* Calculate final price from template + selected extras */
+  const plantillaId=$('pr-plantilla')?.value;
+  const plt=plantillaId?DB.plantillas_web.find(p=>p.id==plantillaId):null;
+  const basePrice=plt?plt.precio:0;
+  const selectedExtras=DB.extras_presupuesto.filter(ex=>{const cb=$('extra-'+ex.id);return cb&&cb.checked;});
+  const extrasTotal=selectedExtras.reduce((a,ex)=>a+ex.precio,0);
+  const totalPrice=basePrice+extrasTotal;
+
+  const data={
+    nombre:$('pr-nombre').value.trim(),
+    clienteId:parseInt($('pr-cliente').value)||null,
+    plantillaId:plantillaId?parseInt(plantillaId):null,
+    extras:selectedExtras.map(e=>e.id),
+    desc:$('pr-desc').value.trim(),
+    precio:totalPrice||parseFloat(0),
+    estado:$('pr-estado').value,
+    fecha:$('pr-fecha').value,
+    valido:$('pr-valido').value
+  };
+  if(!data.nombre||!data.clienteId){toast('error','Nombre y cliente son obligatorios');return;}
+  if(!data.precio){toast('error','El precio total es 0. Selecciona una plantilla o extras.');return;}
+  if(id){
+    const idx=DB.presupuestos.findIndex(p=>p.id==id);
+    DB.presupuestos[idx]={...DB.presupuestos[idx],...data};
+    toast('success','Presupuesto actualizado');
+  } else {
+    data.id=nextId();DB.presupuestos.push(data);
+    DB.actividad.unshift({icon:'fa-file-invoice',color:'brand',texto:`Nuevo presupuesto: <strong>${data.nombre}</strong>`,tiempo:'Ahora'});
+    toast('success','Presupuesto creado');
+  }
+  closeModal('modal-presupuesto');renderPresupuestos();
+}
+
+function editPresupuesto(id){
+  const p=DB.presupuestos.find(p=>p.id===id);
+  populateClienteSelect('pr-cliente',p.clienteId);
+  populatePlantillaSelect('pr-plantilla');
+  renderExtrasGrid();
+  $('modal-presupuesto-title').textContent='Editar Presupuesto';
+  $('pr-id').value=p.id;$('pr-nombre').value=p.nombre;
+  $('pr-plantilla').value=p.plantillaId||'';
+  $('pr-estado').value=p.estado;
+  $('pr-desc').value=p.desc||'';
+  $('pr-fecha').value=p.fecha;$('pr-valido').value=p.valido||'';
+  /* Re-check extras */
+  (p.extras||[]).forEach(exId=>{
+    const cb=$('extra-'+exId);
+    const label=$('extra-label-'+exId);
+    if(cb){cb.checked=true;label?.classList.add('selected');}
+  });
+  calcPresupuesto();
+  $('modal-presupuesto').classList.add('open');
+}
+
+function deletePresupuesto(id){
+  if(!confirm('¿Eliminar este presupuesto?'))return;
+  DB.presupuestos=DB.presupuestos.filter(p=>p.id!==id);
+  renderPresupuestos();toast('info','Presupuesto eliminado');
+}
+
+/* ── FLUJO: presupuesto aprobado → proyecto ───────────────────────────────── */
+function crearProyectoDesdePresupuesto(presId){
+  const pr=DB.presupuestos.find(p=>p.id===presId);
+  if(!pr){toast('error','Presupuesto no encontrado');return;}
+  // Check if project already exists for this presupuesto
+  if(DB.proyectos.some(p=>p.presupuestoId===presId)){
+    toast('info','Ya existe un proyecto para este presupuesto');
+    navigate('proyectos');return;
+  }
+  const plt=pr.plantillaId?DB.plantillas_web.find(p=>p.id===pr.plantillaId):null;
+  const newProj={
+    id:nextId(),
+    nombre:pr.nombre,
+    clienteId:pr.clienteId,
+    estado:'pendiente',
+    inicio:today(),
+    entrega:plt?(()=>{const d=new Date();d.setDate(d.getDate()+plt.dias);return d.toISOString().split('T')[0];})():'',
+    precio:pr.precio,
+    presupuestoId:presId,
+    checklist:[
+      {id:1,texto:'Kickoff con el cliente',done:false},
+      {id:2,texto:'Diseño UX/UI',done:false},
+      {id:3,texto:'Desarrollo',done:false},
+      {id:4,texto:'Testing y revisión',done:false},
+      {id:5,texto:'Deploy y entrega',done:false}
+    ]
+  };
+  DB.proyectos.push(newProj);
+  DB.actividad.unshift({icon:'fa-code-branch',color:'amber',texto:`Proyecto creado desde presupuesto: <strong>${pr.nombre}</strong>`,tiempo:'Ahora'});
+  toast('success','¡Proyecto creado desde presupuesto!');
+  navigate('proyectos');
+}
+
+/* ── FLUJO: presupuesto aprobado → factura ───────────────────────────────── */
+function crearFacturaDesdePresupuesto(presId){
+  const pr=DB.presupuestos.find(p=>p.id===presId);
+  if(!pr){toast('error','Presupuesto no encontrado');return;}
+  const proj=DB.proyectos.find(p=>p.presupuestoId===presId)||null;
+  const vence=new Date();vence.setDate(vence.getDate()+15);
+  const newFact={
+    id:nextId(),
+    clienteId:pr.clienteId,
+    proyectoId:proj?proj.id:null,
+    presupuestoId:presId,
+    desc:pr.nombre,
+    monto:pr.precio,
+    fecha:today(),
+    vence:vence.toISOString().split('T')[0],
+    estado:'pendiente'
+  };
+  DB.facturas.push(newFact);
+  DB.actividad.unshift({icon:'fa-receipt',color:'teal',texto:`Factura generada: <strong>${pr.nombre}</strong>`,tiempo:'Ahora'});
+  toast('success','¡Factura generada desde presupuesto!');
+  navigate('facturacion');
+}
+
+/* ── FLUJO: lead en "propuesta" → generar presupuesto ────────────────────── */
+function generarPresupuestoDesdeLead(leadId){
+  const lead=DB.leads.find(l=>l.id===leadId);
+  if(!lead){return;}
+  /* Find or create client from lead */
+  let cliente=DB.clientes.find(c=>c.nombre===lead.nombre&&c.empresa===lead.empresa);
+  if(!cliente){
+    cliente={id:nextId(),nombre:lead.nombre,email:lead.contacto||'',telefono:'',empresa:lead.empresa||'',estado:'lead',notas:'Lead convertido desde Pipeline',creado:today()};
+    DB.clientes.push(cliente);
+  }
+  navigate('presupuestos');
+  setTimeout(()=>{
+    openModal('modal-presupuesto');
+    setTimeout(()=>{
+      populateClienteSelect('pr-cliente',cliente.id);
+      $('pr-nombre').value=`${PLT_TYPE_LABELS[lead.tipo_proyecto]||'Proyecto'} — ${lead.empresa||lead.nombre}`;
+      calcPresupuesto();
+    },60);
+  },80);
+}
+
+/* ── FLUJO: proyecto entregado → generar factura ─────────────────────────── */
+function crearFacturaDesdeProyecto(proyId){
+  const proj=DB.proyectos.find(p=>p.id===proyId);
+  if(!proj){return;}
+  const vence=new Date();vence.setDate(vence.getDate()+15);
+  const newFact={
+    id:nextId(),clienteId:proj.clienteId,proyectoId:proyId,
+    desc:proj.nombre,monto:proj.precio,
+    fecha:today(),vence:vence.toISOString().split('T')[0],estado:'pendiente'
+  };
+  DB.facturas.push(newFact);
+  DB.actividad.unshift({icon:'fa-receipt',color:'teal',texto:`Factura generada: <strong>${proj.nombre}</strong>`,tiempo:'Ahora'});
+  toast('success','¡Factura generada desde el proyecto!');
+  navigate('facturacion');
+}
+
+/* ================================================================
+   PIPELINE — ENHANCED with flow button
+   ================================================================ */
+const PLT_TYPE_LABELS_SHORT={landing:'Landing',sitio_web:'Sitio Web',ecommerce:'E-commerce',aplicacion:'App Web',mantenimiento:'Mantenimiento'};
+
+function renderPipeline(){
+  const totalVal=DB.leads.reduce((a,l)=>a+l.valor,0);
+  $('pipeline-board').innerHTML=PIPELINE_COLS.map(col=>{
+    const leads=DB.leads.filter(l=>l.etapa===col.id);
+    const colVal=leads.reduce((a,l)=>a+l.valor,0);
+    return`<div class="kanban-col">
+      <div class="kanban-col-header">
+        <div class="kanban-col-title"><div class="k-dot" style="background:${col.dot}"></div>${col.label}</div>
+        <span class="kanban-count">${leads.length}</span>
+      </div>
+      <div class="kanban-cards">
+        ${leads.map(l=>`
+          <div class="kanban-card">
+            <div class="kanban-card-actions">
+              <button class="btn btn-icon btn-secondary btn-sm" onclick="editLead(${l.id})"><i class="fa-solid fa-pen" style="font-size:10px"></i></button>
+              <button class="btn btn-icon btn-danger btn-sm" onclick="deleteLead(${l.id})"><i class="fa-solid fa-trash" style="font-size:10px"></i></button>
+            </div>
+            <div class="kanban-card-title">${l.nombre}</div>
+            <div class="kanban-card-meta">
+              <span class="tag" style="font-size:10.5px">${l.empresa||'—'}</span>
+              ${l.tipo_proyecto?`<span class="badge badge-brand" style="font-size:10px">${PLT_TYPE_LABELS_SHORT[l.tipo_proyecto]||l.tipo_proyecto}</span>`:''}
+            </div>
+            <div style="font-size:12px;color:var(--green);font-weight:600;margin:4px 0">$${fmt(l.valor)}</div>
+            <div class="kanban-card-footer">
+              ${col.id!=='cerrado'?`
+                <select class="form-select" style="font-size:11px;padding:4px 28px 4px 8px" onchange="moveLead(${l.id},this.value)">
+                  ${PIPELINE_COLS.map(c=>`<option value="${c.id}" ${c.id===l.etapa?'selected':''}>${c.label}</option>`).join('')}
+                </select>`:'<span class="badge badge-green">Cerrado ✓</span>'}
+            </div>
+            ${col.id==='propuesta'||col.id==='negociacion'||col.id==='cerrado'?`
+            <div style="margin-top:8px">
+              <button class="flow-badge" onclick="generarPresupuestoDesdeLead(${l.id})" style="width:100%;justify-content:center;font-size:11px">
+                <i class="fa-solid fa-file-invoice"></i> Generar presupuesto
+              </button>
+            </div>`:''}
+          </div>`).join('')||`<div style="padding:16px;text-align:center;color:var(--tx-3);font-size:12px">Sin leads</div>`}
+        <div style="padding:8px;margin-top:4px;text-align:right;font-size:11px;color:var(--tx-3);border-top:1px solid var(--bd)">
+          ${leads.length?`$${fmt(colVal)}`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  /* Summary */
+  $('pipeline-summary').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px">
+      ${PIPELINE_COLS.map(col=>{
+        const leads=DB.leads.filter(l=>l.etapa===col.id);
+        const val=leads.reduce((a,l)=>a+l.valor,0);
+        return`<div style="text-align:center;padding:14px;background:var(--bg-2);border-radius:var(--r-lg);border:1px solid var(--bd)">
+          <div style="width:10px;height:10px;border-radius:50%;background:${col.dot};margin:0 auto 8px"></div>
+          <div style="font-size:20px;font-weight:800;color:var(--tx-1)">${leads.length}</div>
+          <div style="font-size:12px;color:var(--tx-2);margin-bottom:4px">${col.label}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--green)">$${fmt(val)}</div>
+        </div>`;
+      }).join('')}
+      <div style="text-align:center;padding:14px;background:var(--brand-soft);border-radius:var(--r-lg);border:1.5px solid var(--brand)">
+        <div style="width:10px;height:10px;border-radius:50%;background:var(--brand);margin:0 auto 8px"></div>
+        <div style="font-size:20px;font-weight:800;color:var(--brand)">${DB.leads.length}</div>
+        <div style="font-size:12px;color:var(--brand);margin-bottom:4px">Total Leads</div>
+        <div style="font-size:13px;font-weight:700;color:var(--brand)">$${fmt(totalVal)}</div>
+      </div>
+    </div>`;
+}
+function moveLead(id,etapa){
+  const l=DB.leads.find(l=>l.id===id);
+  if(l){l.etapa=etapa;renderPipeline();}
+}
+function saveLead(){
+  const id=$('ld-id').value;
+  const data={
+    nombre:$('ld-nombre').value.trim(),empresa:$('ld-empresa').value.trim(),
+    contacto:$('ld-contacto').value.trim(),valor:parseFloat($('ld-valor').value)||0,
+    etapa:$('ld-etapa').value,
+    tipo_proyecto:$('ld-tipo')?.value||'sitio_web'
+  };
+  if(!data.nombre){toast('error','El nombre es obligatorio');return;}
+  if(id){const idx=DB.leads.findIndex(l=>l.id==id);DB.leads[idx]={...DB.leads[idx],...data};}
+  else{data.id=nextId();DB.leads.push(data);}
+  closeModal('modal-lead');renderPipeline();toast('success','Lead guardado');
+}
+function editLead(id){
+  const l=DB.leads.find(l=>l.id===id);
+  $('modal-lead-title').textContent='Editar Lead';
+  $('ld-id').value=l.id;$('ld-nombre').value=l.nombre;
+  $('ld-empresa').value=l.empresa||'';$('ld-contacto').value=l.contacto||'';
+  $('ld-valor').value=l.valor;$('ld-etapa').value=l.etapa;
+  if($('ld-tipo'))$('ld-tipo').value=l.tipo_proyecto||'sitio_web';
+  $('modal-lead').classList.add('open');
+}
+function deleteLead(id){
+  if(!confirm('¿Eliminar este lead?'))return;
+  DB.leads=DB.leads.filter(l=>l.id!==id);renderPipeline();toast('info','Lead eliminado');
+}
+
+/* ================================================================
+   FACTURACIÓN — ENHANCED with markAsPaid → Finanzas integration
+   ================================================================ */
+function renderFacturacion(){
+  const pagadas=DB.facturas.filter(f=>f.estado==='pagada');
+  const pendientes=DB.facturas.filter(f=>f.estado==='pendiente');
+  const vencidas=DB.facturas.filter(f=>f.estado==='vencida');
+  const totalPagado=pagadas.reduce((a,f)=>a+f.monto,0);
+  const totalPendiente=pendientes.reduce((a,f)=>a+f.monto,0);
+  $('facturacion-stats').innerHTML=[
+    {label:'Pagadas',value:pagadas.length,icon:'fa-circle-check',acc:'acc-green',si:'si-green',ch:'$'+fmt(totalPagado),dir:'up'},
+    {label:'Pendientes',value:pendientes.length,icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:'$'+fmt(totalPendiente),dir:'flat'},
+    {label:'Vencidas',value:vencidas.length,icon:'fa-circle-exclamation',acc:'acc-red',si:'si-red',ch:'acción requerida',dir:'down'},
+    {label:'Total Facturado',value:'$'+fmt(totalPagado+totalPendiente),icon:'fa-receipt',acc:'acc-brand',si:'si-brand',ch:DB.facturas.length+' facturas',dir:'flat'}
+  ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div><span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span></div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+
+  const factNum=i=>'F-'+String(i+1).padStart(4,'0');
+  $('facturas-tbody').innerHTML=DB.facturas.length?DB.facturas.map((f,i)=>`
+    <tr>
+      <td><span class="fw-600" style="color:var(--brand)">${factNum(i)}</span></td>
+      <td>${getClienteName(f.clienteId)}</td>
+      <td class="text-muted text-sm">${getProyectoName(f.proyectoId)}</td>
+      <td class="amount-positive">$${fmt(f.monto)}</td>
+      <td class="text-muted text-sm">${fmtD(f.fecha)}</td>
+      <td class="text-muted text-sm">${fmtD(f.vence)}</td>
+      <td>${statusBadge(f.estado)}</td>
+      <td>
+        <div class="flex gap-6">
+          ${f.estado==='pendiente'||f.estado==='vencida'?`
+            <button class="flow-badge" onclick="marcarFacturaPagada(${f.id})">
+              <i class="fa-solid fa-circle-check"></i> Marcar pagada
+            </button>`:''}
+          <button class="btn btn-sm btn-danger btn-icon" onclick="deleteFactura(${f.id})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join(''):`<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-receipt"></i></div><h3>Sin facturas</h3><p>Genera facturas desde proyectos o presupuestos</p></div></td></tr>`;
+}
+
+/* ── FLUJO: factura pagada → registrar en Finanzas ──────────────────────── */
+function marcarFacturaPagada(id){
+  const f=DB.facturas.find(f=>f.id===id);
+  if(!f)return;
+  f.estado='pagada';
+  /* Register as ingreso in Finanzas */
+  const ya=DB.transacciones.some(t=>t.facturaId===id);
+  if(!ya){
+    DB.transacciones.push({
+      id:nextId(),tipo:'ingreso',fecha:today(),
+      descripcion:`Factura pagada — ${f.desc}`,
+      clienteId:f.clienteId,categoria:'Facturación',
+      monto:f.monto,facturaId:id
+    });
+    DB.actividad.unshift({icon:'fa-file-invoice-dollar',color:'green',texto:`Factura pagada y registrada en finanzas: <strong>$${fmt(f.monto)}</strong>`,tiempo:'Ahora'});
+  }
+  renderFacturacion();
+  toast('success','¡Factura marcada como pagada! El ingreso fue registrado en Finanzas.');
+}
+
+function saveFactura(){
+  const id=$('fct-id').value;
+  const data={
+    clienteId:parseInt($('fct-cliente').value)||null,
+    proyectoId:parseInt($('fct-proyecto').value)||null,
+    desc:$('fct-desc').value.trim(),monto:parseFloat($('fct-monto').value)||0,
+    estado:$('fct-estado').value,fecha:$('fct-fecha').value,vence:$('fct-vence').value
+  };
+  if(!data.desc||!data.monto){toast('error','Descripción y monto son obligatorios');return;}
+  if(id){const idx=DB.facturas.findIndex(f=>f.id==id);DB.facturas[idx]={...DB.facturas[idx],...data};}
+  else{data.id=nextId();DB.facturas.push(data);}
+  /* If created as pagada, also register in Finanzas */
+  if(data.estado==='pagada'&&!id){
+    DB.transacciones.push({id:nextId(),tipo:'ingreso',fecha:data.fecha||today(),descripcion:`Factura — ${data.desc}`,clienteId:data.clienteId,categoria:'Facturación',monto:data.monto,facturaId:data.id});
+  }
+  closeModal('modal-factura');renderFacturacion();toast('success','Factura guardada');
+}
+
+function deleteFactura(id){
+  if(!confirm('¿Eliminar esta factura?'))return;
+  DB.facturas=DB.facturas.filter(f=>f.id!==id);
+  renderFacturacion();toast('info','Factura eliminada');
+}
+
+/* ── FLUJO: Proyectos — add "Generar factura" button ─────────────────────── */
 
 /* ================================================================
    INIT
