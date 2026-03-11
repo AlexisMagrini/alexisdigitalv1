@@ -5126,6 +5126,118 @@ function populateProyectoSelect(sid,selId=null){
   s.innerHTML='<option value="">— Sin proyecto —</option>'+DB.proyectos.map(p=>`<option value="${p.id}" ${p.id==selId?'selected':''}>${p.nombre}</option>`).join('');
 }
 
+
+/* ================================================================
+   DATA SYNC — localStorage + Supabase (v8)
+   Writes every record to localStorage AND Supabase when connected.
+   ================================================================ */
+
+/** Map from DB array key → Supabase table name */
+const _SB_TABLE = {
+  clientes:'clientes', proyectos:'proyectos', presupuestos:'presupuestos',
+  facturas:'facturas', transacciones:'transacciones', tareas:'tareas',
+  leads:'leads', eventos:'eventos',
+};
+
+/** Map from DB array key → localStorage key */
+const _LS_KEY = {
+  clientes:'adm_clientes', proyectos:'adm_proyectos', presupuestos:'adm_presupuestos',
+  facturas:'adm_facturas', transacciones:'adm_transacciones', tareas:'adm_tareas',
+  leads:'adm_leads', eventos:'adm_eventos',
+};
+
+/**
+ * Persist a full DB array to localStorage.
+ * Call after every in-memory mutation.
+ */
+function _persistArray(arrayKey) {
+  try {
+    const lsKey = _LS_KEY[arrayKey];
+    if (lsKey && Array.isArray(DB[arrayKey])) {
+      localStorage.setItem(lsKey, JSON.stringify(DB[arrayKey]));
+    }
+  } catch(e) { console.warn('[persist] localStorage write failed:', e); }
+}
+
+/**
+ * Upsert a single record to Supabase (fire-and-forget).
+ * Also persists the full array to localStorage.
+ * @param {string} arrayKey  - key in DB object (e.g. 'clientes')
+ * @param {object} record    - the record object (must have .id)
+ * @param {boolean} isDelete - if true, deletes instead of upserts
+ */
+async function _syncRecord(arrayKey, record, isDelete = false) {
+  // Always persist to localStorage first
+  _persistArray(arrayKey);
+
+  // If Supabase is not active, stop here
+  if (window.STORAGE_MODE !== 'supabase' || !window._supabaseClient) return;
+
+  const table = _SB_TABLE[arrayKey];
+  if (!table) return;
+
+  try {
+    if (isDelete) {
+      const { error } = await window._supabaseClient
+        .from(table).delete().eq('id', record.id);
+      if (error) throw error;
+    } else {
+      // Normalize field names: camelCase → snake_case for Supabase
+      const row = _toSnakeCase(arrayKey, record);
+      const { error } = await window._supabaseClient
+        .from(table).upsert(row, { onConflict: 'id' });
+      if (error) throw error;
+    }
+  } catch(e) {
+    console.error('[sync] Supabase write failed:', e.message);
+    showToast('warning', 'Guardado local ✓ — Supabase: ' + e.message);
+  }
+}
+
+/** Convert a DB record to Supabase column naming (snake_case) */
+function _toSnakeCase(arrayKey, record) {
+  const map = {
+    clientes: r => ({
+      id: r.id, nombre: r.nombre, email: r.email, telefono: r.telefono,
+      empresa: r.empresa, estado: r.estado, notas: r.notas, creado: r.creado,
+    }),
+    proyectos: r => ({
+      id: r.id, nombre: r.nombre, cliente_id: r.clienteId, estado: r.estado,
+      precio: r.precio, inicio: r.inicio, entrega: r.entrega,
+      checklist: JSON.stringify(r.checklist || []),
+    }),
+    presupuestos: r => ({
+      id: r.id, nombre: r.nombre, cliente_id: r.clienteId, descripcion: r.desc || r.descripcion,
+      precio: r.precio, estado: r.estado, fecha: r.fecha, valido: r.valido,
+      extras: JSON.stringify(r.extras || []),
+    }),
+    facturas: r => ({
+      id: r.id, cliente_id: r.clienteId, proyecto_id: r.proyectoId,
+      descripcion: r.desc || r.descripcion, monto: r.monto,
+      fecha: r.fecha, vence: r.vence, estado: r.estado,
+      metodo_pago: r.metodoPago, fecha_pago: r.fechaPago,
+    }),
+    transacciones: r => ({
+      id: r.id, tipo: r.tipo, fecha: r.fecha, descripcion: r.descripcion,
+      monto: r.monto, categoria: r.categoria, cliente_id: r.clienteId, vence: r.vence,
+    }),
+    tareas: r => ({
+      id: r.id, titulo: r.titulo, estado: r.estado, prioridad: r.prioridad,
+      proyecto_id: r.proyectoId, vence: r.vence, descripcion: r.desc || r.descripcion,
+    }),
+    leads: r => ({
+      id: r.id, nombre: r.nombre, empresa: r.empresa, contacto: r.contacto,
+      valor: r.valor, etapa: r.etapa,
+    }),
+    eventos: r => ({
+      id: r.id, titulo: r.titulo, fecha: r.fecha, tipo: r.tipo,
+      cliente_id: r.clienteId, desc: r.desc,
+    }),
+  };
+  const fn = map[arrayKey];
+  return fn ? fn(record) : record;
+}
+
 /* ================================================================
    AUTH
    ================================================================ */
@@ -5297,13 +5409,14 @@ function saveCliente(){
   if(!data.nombre||!data.email){toast('error','Nombre y email son obligatorios');return;}
   if(id){const idx=DB.clientes.findIndex(c=>c.id==id);DB.clientes[idx]={...DB.clientes[idx],...data};showToast('success','Cliente actualizado');}
   else{data.id=nextId();data.creado=today();DB.clientes.push(data);DB.actividad.unshift({icon:'fa-user-plus',color:'brand',texto:`Nuevo cliente: <strong>${data.nombre}</strong>`,tiempo:'Ahora'});showToast('success',`Cliente creado: ${data.nombre}`);logActivity('cliente',`Nuevo cliente: <strong>${data.nombre}</strong>`);}
+  _syncRecord('clientes', id ? DB.clientes.find(cl=>cl.id==id)||data : data);
   _clearDraft('modal-cliente');closeModal('modal-cliente');renderClientes();
   // Refresh portal select
   const ps=$('portal-cliente-select');
   if(ps)ps.innerHTML='<option value="">— Seleccionar cliente —</option>'+DB.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
 }
 function editCliente(id){const c=DB.clientes.find(c=>c.id===id);$('modal-cliente-title').textContent='Editar Cliente';$('c-id').value=c.id;$('c-nombre').value=c.nombre;$('c-email').value=c.email;$('c-tel').value=c.telefono||'';$('c-empresa').value=c.empresa||'';$('c-estado').value=c.estado;$('c-notas').value=c.notas||'';$('modal-cliente').classList.add('open');}
-function deleteCliente(id){if(!confirm('¿Eliminar?'))return;DB.clientes=DB.clientes.filter(c=>c.id!==id);toast('info','Cliente eliminado');renderClientes();}
+function deleteCliente(id){if(!confirm('¿Eliminar?'))return;DB.clientes=DB.clientes.filter(c=>c.id!==id);_syncRecord('clientes',{id},true);toast('info','Cliente eliminado');renderClientes();}
 function verCliente(id){
   const c=DB.clientes.find(c=>c.id===id);const proyectos=DB.proyectos.filter(p=>p.clienteId===id);
   $('ver-cliente-body').innerHTML=`<div class="flex-center gap-12 mb-20"><div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-mid));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff">${initials(c.nombre)}</div><div style="flex:1"><div style="font-size:19px;font-weight:700;color:var(--tx-1)">${c.nombre}</div><div class="text-muted">${c.empresa||'Sin empresa'}</div></div>${statusBadge(c.estado)}</div><div class="grid-2 mb-20"><div><div class="form-label">Email</div><div style="color:var(--tx-1)">${c.email}</div></div><div><div class="form-label">Teléfono</div><div style="color:var(--tx-1)">${c.telefono||'—'}</div></div><div><div class="form-label">Empresa</div><div style="color:var(--tx-1)">${c.empresa||'—'}</div></div><div><div class="form-label">Cliente desde</div><div style="color:var(--tx-1)">${fmtD(c.creado)}</div></div></div>${c.notas?`<div class="mb-20"><div class="form-label">Notas</div><div style="background:var(--bg-2);padding:12px;border-radius:8px;font-size:13px;border:1px solid var(--bd);color:var(--tx-1)">${c.notas}</div></div>`:''}<div class="form-label mb-8">Proyectos (${proyectos.length})</div>${proyectos.map(p=>`<div style="background:var(--bg-2);padding:11px 14px;border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:10px;border:1px solid var(--bd)"><i class="fa-solid fa-code-branch" style="color:var(--brand)"></i><span style="flex:1;font-weight:500;color:var(--tx-1)">${p.nombre}</span>${statusBadge(p.estado)}<span class="text-muted text-sm">$${fmt(p.precio)}</span></div>`).join('')||'<p class="text-muted text-sm">Sin proyectos</p>'}`;
@@ -5323,10 +5436,11 @@ function saveProyecto(){
   if(!data.nombre){toast('error','El nombre es obligatorio');return;}
   if(id){const idx=DB.proyectos.findIndex(p=>p.id==id);DB.proyectos[idx]={...DB.proyectos[idx],...data};showToast('success','Proyecto actualizado');}
   else{data.id=nextId();DB.proyectos.push(data);DB.actividad.unshift({icon:'fa-code-branch',color:'amber',texto:`Nuevo proyecto: <strong>${data.nombre}</strong>`,tiempo:'Ahora'});showToast('success',`Proyecto creado: ${data.nombre}`);logActivity('proyecto',`Nuevo proyecto: <strong>${data.nombre}</strong>`);}
+  _syncRecord('proyectos', id ? DB.proyectos.find(p=>p.id==id)||data : data);
   _clearDraft('modal-proyecto');closeModal('modal-proyecto');renderProyectos();
 }
 function editProyecto(id){const p=DB.proyectos.find(p=>p.id===id);$('modal-proyecto-title').textContent='Editar Proyecto';$('p-id').value=p.id;$('p-nombre').value=p.nombre;$('p-estado').value=p.estado;$('p-precio').value=p.precio;$('p-inicio').value=p.inicio||'';$('p-entrega').value=p.entrega||'';populateClienteSelect('p-cliente',p.clienteId);tempChecklist=[...(p.checklist||[])];renderTempChecklist();$('modal-proyecto').classList.add('open');}
-function deleteProyecto(id){if(!confirm('¿Eliminar?'))return;DB.proyectos=DB.proyectos.filter(p=>p.id!==id);toast('info','Proyecto eliminado');renderProyectos();}
+function deleteProyecto(id){if(!confirm('¿Eliminar?'))return;DB.proyectos=DB.proyectos.filter(p=>p.id!==id);_syncRecord('proyectos',{id},true);toast('info','Proyecto eliminado');renderProyectos();}
 function verProyecto(id){
   const p=DB.proyectos.find(p=>p.id===id);const pct=calcProgress(p.checklist);const done=(p.checklist||[]).filter(i=>i.done).length;
   $('ver-proyecto-body').innerHTML=`<div class="flex-center gap-12 mb-20"><div style="width:44px;height:44px;border-radius:10px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:18px"><i class="fa-solid fa-code-branch"></i></div><div style="flex:1"><div style="font-size:18px;font-weight:700;color:var(--tx-1)">${p.nombre}</div><div class="text-muted">${getClienteName(p.clienteId)}</div></div>${statusBadge(p.estado)}</div><div class="grid-2 mb-20"><div><div class="form-label">Precio</div><div class="amount-positive" style="font-size:18px">$${fmt(p.precio)}</div></div><div><div class="form-label">Progreso</div><div style="display:flex;align-items:center;gap:10px;margin-top:6px"><div class="progress" style="flex:1"><div class="progress-fill" style="width:${pct}%"></div></div><span class="fw-600" style="color:var(--tx-1)">${pct}%</span></div></div><div><div class="form-label">Inicio</div><div style="color:var(--tx-1)">${fmtD(p.inicio)}</div></div><div><div class="form-label">Entrega</div><div style="color:var(--tx-1)">${fmtD(p.entrega)}</div></div></div><div class="form-label mb-8">Checklist (${done}/${(p.checklist||[]).length})</div><div class="checklist">${(p.checklist||[]).map(item=>`<div class="checklist-item ${item.done?'done':''}"><input type="checkbox" ${item.done?'checked':''} onchange="toggleCheckItem(${p.id},${item.id},this.checked)"><span>${item.texto}</span></div>`).join('')||'<p class="text-muted text-sm">Sin tareas</p>'}</div>`;
@@ -5375,9 +5489,10 @@ function saveTransaccion(){
   if(!data.descripcion||!data.monto){toast('error','Descripción y monto son obligatorios');return;}
   if(id){const idx=DB.transacciones.findIndex(t=>t.id==id);DB.transacciones[idx]={...DB.transacciones[idx],...data};}
   else{data.id=nextId();DB.transacciones.push(data);}
+  _syncRecord('transacciones', id ? DB.transacciones.find(t=>t.id==id)||data : data);
   closeModal('modal-transaccion');renderFinanzas();toast('success','Transacción guardada');
 }
-function deleteTransaccion(id){if(!confirm('¿Eliminar?'))return;DB.transacciones=DB.transacciones.filter(t=>t.id!==id);renderFinanzas();toast('info','Eliminada');}
+function deleteTransaccion(id){if(!confirm('¿Eliminar?'))return;DB.transacciones=DB.transacciones.filter(t=>t.id!==id);_syncRecord('transacciones',{id},true);renderFinanzas();toast('info','Eliminada');}
 function _markAsPaid_REPLACED(id){const t=DB.transacciones.find(t=>t.id===id);if(t){t.tipo='ingreso';delete t.vence;DB.actividad.unshift({icon:'fa-file-invoice-dollar',color:'green',texto:`Pago cobrado: <strong>$${fmt(t.monto)}</strong>`,tiempo:'Ahora'});renderFinanzas();toast('success','Marcado como cobrado');}}
 
 /* ================================================================
@@ -5406,9 +5521,9 @@ function renderTareas(){
   }).join('');
 }
 function moveTarea(id,estado){const t=DB.tareas.find(t=>t.id===id);if(t){t.estado=estado;if(estado==='completada')DB.actividad.unshift({icon:'fa-list-check',color:'purple',texto:`Tarea completada: <strong>${t.titulo}</strong>`,tiempo:'Ahora'});renderTareas();}}
-function saveTarea(){const id=$('ta-id').value;const data={titulo:$('ta-titulo').value.trim(),estado:$('ta-estado').value,prioridad:$('ta-prioridad').value,proyectoId:parseInt($('ta-proyecto').value)||null,vence:$('ta-vence').value,desc:$('ta-desc').value.trim()};if(!data.titulo){toast('error','El título es obligatorio');return;}if(id){const idx=DB.tareas.findIndex(t=>t.id==id);DB.tareas[idx]={...DB.tareas[idx],...data};toast('success','Tarea actualizada');}else{data.id=nextId();DB.tareas.push(data);toast('success','Tarea creada');}closeModal('modal-tarea');renderTareas();}
+function saveTarea(){const id=$('ta-id').value;const data={titulo:$('ta-titulo').value.trim(),estado:$('ta-estado').value,prioridad:$('ta-prioridad').value,proyectoId:parseInt($('ta-proyecto').value)||null,vence:$('ta-vence').value,desc:$('ta-desc').value.trim()};if(!data.titulo){toast('error','El título es obligatorio');return;}if(id){const idx=DB.tareas.findIndex(t=>t.id==id);DB.tareas[idx]={...DB.tareas[idx],...data};toast('success','Tarea actualizada');}else{data.id=nextId();DB.tareas.push(data);toast('success','Tarea creada');}closeModal('modal-tarea');renderTareas();_syncRecord('tareas', id ? DB.tareas.find(t=>t.id==id)||data : data);}
 function editTarea(id){const t=DB.tareas.find(t=>t.id===id);populateProyectoSelect('ta-proyecto',t.proyectoId);$('modal-tarea-title').textContent='Editar Tarea';$('ta-id').value=t.id;$('ta-titulo').value=t.titulo;$('ta-estado').value=t.estado;$('ta-prioridad').value=t.prioridad;$('ta-vence').value=t.vence||'';$('ta-desc').value=t.desc||'';$('modal-tarea').classList.add('open');}
-function deleteTarea(id){if(!confirm('¿Eliminar?'))return;DB.tareas=DB.tareas.filter(t=>t.id!==id);renderTareas();toast('info','Eliminada');}
+function deleteTarea(id){if(!confirm('¿Eliminar?'))return;DB.tareas=DB.tareas.filter(t=>t.id!==id);_syncRecord('tareas',{id},true);renderTareas();toast('info','Eliminada');}
 
 /* ================================================================
    CALENDARIO
@@ -5512,7 +5627,7 @@ function advanceLead(id){
 }
 /* saveLead replaced by new version */
 function editLead(id){const l=DB.leads.find(l=>l.id===id);$('modal-lead-title').textContent='Editar Lead';$('ld-id').value=l.id;$('ld-nombre').value=l.nombre;$('ld-empresa').value=l.empresa;$('ld-contacto').value=l.contacto;$('ld-valor').value=l.valor;$('ld-etapa').value=l.etapa;$('modal-lead').classList.add('open');}
-function deleteLead(id){if(!confirm('¿Eliminar?'))return;DB.leads=DB.leads.filter(l=>l.id!==id);renderPipeline();toast('info','Lead eliminado');}
+function deleteLead(id){if(!confirm('¿Eliminar?'))return;DB.leads=DB.leads.filter(l=>l.id!==id);_syncRecord('leads',{id},true);renderPipeline();toast('info','Lead eliminado');}
 
 /* ================================================================
    PRESUPUESTOS (legacy stub — replaced by new version above)
@@ -5535,10 +5650,11 @@ function savePresupuesto(){
   if(!data.nombre||!data.precio){toast('error','Nombre y precio son obligatorios');return;}
   if(id){const idx=DB.presupuestos.findIndex(p=>p.id==id);DB.presupuestos[idx]={...DB.presupuestos[idx],...data};showToast('success','Presupuesto actualizado');}
   else{data.id=nextId();DB.presupuestos.push(data);showToast('success',`Presupuesto creado: ${data.nombre||'Nuevo'}`);logActivity('presupuesto',`Presupuesto creado: <strong>${data.nombre||'Nuevo'}</strong> — ${fmtMoney(data.precio)}`);}
+  _syncRecord('presupuestos', id ? DB.presupuestos.find(p=>p.id==id)||data : data);
   _clearDraft('modal-presupuesto');closeModal('modal-presupuesto');renderPresupuestos();
 }
 function editPresupuesto(id){const p=DB.presupuestos.find(p=>p.id===id);populateClienteSelect('pr-cliente',p.clienteId);$('modal-presupuesto-title').textContent='Editar Presupuesto';$('pr-id').value=p.id;$('pr-nombre').value=p.nombre;$('pr-desc').value=p.desc;$('pr-precio').value=p.precio;$('pr-estado').value=p.estado;$('pr-fecha').value=p.fecha;$('pr-valido').value=p.valido||'';$('modal-presupuesto').classList.add('open');}
-function deletePresupuesto(id){if(!confirm('¿Eliminar?'))return;DB.presupuestos=DB.presupuestos.filter(p=>p.id!==id);renderPresupuestos();toast('info','Eliminado');}
+function deletePresupuesto(id){if(!confirm('¿Eliminar?'))return;DB.presupuestos=DB.presupuestos.filter(p=>p.id!==id);_syncRecord('presupuestos',{id},true);renderPresupuestos();toast('info','Eliminado');}
 function approvePresupuesto(id){const p=DB.presupuestos.find(p=>p.id===id);if(p){p.estado='aprobado';renderPresupuestos();toast('success','Presupuesto aprobado');}}
 
 /* ================================================================
@@ -5568,8 +5684,8 @@ function deleteContrato(id){if(!confirm('¿Eliminar?'))return;DB.contratos=DB.co
    ================================================================ */
 let facturaCounter=100;
 /* saveFactura replaced by new version */
-function markFacturaPagada(id){const f=DB.facturas.find(f=>f.id===id);if(f){f.estado='pagada';DB.actividad.unshift({icon:'fa-receipt',color:'green',texto:`Factura cobrada: <strong>$${fmt(f.monto)}</strong>`,tiempo:'Ahora'});renderFacturacion();showToast('success',`Pago registrado: ${fmtMoney(f.monto)}`);logActivity('pago',`Factura cobrada: <strong>${fmtMoney(f.monto)}</strong> de ${getClienteName(f.clienteId)}`);}}
-function deleteFactura(id){if(!confirm('¿Eliminar?'))return;DB.facturas=DB.facturas.filter(f=>f.id!==id);renderFacturacion();toast('info','Eliminada');}
+function markFacturaPagada(id){const f=DB.facturas.find(f=>f.id===id);if(f){f.estado='pagada';f.fechaPago=f.fechaPago||today();_syncRecord('facturas',f);DB.actividad.unshift({icon:'fa-receipt',color:'green',texto:`Factura cobrada: <strong>$${fmt(f.monto)}</strong>`,tiempo:'Ahora'});renderFacturacion();showToast('success',`Pago registrado: ${fmtMoney(f.monto)}`);logActivity('pago',`Factura cobrada: <strong>${fmtMoney(f.monto)}</strong> de ${getClienteName(f.clienteId)}`);}}
+function deleteFactura(id){if(!confirm('¿Eliminar?'))return;DB.facturas=DB.facturas.filter(f=>f.id!==id);_syncRecord('facturas',{id},true);renderFacturacion();toast('info','Eliminada');}
 
 /* ================================================================
    ANALYTICS
@@ -6418,6 +6534,7 @@ function saveLead(){
   if(!data.nombre){toast('error','El nombre es obligatorio');return;}
   if(id){const idx=DB.leads.findIndex(l=>l.id==id);DB.leads[idx]={...DB.leads[idx],...data};}
   else{data.id=nextId();DB.leads.push(data);}
+  _syncRecord('leads', id ? DB.leads.find(l=>l.id==id)||data : data);
   closeModal('modal-lead');renderPipeline();toast('success','Lead guardado');
 }
 function editLead(id){
@@ -6472,6 +6589,7 @@ function saveFactura(){
   if(data.estado==='pagada'&&!id){
     DB.transacciones.push({id:nextId(),tipo:'ingreso',fecha:data.fecha||today(),descripcion:`Factura — ${data.desc}`,clienteId:data.clienteId,categoria:'Facturación',monto:data.monto,facturaId:data.id});
   }
+  _syncRecord('facturas', id ? DB.facturas.find(f=>f.id==id)||data : data);
   closeModal('modal-factura');renderFacturacion();toast('success','Factura guardada');
 }
 
