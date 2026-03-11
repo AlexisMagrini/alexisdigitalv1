@@ -209,12 +209,12 @@ textarea.form-input{resize:vertical;min-height:88px}
 }
 .sidebar-header{padding:0;border-bottom:1px solid var(--bd);flex-shrink:0}
 .sidebar-logo-area{
-  padding:16px 18px 14px;
+  padding:14px 16px 12px;
   display:flex;align-items:center;
-  min-height:68px;
+  min-height:76px;
 }
 .sidebar-logo-img{
-  max-height:44px;max-width:180px;
+  max-height:56px;max-width:190px;
   width:auto;object-fit:contain;
   display:none;
 }
@@ -809,8 +809,8 @@ tbody tr:hover{background:var(--bg-3)}
 .cfg-layout{display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start}
 .cfg-sidebar{
   background:var(--bg-1);border:1px solid var(--bd);
-  border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);
-  position:sticky;top:0;
+  border-radius:var(--r-lg);overflow-y:auto;box-shadow:var(--sh-sm);
+  position:sticky;top:0;max-height:calc(100vh - 120px);
 }
 .cfg-sidebar-item{
   display:flex;align-items:center;gap:10px;
@@ -972,11 +972,18 @@ tbody tr:hover{background:var(--bg-3)}
       <label class="form-label"><i class="fa-solid fa-lock" style="margin-right:5px;color:var(--brand)"></i>Contraseña</label>
       <input type="password" class="form-input" id="login-pass" placeholder="••••••••">
     </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <input type="checkbox" id="login-remember" checked
+        style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer;border-radius:4px">
+      <label for="login-remember" style="font-size:12.5px;color:var(--tx-2);cursor:pointer;user-select:none">
+        Mantener sesión activa
+      </label>
+    </div>
     <button class="btn btn-primary btn-full btn-login" onclick="doLogin()">
       <i class="fa-solid fa-right-to-bracket"></i> Ingresar al sistema
     </button>
-    <div id="sb-auth-notice" style="display:none;margin-top:12px;padding:10px 12px;background:var(--brand-soft);border-radius:8px;font-size:12px;color:var(--brand);text-align:center">
-      <i class="fa-solid fa-cloud"></i> Autenticación Supabase activa
+    <div id="sb-auth-notice" style="display:none;margin-top:10px;padding:8px 12px;background:var(--brand-soft);border-radius:8px;font-size:11.5px;color:var(--brand);text-align:center;border:1px solid var(--brand)">
+      <i class="fa-solid fa-cloud" style="margin-right:5px"></i> Conectado a Supabase
     </div>
   </div>
 </div>
@@ -5359,12 +5366,17 @@ function _finishLogin(user){
   $('app').classList.add('active');
   $('sidebar-name').textContent=(user.nombre||user.name||'').split(' ')[0];
   $('sidebar-avatar').textContent=user.avatar||'AD';
-  // Persist session so page refresh doesn't log out
-  try{ localStorage.setItem('adm_session', JSON.stringify({
-    id:user.id, nombre:user.nombre||user.name, email:user.email,
-    rol:user.rol||user.role||'admin', avatar:user.avatar||'AD',
-    ts: Date.now()
-  })); }catch(e){}
+  // Persist session if "mantener sesión" is checked (default: true)
+  const rememberMe = document.getElementById('login-remember')?.checked !== false;
+  if(rememberMe){
+    try{ localStorage.setItem('adm_session', JSON.stringify({
+      id:user.id, nombre:user.nombre||user.name, email:user.email,
+      rol:user.rol||user.role||'admin', avatar:user.avatar||'AD',
+      ts: Date.now()
+    })); }catch(e){}
+  } else {
+    try{ localStorage.removeItem('adm_session'); }catch(e){}
+  }
   
   // Show role badge
   const rb=document.getElementById('topbar-role-badge');
@@ -8747,8 +8759,8 @@ function _renderBackupHistory(){
       });
       window.STORAGE_MODE='supabase';
       console.log('[v9] Supabase auto-initialized ✓');
-      // Update status after DOM ready
-      setTimeout(updateConnectionStatus,100);
+      // Update status after DOM ready (delay > auto-login delay of 200ms)
+      setTimeout(updateConnectionStatus,300);
 
     }
   }catch(e){console.warn('[v9] Supabase init failed:',e);}
