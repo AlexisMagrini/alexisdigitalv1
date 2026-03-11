@@ -446,6 +446,124 @@ tbody tr:hover{background:var(--bg-3)}
 .toast.error{border-left:3px solid var(--red)}.toast.error i{color:var(--red)}
 .toast.info{border-left:3px solid var(--brand)}.toast.info i{color:var(--brand)}
 
+
+/* ── COMMAND PALETTE ─────────────────────────────────────────── */
+#cmd-overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(4px);z-index:1100;display:none;align-items:flex-start;justify-content:center;padding-top:100px}
+#cmd-overlay.open{display:flex;animation:overlayIn .15s ease}
+#cmd-palette{background:var(--bg-1);border:1.5px solid var(--bd);border-radius:var(--r-xl);width:100%;max-width:560px;box-shadow:var(--sh-xl);overflow:hidden;animation:cmdIn .18s cubic-bezier(.22,1,.36,1)}
+@keyframes cmdIn{from{opacity:0;transform:scale(.96)translateY(-12px)}to{opacity:1;transform:scale(1)translateY(0)}}
+.cmd-search-row{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--bd)}
+.cmd-search-row i{color:var(--tx-3);font-size:16px;flex-shrink:0}
+#cmd-input{flex:1;background:transparent;border:none;outline:none;font-family:var(--font);font-size:15px;color:var(--tx-1)}
+#cmd-input::placeholder{color:var(--tx-3)}
+.cmd-kbd{background:var(--bg-2);border:1.5px solid var(--bd);color:var(--tx-3);font-family:var(--font);font-size:10px;padding:2px 7px;border-radius:5px}
+#cmd-results{max-height:400px;overflow-y:auto;padding:6px}
+.cmd-group-label{font-size:10px;font-weight:700;color:var(--tx-3);letter-spacing:.8px;text-transform:uppercase;padding:8px 12px 4px}
+.cmd-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:var(--r-sm);cursor:pointer;transition:all .1s ease;user-select:none}
+.cmd-item:hover,.cmd-item.selected{background:var(--brand-soft)}
+.cmd-item:hover .cmd-item-name,.cmd-item.selected .cmd-item-name{color:var(--brand)}
+.cmd-item-ico{width:30px;height:30px;border-radius:7px;background:var(--bg-2);color:var(--tx-2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .1s}
+.cmd-item:hover .cmd-item-ico,.cmd-item.selected .cmd-item-ico{background:var(--brand-soft);color:var(--brand)}
+.cmd-item-name{font-size:13.5px;font-weight:500;color:var(--tx-1);flex:1}
+.cmd-item-meta{font-size:11.5px;color:var(--tx-3)}
+.cmd-item-shortcut{font-size:10px;background:var(--bg-2);color:var(--tx-3);padding:2px 7px;border-radius:4px;border:1px solid var(--bd)}
+.cmd-empty{padding:28px;text-align:center;color:var(--tx-3);font-size:13.5px}
+.cmd-footer{padding:8px 14px;border-top:1px solid var(--bd);display:flex;gap:12px;background:var(--bg-2)}
+.cmd-footer-hint{font-size:11px;color:var(--tx-3);display:flex;align-items:center;gap:5px}
+
+/* ── TOAST TOP-RIGHT ─────────────────────────────────────────── */
+#toast-top{position:fixed;top:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:9999;pointer-events:none}
+.toast-new{background:var(--bg-1);border:1.5px solid var(--bd);border-radius:var(--r-lg);padding:12px 16px 12px 14px;display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--tx-1);box-shadow:var(--sh-xl);max-width:340px;pointer-events:all;position:relative;overflow:hidden;cursor:pointer}
+.toast-new::before{content:'';position:absolute;top:0;left:0;bottom:0;width:4px;border-radius:var(--r-lg) 0 0 var(--r-lg)}
+.toast-new.success::before{background:var(--green)}
+.toast-new.error::before{background:var(--red)}
+.toast-new.warning::before{background:var(--amber)}
+.toast-new.info::before{background:var(--brand)}
+@keyframes toastSlideIn{from{opacity:0;transform:translateX(24px)scale(.95)}to{opacity:1;transform:none}}
+@keyframes toastSlideOut{to{opacity:0;transform:translateX(24px)scale(.95)}}
+.toast-new{animation:toastSlideIn .28s cubic-bezier(.22,1,.36,1) both}
+.toast-new.out{animation:toastSlideOut .22s ease forwards}
+.toast-new-ico{font-size:15px;flex-shrink:0}
+.toast-new.success .toast-new-ico{color:var(--green)}
+.toast-new.error .toast-new-ico{color:var(--red)}
+.toast-new.warning .toast-new-ico{color:var(--amber)}
+.toast-new.info .toast-new-ico{color:var(--brand)}
+.toast-new-body{flex:1;min-width:0}
+.toast-new-title{font-weight:600;font-size:13px;color:var(--tx-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast-new-msg{font-size:12px;color:var(--tx-2);margin-top:2px;line-height:1.4}
+.toast-progress{position:absolute;bottom:0;left:0;height:2px;background:var(--brand);border-radius:0 0 0 var(--r-lg);transition:width linear}
+.toast-new.success .toast-progress{background:var(--green)}
+.toast-new.error .toast-progress{background:var(--red)}
+.toast-new.warning .toast-progress{background:var(--amber)}
+
+/* ── ACTIVITY FEED ───────────────────────────────────────────── */
+.activity-feed{display:flex;flex-direction:column;gap:0}
+.af-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd);position:relative}
+.af-item:last-child{border-bottom:none}
+.af-item::before{content:'';position:absolute;left:17px;top:44px;bottom:-1px;width:2px;background:var(--bd);z-index:0}
+.af-item:last-child::before{display:none}
+.af-dot{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;position:relative;z-index:1;border:2px solid var(--bg-1)}
+.af-dot.c-brand{background:var(--brand-soft);color:var(--brand)}
+.af-dot.c-green{background:var(--green-soft);color:var(--green)}
+.af-dot.c-amber{background:var(--amber-soft);color:var(--amber)}
+.af-dot.c-red{background:var(--red-soft);color:var(--red)}
+.af-dot.c-purple{background:var(--purple-soft);color:var(--purple)}
+.af-dot.c-teal{background:var(--teal-soft);color:var(--teal)}
+.af-content{flex:1;padding-top:4px}
+.af-text{font-size:13px;color:var(--tx-1);line-height:1.5}
+.af-time{font-size:11px;color:var(--tx-3);margin-top:3px;display:flex;align-items:center;gap:5px}
+.af-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.af-filter-btn{padding:5px 13px;border-radius:99px;border:1.5px solid var(--bd);background:var(--bg-1);color:var(--tx-2);font-size:12px;font-weight:500;cursor:pointer;transition:all var(--ease);font-family:var(--font)}
+.af-filter-btn:hover{border-color:var(--brand);color:var(--brand)}
+.af-filter-btn.active{background:var(--brand-soft);border-color:var(--brand);color:var(--brand);font-weight:600}
+
+/* ── ADVANCED FILTERS ────────────────────────────────────────── */
+.adv-filter-bar{background:var(--bg-1);border:1.5px solid var(--bd);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.adv-filter-group{display:flex;flex-direction:column;gap:4px;min-width:130px;flex:1}
+.adv-filter-label{font-size:11px;font-weight:600;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px}
+.adv-filter-clear{font-size:12px;color:var(--tx-3);cursor:pointer;padding:6px 10px;border-radius:var(--r-sm);border:1.5px solid var(--bd);background:transparent;font-family:var(--font);transition:all var(--ease);white-space:nowrap;height:36px;align-self:flex-end}
+.adv-filter-clear:hover{background:var(--red-soft);color:var(--red);border-color:var(--red)}
+.filter-active-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;background:var(--brand);color:#fff;border-radius:99px;font-size:10px;font-weight:700;margin-left:5px}
+
+/* ── REMINDERS ───────────────────────────────────────────────── */
+.reminder-card{background:var(--bg-1);border:1.5px solid var(--bd);border-radius:var(--r-lg);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:all var(--ease)}
+.reminder-card:hover{border-color:var(--brand);box-shadow:var(--sh-md)}
+.reminder-card.overdue{border-left:4px solid var(--red);background:var(--red-soft)}
+.reminder-card.today{border-left:4px solid var(--amber);background:var(--amber-soft)}
+.reminder-card.upcoming{border-left:4px solid var(--brand)}
+.reminder-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.reminder-text{flex:1;font-size:13px;font-weight:500;color:var(--tx-1)}
+.reminder-sub{font-size:11.5px;color:var(--tx-3);margin-top:2px}
+.reminder-actions{display:flex;gap:5px}
+.dash-reminders{margin-bottom:16px}
+.dash-reminders-title{font-size:13px;font-weight:700;color:var(--tx-1);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+
+/* ── WIDGET PICKER ───────────────────────────────────────────── */
+.widget-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.widget-toggle-card{background:var(--bg-1);border:2px solid var(--bd);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;transition:all var(--ease);display:flex;align-items:center;gap:12px}
+.widget-toggle-card:hover{border-color:var(--tx-3);box-shadow:var(--sh-sm)}
+.widget-toggle-card.enabled{border-color:var(--brand);background:var(--brand-soft)}
+.widget-toggle-card.enabled .wtc-name{color:var(--brand);font-weight:700}
+.wtc-ico{width:34px;height:34px;border-radius:8px;background:var(--bg-2);color:var(--tx-2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all var(--ease)}
+.widget-toggle-card.enabled .wtc-ico{background:rgba(79,70,229,.15);color:var(--brand)}
+.wtc-name{font-size:13px;font-weight:500;color:var(--tx-1);flex:1}
+.wtc-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--ease)}
+.widget-toggle-card.enabled .wtc-check{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ── DRAFT RECOVERY BANNER ───────────────────────────────────── */
+.draft-banner{background:var(--amber-soft);border:1.5px solid var(--amber);border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:13px;color:var(--tx-1);animation:toastSlideIn .3s ease}
+.draft-banner i{color:var(--amber);flex-shrink:0}
+.draft-banner-actions{display:flex;gap:6px;margin-left:auto}
+
+/* ── MOBILE RESPONSIVE EXTRAS ───────────────────────────────── */
+@media(max-width:768px){
+  #cmd-overlay{padding-top:60px}
+  #cmd-palette{margin:0 12px}
+  .adv-filter-bar{flex-direction:column}
+  .adv-filter-group{min-width:100%}
+  #toast-top{top:10px;right:10px;max-width:calc(100vw - 20px)}
+}
+
 /* ── TOGGLE ────────────────────────────────────────────────── */
 .toggle{position:relative;width:40px;height:22px;display:inline-block}
 .toggle input{display:none}
@@ -906,6 +1024,9 @@ tbody tr:hover{background:var(--bg-3)}
       <div class="nav-item" onclick="navigate('emails')" data-section="emails">
         <div class="nav-icon"><i class="fa-solid fa-envelope-open-text"></i></div><span>Emails</span>
       </div>
+      <div class="nav-item" onclick="navigate('actividad')" data-section="actividad">
+        <div class="nav-icon"><i class="fa-solid fa-timeline"></i></div><span>Actividad</span>
+      </div>
       <span class="nav-group-label">Sistema</span>
       <div class="nav-item" onclick="navigate('configuracion')" data-section="configuracion">
         <div class="nav-icon"><i class="fa-solid fa-gear"></i></div><span>Configuración</span>
@@ -968,9 +1089,13 @@ tbody tr:hover{background:var(--bg-3)}
       <section class="section active" id="sec-dashboard">
         <div class="sec-header">
           <div><div class="sec-title">Panel de Control</div><div class="sec-sub" id="dashboard-date"></div></div>
-          <button class="btn btn-secondary" onclick="renderDashboard()"><i class="fa-solid fa-rotate-right"></i> Actualizar</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary" onclick="openModal('modal-reminder');populateReminderRef()"><i class="fa-solid fa-bell"></i> Recordatorio</button>
+            <button class="btn btn-secondary" onclick="renderDashboard()"><i class="fa-solid fa-rotate-right"></i> Actualizar</button>
+          </div>
         </div>
         <div class="stats-grid" id="stats-grid"></div>
+        <div class="dash-reminders" id="dash-reminders"></div>
         <div class="dash-row">
           <div class="card">
             <div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-line"></i> Ingresos del Mes</div><span class="badge badge-green">En vivo</span></div>
@@ -1015,8 +1140,28 @@ tbody tr:hover{background:var(--bg-3)}
               <button class="view-btn" id="vbtn-cli-list" onclick="setViewMode('clientes','list')" title="Vista lista"><i class="fa-solid fa-list"></i></button>
               <button class="view-btn" id="vbtn-cli-grid" onclick="setViewMode('clientes','grid')" title="Vista tarjetas"><i class="fa-solid fa-grip"></i></button>
             </div>
+            <button class="btn btn-secondary" onclick="toggleAdvFilters('clientes')" id="btn-flt-clientes" title="Filtros avanzados"><i class="fa-solid fa-sliders"></i></button>
             <button class="btn btn-primary" onclick="openModal('modal-cliente')"><i class="fa-solid fa-user-plus"></i> Nuevo cliente</button>
           </div>
+        </div>
+        <div id="clientes-adv-filters" class="adv-filter-bar" style="display:none">
+          <div class="adv-filter-group">
+            <span class="adv-filter-label">Estado</span>
+            <select class="form-select" id="flt-cli-estado" onchange="applyAdvFilters('clientes')">
+              <option value="">Todos</option><option value="lead">Lead</option><option value="activo">Activo</option><option value="finalizado">Finalizado</option>
+            </select>
+          </div>
+          <div class="adv-filter-group">
+            <span class="adv-filter-label">Empresa</span>
+            <input type="text" class="form-input" id="flt-cli-empresa" placeholder="Filtrar por empresa…" oninput="applyAdvFilters('clientes')">
+          </div>
+          <div class="adv-filter-group">
+            <span class="adv-filter-label">Con proyectos</span>
+            <select class="form-select" id="flt-cli-proyectos" onchange="applyAdvFilters('clientes')">
+              <option value="">Todos</option><option value="si">Con proyectos</option><option value="no">Sin proyectos</option>
+            </select>
+          </div>
+          <button class="adv-filter-clear" onclick="clearAdvFilters('clientes')"><i class="fa-solid fa-xmark"></i> Limpiar</button>
         </div>
         <div id="clientes-view-container">
           <div class="card">
@@ -1040,8 +1185,30 @@ tbody tr:hover{background:var(--bg-3)}
               <button class="view-btn" id="vbtn-proy-list" onclick="setViewMode('proyectos','list')" title="Lista"><i class="fa-solid fa-list"></i></button>
               <button class="view-btn" id="vbtn-proy-grid" onclick="setViewMode('proyectos','grid')" title="Tarjetas"><i class="fa-solid fa-grip"></i></button>
             </div>
+            <button class="btn btn-secondary" onclick="toggleAdvFilters('proyectos')" id="btn-flt-proyectos" title="Filtros avanzados"><i class="fa-solid fa-sliders"></i></button>
             <button class="btn btn-primary" onclick="openModal('modal-proyecto')"><i class="fa-solid fa-plus"></i> Nuevo proyecto</button>
           </div>
+        </div>
+        <div id="proyectos-adv-filters" class="adv-filter-bar" style="display:none">
+          <div class="adv-filter-group">
+            <span class="adv-filter-label">Estado</span>
+            <select class="form-select" id="flt-pro-estado" onchange="applyAdvFilters('proyectos')">
+              <option value="">Todos</option><option value="pendiente">Pendiente</option><option value="en desarrollo">En Desarrollo</option><option value="entregado">Entregado</option>
+            </select>
+          </div>
+          <div class="adv-filter-group">
+            <span class="adv-filter-label">Precio mínimo</span>
+            <input type="number" class="form-input" id="flt-pro-min" placeholder="0" oninput="applyAdvFilters('proyectos')">
+          </div>
+          <div class="adv-filter-group">
+            <span class="adv-filter-label">Precio máximo</span>
+            <input type="number" class="form-input" id="flt-pro-max" placeholder="Sin límite" oninput="applyAdvFilters('proyectos')">
+          </div>
+          <div class="adv-filter-group">
+            <span class="adv-filter-label">Cliente</span>
+            <select class="form-select" id="flt-pro-cliente" onchange="applyAdvFilters('proyectos')"><option value="">Todos</option></select>
+          </div>
+          <button class="adv-filter-clear" onclick="clearAdvFilters('proyectos')"><i class="fa-solid fa-xmark"></i> Limpiar</button>
         </div>
         <div id="proyectos-view-container">
         <div class="card">
@@ -1247,7 +1414,10 @@ tbody tr:hover{background:var(--bg-3)}
       <section class="section" id="sec-analytics">
         <div class="sec-header">
           <div><div class="sec-title">Analytics</div><div class="sec-sub">Métricas e indicadores clave de la agencia</div></div>
-          <button class="btn btn-secondary" onclick="renderAnalytics()"><i class="fa-solid fa-rotate-right"></i> Actualizar</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary" onclick="openWidgetPicker()"><i class="fa-solid fa-sliders"></i> Personalizar</button>
+            <button class="btn btn-secondary" onclick="renderAnalytics()"><i class="fa-solid fa-rotate-right"></i> Actualizar</button>
+          </div>
         </div>
         <div class="stats-grid" id="analytics-kpis"></div>
         <div class="dash-row">
@@ -1293,6 +1463,30 @@ tbody tr:hover{background:var(--bg-3)}
         <div class="card" style="margin-top:16px">
           <div class="card-header"><div class="card-title"><i class="fa-solid fa-file-lines"></i> Plantillas de Email</div></div>
           <div class="card-body" id="email-templates-list"></div>
+        </div>
+      </section>
+
+      <!-- ACTIVIDAD -->
+      <section class="section" id="sec-actividad">
+        <div class="sec-header">
+          <div><div class="sec-title">Actividad</div><div class="sec-sub">Historial cronológico de eventos del sistema</div></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary" onclick="clearActivityLog()"><i class="fa-solid fa-trash"></i> Limpiar</button>
+            <button class="btn btn-primary" onclick="renderActividad()"><i class="fa-solid fa-rotate-right"></i> Actualizar</button>
+          </div>
+        </div>
+        <div class="af-filters" id="af-filters">
+          <button class="af-filter-btn active" onclick="setAfFilter('all',this)">Todos</button>
+          <button class="af-filter-btn" onclick="setAfFilter('cliente',this)">👤 Clientes</button>
+          <button class="af-filter-btn" onclick="setAfFilter('proyecto',this)">📁 Proyectos</button>
+          <button class="af-filter-btn" onclick="setAfFilter('presupuesto',this)">📋 Presupuestos</button>
+          <button class="af-filter-btn" onclick="setAfFilter('factura',this)">🧾 Facturas</button>
+          <button class="af-filter-btn" onclick="setAfFilter('email',this)">📧 Emails</button>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div id="activity-feed-list" class="activity-feed"></div>
+          </div>
         </div>
       </section>
 
@@ -1648,6 +1842,67 @@ tbody tr:hover{background:var(--bg-3)}
     </main>
   </div>
 </div><!-- /app -->
+
+<!-- COMMAND PALETTE -->
+<div id="cmd-overlay" onclick="if(event.target===this)closeCmdPalette()">
+  <div id="cmd-palette">
+    <div class="cmd-search-row">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="cmd-input" placeholder="Buscar o ejecutar un comando…" oninput="renderCmdResults(this.value)" onkeydown="handleCmdKey(event)" autocomplete="off">
+      <span class="cmd-kbd">ESC</span>
+    </div>
+    <div id="cmd-results"></div>
+    <div class="cmd-footer">
+      <span class="cmd-footer-hint"><kbd class="cmd-kbd">↑↓</kbd> Navegar</span>
+      <span class="cmd-footer-hint"><kbd class="cmd-kbd">↵</kbd> Ejecutar</span>
+      <span class="cmd-footer-hint"><kbd class="cmd-kbd">ESC</kbd> Cerrar</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST TOP RIGHT -->
+<div id="toast-top"></div>
+
+<!-- REMINDER MODAL -->
+<div class="modal-overlay" id="modal-reminder">
+  <div class="modal"><div class="modal-header">
+    <div class="modal-title-wrap"><div class="modal-ico" style="background:var(--amber-soft);color:var(--amber)"><i class="fa-solid fa-bell"></i></div><div class="modal-title">Nuevo Recordatorio</div></div>
+    <button class="modal-close" onclick="closeModal('modal-reminder')"><i class="fa-solid fa-xmark"></i></button>
+  </div><div class="modal-body">
+    <div class="form-group mb-16"><label class="form-label">Mensaje *</label><input type="text" class="form-input" id="rem-text" placeholder="Ej: Llamar al cliente para seguimiento…"></div>
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Fecha *</label><input type="date" class="form-input" id="rem-date"></div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-select" id="rem-tipo">
+          <option value="cliente">👤 Cliente</option>
+          <option value="proyecto">📁 Proyecto</option>
+          <option value="factura">🧾 Factura</option>
+          <option value="general">📌 General</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Cliente / Proyecto relacionado</label>
+      <select class="form-select" id="rem-ref"><option value="">— Opcional —</option></select>
+    </div>
+  </div><div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-reminder')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveReminder()"><i class="fa-solid fa-bell"></i> Guardar</button>
+  </div></div>
+</div>
+
+<!-- WIDGET PICKER MODAL -->
+<div class="modal-overlay" id="modal-widgets">
+  <div class="modal modal-lg"><div class="modal-header">
+    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-sliders"></i></div><div class="modal-title">Personalizar Dashboard</div></div>
+    <button class="modal-close" onclick="closeModal('modal-widgets')"><i class="fa-solid fa-xmark"></i></button>
+  </div><div class="modal-body">
+    <p class="text-muted text-sm mb-16">Elige qué widgets mostrar en el Dashboard. Los cambios se guardan automáticamente.</p>
+    <div class="widget-grid" id="widget-picker-grid"></div>
+  </div><div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-widgets')">Cerrar</button>
+    <button class="btn btn-primary" onclick="saveWidgetPrefs();closeModal('modal-widgets');renderDashboard()"><i class="fa-solid fa-floppy-disk"></i> Aplicar</button>
+  </div></div>
+</div>
 
 <!-- ================================================================
      MODALS
@@ -2592,6 +2847,10 @@ function openModal(id){
   if(id==='modal-contrato'){populateClienteSelect('ct-cliente');populateProyectoSelect('ct-proyecto');$('ct-fecha').value=today();$('modal-contrato-title').textContent='Nuevo Contrato';$('ct-id').value='';}
   if(id==='modal-factura'){populateClienteSelect('fct-cliente');populateProyectoSelect('fct-proyecto');$('fct-fecha').value=today();$('modal-factura-title').textContent='Nueva Factura';$('fct-id').value='';}
   $(id).classList.add('open');
+  // Load draft if available (only for new forms, not edit)
+  const _editIds={'modal-cliente':'c-id','modal-proyecto':'p-id','modal-presupuesto':'pr-id','modal-factura':'fct-id'};
+  const _editField=_editIds[id];
+  if(_editField&&!document.getElementById(_editField)?.value) setTimeout(()=>_loadDraft(id),50);
 }
 function closeModal(id){
   $(id).classList.remove('open');
@@ -2636,7 +2895,7 @@ function doLogout(){
 }
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&$('login-screen').style.display!=='none')doLogin();
-  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();$('global-search').focus();}
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmdPalette();}
 });
 
 /* ================================================================
@@ -2657,7 +2916,8 @@ const NAV_META={
   archivos:{title:'Archivos',sub:'Intranet de documentos',icon:'fa-folder-open'},
   plantillas_web:{title:'Plantillas Web',sub:'Catálogo de plantillas para proyectos',icon:'fa-layer-group'},
   portal:{title:'Portal del Cliente',sub:'Vista conceptual del portal',icon:'fa-globe'},
-  configuracion:{title:'Configuración',sub:'Ajustes del sistema',icon:'fa-gear'}
+  configuracion:{title:'Configuración',sub:'Ajustes del sistema',icon:'fa-gear'},
+  actividad:{title:'Actividad',sub:'Historial cronológico del sistema',icon:'fa-timeline'}
 };
 function navigate(id){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -2673,7 +2933,7 @@ function navigate(id){
     configuracion:renderConfig,calendario:renderCalendario,pipeline:renderPipeline,emails:renderEmails,
     presupuestos:renderPresupuestos,contratos:renderContratos,facturacion:renderFacturacion,
     plantillas_web:renderPlantillasWeb,
-    analytics:renderAnalytics,portal:renderPortal}[id]||function(){})();
+    analytics:renderAnalytics,portal:renderPortal,actividad:renderActividad}[id]||function(){})();
 }
 
 /* ================================================================
@@ -2730,6 +2990,31 @@ function renderDashboard(){
   const colorMap={brand:{bg:'var(--brand-soft)',c:'var(--brand)'},green:{bg:'var(--green-soft)',c:'var(--green)'},purple:{bg:'var(--purple-soft)',c:'var(--purple)'},amber:{bg:'var(--amber-soft)',c:'var(--amber)'},teal:{bg:'var(--teal-soft)',c:'var(--teal)'},red:{bg:'var(--red-soft)',c:'var(--red)'}};
   $('dash-activity').innerHTML=DB.actividad.map(a=>{const s=colorMap[a.color]||colorMap.brand;return`<div class="activity-item"><div class="activity-icon" style="background:${s.bg};color:${s.c}"><i class="fa-solid ${a.icon}"></i></div><div><div class="activity-text">${a.texto}</div><div class="activity-time"><i class="fa-regular fa-clock" style="margin-right:3px"></i>${a.tiempo}</div></div></div>`;}).join('');
   renderDashCharts();
+  renderDashReminders();
+  // Render widget-controlled stats
+  _applyDashWidgets();
+}
+function _applyDashWidgets(){
+  _loadWidgets();
+  // Re-render stats grid with only active widgets
+  const ingresos=DB.transacciones.filter(t=>t.tipo==='ingreso').reduce((a,t)=>a+t.monto,0);
+  const pendientes=DB.transacciones.filter(t=>t.tipo==='pendiente').reduce((a,t)=>a+t.monto,0);
+  const proyActivos=DB.proyectos.filter(p=>p.estado==='en desarrollo').length;
+  const clienteActiv=DB.clientes.filter(c=>c.estado==='activo').length;
+  const pipelineTotal=DB.leads.reduce((a,l)=>a+l.valor,0);
+  const leadsCount=DB.leads.filter(l=>l.etapa!=='cerrado').length;
+  const ALL_WIDGETS={
+    ingresos_mes:{label:'Ingresos del Mes',value:fmtMoney(ingresos),icon:'fa-arrow-trend-up',acc:'acc-green',si:'si-green',ch:'+12%',dir:'up'},
+    proyectos_activos:{label:'Proyectos Activos',value:proyActivos,icon:'fa-code-branch',acc:'acc-brand',si:'si-brand',ch:`${DB.proyectos.length} total`,dir:'flat'},
+    clientes:{label:'Clientes Activos',value:clienteActiv,icon:'fa-users',acc:'acc-purple',si:'si-purple',ch:`${DB.clientes.length} total`,dir:'flat'},
+    pagos_pendientes:{label:'Pagos Pendientes',value:fmtMoney(pendientes),icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:`${DB.transacciones.filter(t=>t.tipo==='pendiente').length} fact.`,dir:'down'},
+    pipeline:{label:'Pipeline Total',value:fmtMoney(pipelineTotal),icon:'fa-filter',acc:'acc-teal',si:'si-teal',ch:'',dir:'flat'},
+    leads:{label:'Leads Activos',value:leadsCount,icon:'fa-bullseye',acc:'acc-red',si:'si-red',ch:'',dir:'flat'},
+  };
+  const active=[..._activeWidgets].filter(id=>ALL_WIDGETS[id]);
+  if(!active.length) return;
+  const grid=$('stats-grid');
+  if(grid) grid.innerHTML=active.map(id=>{const s=ALL_WIDGETS[id];return`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div>${s.ch?`<span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span>`:''}</div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`;}).join('');
 }
 function quickCompleteTask(id){const t=DB.tareas.find(t=>t.id===id);if(t){t.estado=t.estado==='completada'?'pendiente':'completada';renderDashboard();}}
 function renderDashCharts(){
@@ -2749,9 +3034,9 @@ function saveCliente(){
   const id=$('c-id').value;
   const data={nombre:$('c-nombre').value.trim(),email:$('c-email').value.trim(),telefono:$('c-tel').value.trim(),empresa:$('c-empresa').value.trim(),estado:$('c-estado').value,notas:$('c-notas').value.trim()};
   if(!data.nombre||!data.email){toast('error','Nombre y email son obligatorios');return;}
-  if(id){const idx=DB.clientes.findIndex(c=>c.id==id);DB.clientes[idx]={...DB.clientes[idx],...data};toast('success','Cliente actualizado');}
-  else{data.id=nextId();data.creado=today();DB.clientes.push(data);DB.actividad.unshift({icon:'fa-user-plus',color:'brand',texto:`Nuevo cliente: <strong>${data.nombre}</strong>`,tiempo:'Ahora'});toast('success','Cliente creado');}
-  closeModal('modal-cliente');renderClientes();
+  if(id){const idx=DB.clientes.findIndex(c=>c.id==id);DB.clientes[idx]={...DB.clientes[idx],...data};showToast('success','Cliente actualizado');}
+  else{data.id=nextId();data.creado=today();DB.clientes.push(data);DB.actividad.unshift({icon:'fa-user-plus',color:'brand',texto:`Nuevo cliente: <strong>${data.nombre}</strong>`,tiempo:'Ahora'});showToast('success',`Cliente creado: ${data.nombre}`);logActivity('cliente',`Nuevo cliente: <strong>${data.nombre}</strong>`);}
+  _clearDraft('modal-cliente');closeModal('modal-cliente');renderClientes();
   // Refresh portal select
   const ps=$('portal-cliente-select');
   if(ps)ps.innerHTML='<option value="">— Seleccionar cliente —</option>'+DB.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
@@ -2775,9 +3060,9 @@ function saveProyecto(){
   const id=$('p-id').value;
   const data={nombre:$('p-nombre').value.trim(),clienteId:parseInt($('p-cliente').value),estado:$('p-estado').value,precio:parseFloat($('p-precio').value)||0,inicio:$('p-inicio').value,entrega:$('p-entrega').value,checklist:[...tempChecklist]};
   if(!data.nombre){toast('error','El nombre es obligatorio');return;}
-  if(id){const idx=DB.proyectos.findIndex(p=>p.id==id);DB.proyectos[idx]={...DB.proyectos[idx],...data};toast('success','Proyecto actualizado');}
-  else{data.id=nextId();DB.proyectos.push(data);DB.actividad.unshift({icon:'fa-code-branch',color:'amber',texto:`Nuevo proyecto: <strong>${data.nombre}</strong>`,tiempo:'Ahora'});toast('success','Proyecto creado');}
-  closeModal('modal-proyecto');renderProyectos();
+  if(id){const idx=DB.proyectos.findIndex(p=>p.id==id);DB.proyectos[idx]={...DB.proyectos[idx],...data};showToast('success','Proyecto actualizado');}
+  else{data.id=nextId();DB.proyectos.push(data);DB.actividad.unshift({icon:'fa-code-branch',color:'amber',texto:`Nuevo proyecto: <strong>${data.nombre}</strong>`,tiempo:'Ahora'});showToast('success',`Proyecto creado: ${data.nombre}`);logActivity('proyecto',`Nuevo proyecto: <strong>${data.nombre}</strong>`);}
+  _clearDraft('modal-proyecto');closeModal('modal-proyecto');renderProyectos();
 }
 function editProyecto(id){const p=DB.proyectos.find(p=>p.id===id);$('modal-proyecto-title').textContent='Editar Proyecto';$('p-id').value=p.id;$('p-nombre').value=p.nombre;$('p-estado').value=p.estado;$('p-precio').value=p.precio;$('p-inicio').value=p.inicio||'';$('p-entrega').value=p.entrega||'';populateClienteSelect('p-cliente',p.clienteId);tempChecklist=[...(p.checklist||[])];renderTempChecklist();$('modal-proyecto').classList.add('open');}
 function deleteProyecto(id){if(!confirm('¿Eliminar?'))return;DB.proyectos=DB.proyectos.filter(p=>p.id!==id);toast('info','Proyecto eliminado');renderProyectos();}
@@ -2987,9 +3272,9 @@ function savePresupuesto(){
   const id=$('pr-id').value;
   const data={nombre:$('pr-nombre').value.trim(),clienteId:parseInt($('pr-cliente').value)||null,desc:$('pr-desc').value.trim(),precio:parseFloat($('pr-precio').value)||0,estado:$('pr-estado').value,fecha:$('pr-fecha').value,valido:$('pr-valido').value};
   if(!data.nombre||!data.precio){toast('error','Nombre y precio son obligatorios');return;}
-  if(id){const idx=DB.presupuestos.findIndex(p=>p.id==id);DB.presupuestos[idx]={...DB.presupuestos[idx],...data};}
-  else{data.id=nextId();DB.presupuestos.push(data);}
-  closeModal('modal-presupuesto');renderPresupuestos();toast('success','Presupuesto guardado');
+  if(id){const idx=DB.presupuestos.findIndex(p=>p.id==id);DB.presupuestos[idx]={...DB.presupuestos[idx],...data};showToast('success','Presupuesto actualizado');}
+  else{data.id=nextId();DB.presupuestos.push(data);showToast('success',`Presupuesto creado: ${data.nombre||'Nuevo'}`);logActivity('presupuesto',`Presupuesto creado: <strong>${data.nombre||'Nuevo'}</strong> — ${fmtMoney(data.precio)}`);}
+  _clearDraft('modal-presupuesto');closeModal('modal-presupuesto');renderPresupuestos();
 }
 function editPresupuesto(id){const p=DB.presupuestos.find(p=>p.id===id);populateClienteSelect('pr-cliente',p.clienteId);$('modal-presupuesto-title').textContent='Editar Presupuesto';$('pr-id').value=p.id;$('pr-nombre').value=p.nombre;$('pr-desc').value=p.desc;$('pr-precio').value=p.precio;$('pr-estado').value=p.estado;$('pr-fecha').value=p.fecha;$('pr-valido').value=p.valido||'';$('modal-presupuesto').classList.add('open');}
 function deletePresupuesto(id){if(!confirm('¿Eliminar?'))return;DB.presupuestos=DB.presupuestos.filter(p=>p.id!==id);renderPresupuestos();toast('info','Eliminado');}
@@ -3022,7 +3307,7 @@ function deleteContrato(id){if(!confirm('¿Eliminar?'))return;DB.contratos=DB.co
    ================================================================ */
 let facturaCounter=100;
 /* saveFactura replaced by new version */
-function markFacturaPagada(id){const f=DB.facturas.find(f=>f.id===id);if(f){f.estado='pagada';DB.actividad.unshift({icon:'fa-receipt',color:'green',texto:`Factura cobrada: <strong>$${fmt(f.monto)}</strong>`,tiempo:'Ahora'});renderFacturacion();toast('success','Factura marcada como pagada');}}
+function markFacturaPagada(id){const f=DB.facturas.find(f=>f.id===id);if(f){f.estado='pagada';DB.actividad.unshift({icon:'fa-receipt',color:'green',texto:`Factura cobrada: <strong>$${fmt(f.monto)}</strong>`,tiempo:'Ahora'});renderFacturacion();showToast('success',`Pago registrado: ${fmtMoney(f.monto)}`);logActivity('pago',`Factura cobrada: <strong>${fmtMoney(f.monto)}</strong> de ${getClienteName(f.clienteId)}`);}}
 function deleteFactura(id){if(!confirm('¿Eliminar?'))return;DB.facturas=DB.facturas.filter(f=>f.id!==id);renderFacturacion();toast('info','Eliminada');}
 
 /* ================================================================
@@ -3937,6 +4222,198 @@ function deleteFactura(id){
 /* ================================================================
    INIT
    ================================================================ */
+
+/* ================================================================
+   COMMAND PALETTE
+   ================================================================ */
+let _cmdSelected = 0;
+let _cmdItems = [];
+
+const CMD_ACTIONS = [
+  {type:'action',icon:'fa-user-plus',label:'Nuevo cliente',shortcut:'N C',fn:()=>{navigate('clientes');openModal('modal-cliente');}},
+  {type:'action',icon:'fa-code-branch',label:'Nuevo proyecto',shortcut:'N P',fn:()=>{navigate('proyectos');openModal('modal-proyecto');}},
+  {type:'action',icon:'fa-file-invoice',label:'Nuevo presupuesto',shortcut:'N B',fn:()=>{navigate('presupuestos');openModal('modal-presupuesto');}},
+  {type:'action',icon:'fa-receipt',label:'Nueva factura',shortcut:'N F',fn:()=>{navigate('facturacion');openModal('modal-factura');}},
+  {type:'action',icon:'fa-chart-line',label:'Ir a Analytics',fn:()=>navigate('analytics')},
+  {type:'action',icon:'fa-gear',label:'Ir a Configuración',fn:()=>navigate('configuracion')},
+  {type:'action',icon:'fa-timeline',label:'Ver Actividad',fn:()=>navigate('actividad')},
+  {type:'action',icon:'fa-filter',label:'Ir a Pipeline',fn:()=>navigate('pipeline')},
+  {type:'action',icon:'fa-coins',label:'Ir a Finanzas',fn:()=>navigate('finanzas')},
+  {type:'action',icon:'fa-bell',label:'Nuevo recordatorio',fn:()=>{openModal('modal-reminder');populateReminderRef();}},
+];
+
+function openCmdPalette(){
+  document.getElementById('cmd-overlay').classList.add('open');
+  document.getElementById('cmd-input').value='';
+  renderCmdResults('');
+  setTimeout(()=>document.getElementById('cmd-input').focus(),60);
+}
+function closeCmdPalette(){
+  document.getElementById('cmd-overlay').classList.remove('open');
+}
+function renderCmdResults(q){
+  const query=(q||'').toLowerCase().trim();
+  let groups=[];
+
+  // Search data
+  if(query.length>=1){
+    const cliRes=DB.clientes.filter(c=>c.nombre.toLowerCase().includes(query)||c.email.toLowerCase().includes(query)).slice(0,4);
+    const proRes=DB.proyectos.filter(p=>p.nombre.toLowerCase().includes(query)).slice(0,4);
+    const pltRes=DB.plantillas_web.filter(p=>p.nombre.toLowerCase().includes(query)).slice(0,3);
+    const facRes=DB.facturas.filter(f=>{const n=getClienteName(f.clienteId).toLowerCase();return n.includes(query)||(f.desc||'').toLowerCase().includes(query);}).slice(0,3);
+    const presRes=DB.presupuestos.filter(p=>p.nombre?.toLowerCase().includes(query)||getClienteName(p.clienteId).toLowerCase().includes(query)).slice(0,3);
+
+    if(cliRes.length) groups.push({label:'Clientes',items:cliRes.map(c=>({icon:'fa-user',label:c.nombre,meta:c.empresa||c.email,fn:()=>{navigate('clientes');verCliente(c.id);}}))});
+    if(proRes.length) groups.push({label:'Proyectos',items:proRes.map(p=>({icon:'fa-code-branch',label:p.nombre,meta:getClienteName(p.clienteId),fn:()=>{navigate('proyectos');verProyecto(p.id);}}))});
+    if(pltRes.length) groups.push({label:'Plantillas',items:pltRes.map(p=>({icon:'fa-layer-group',label:p.nombre,meta:fmtMoney(p.precio),fn:()=>navigate('plantillas_web')}))});
+    if(presRes.length) groups.push({label:'Presupuestos',items:presRes.map(p=>({icon:'fa-file-invoice',label:p.nombre||'Presupuesto',meta:fmtMoney(p.precio),fn:()=>navigate('presupuestos')}))});
+    if(facRes.length) groups.push({label:'Facturas',items:facRes.map(f=>({icon:'fa-receipt',label:getClienteName(f.clienteId),meta:fmtMoney(f.monto),fn:()=>navigate('facturacion')}))});
+  }
+
+  // Actions (always show, filtered by query)
+  const actFiltered=CMD_ACTIONS.filter(a=>!query||a.label.toLowerCase().includes(query));
+  if(actFiltered.length) groups.push({label:query?'Comandos':'Acciones rápidas',items:actFiltered.map(a=>({icon:a.icon,label:a.label,shortcut:a.shortcut||'',fn:a.fn}))});
+
+  // Build HTML
+  _cmdItems=[];
+  let html='';
+  if(!groups.length){html=`<div class="cmd-empty"><i class="fa-solid fa-magnifying-glass" style="display:block;font-size:24px;margin-bottom:8px;color:var(--tx-3)"></i>Sin resultados para "${q}"</div>`;}
+  else{
+    groups.forEach(g=>{
+      html+=`<div class="cmd-group-label">${g.label}</div>`;
+      g.items.forEach(item=>{
+        const idx=_cmdItems.length;
+        _cmdItems.push(item);
+        html+=`<div class="cmd-item" data-idx="${idx}" onclick="execCmdItem(${idx})" onmouseenter="selectCmdItem(${idx})">
+          <div class="cmd-item-ico"><i class="fa-solid ${item.icon}"></i></div>
+          <span class="cmd-item-name">${item.label}</span>
+          ${item.meta?`<span class="cmd-item-meta">${item.meta}</span>`:''}
+          ${item.shortcut?`<span class="cmd-item-shortcut">${item.shortcut}</span>`:''}
+        </div>`;
+      });
+    });
+  }
+  document.getElementById('cmd-results').innerHTML=html;
+  _cmdSelected=0;
+  _highlightCmd();
+}
+function _highlightCmd(){
+  document.querySelectorAll('.cmd-item').forEach((el,i)=>{el.classList.toggle('selected',i===_cmdSelected);});
+}
+function selectCmdItem(idx){_cmdSelected=idx;_highlightCmd();}
+function execCmdItem(idx){
+  const item=_cmdItems[idx];
+  if(item&&item.fn){closeCmdPalette();item.fn();}
+}
+function handleCmdKey(e){
+  if(e.key==='Escape'){closeCmdPalette();return;}
+  if(e.key==='ArrowDown'){e.preventDefault();_cmdSelected=Math.min(_cmdSelected+1,_cmdItems.length-1);_highlightCmd();_scrollCmdSelected();}
+  else if(e.key==='ArrowUp'){e.preventDefault();_cmdSelected=Math.max(_cmdSelected-1,0);_highlightCmd();_scrollCmdSelected();}
+  else if(e.key==='Enter'){e.preventDefault();execCmdItem(_cmdSelected);}
+}
+function _scrollCmdSelected(){
+  const el=document.querySelector(`.cmd-item[data-idx="${_cmdSelected}"]`);
+  if(el) el.scrollIntoView({block:'nearest'});
+}
+
+/* ================================================================
+   ENHANCED TOAST (showToast + legacy toast wrapper)
+   ================================================================ */
+const TOAST_ICONS={success:'fa-circle-check',error:'fa-circle-xmark',warning:'fa-triangle-exclamation',info:'fa-circle-info'};
+const TOAST_TITLES={success:'Éxito',error:'Error',warning:'Atención',info:'Información'};
+
+function showToast(type,message,duration=3200){
+  const container=document.getElementById('toast-top');
+  if(!container) return;
+  const el=document.createElement('div');
+  el.className=`toast-new ${type}`;
+  el.innerHTML=`
+    <i class="fa-solid ${TOAST_ICONS[type]||'fa-circle-info'} toast-new-ico"></i>
+    <div class="toast-new-body">
+      <div class="toast-new-title">${TOAST_TITLES[type]||'Aviso'}</div>
+      <div class="toast-new-msg">${message}</div>
+    </div>
+    <div class="toast-progress" id="tp-${Date.now()}"></div>
+  `;
+  el.onclick=()=>dismissToast(el);
+  container.appendChild(el);
+
+  // Progress bar animation
+  const bar=el.querySelector('.toast-progress');
+  if(bar){bar.style.width='100%';requestAnimationFrame(()=>{bar.style.transition=`width ${duration}ms linear`;bar.style.width='0%';});}
+
+  setTimeout(()=>dismissToast(el),duration);
+  // Log to activity if it's a meaningful event
+  return el;
+}
+function dismissToast(el){
+  if(!el||!el.parentNode) return;
+  el.classList.add('out');
+  setTimeout(()=>el.remove(),240);
+}
+// Legacy alias — keep existing toast() calls working AND upgrade them
+function toast(type,msg){showToast(type,msg);}
+
+/* ================================================================
+   ACTIVITY LOG (global feed)
+   ================================================================ */
+const ACTIVITY_TYPE_META={
+  cliente:{icon:'fa-user-plus',color:'c-brand',label:'Cliente'},
+  proyecto:{icon:'fa-code-branch',color:'c-amber',label:'Proyecto'},
+  presupuesto:{icon:'fa-file-invoice',color:'c-purple',label:'Presupuesto'},
+  factura:{icon:'fa-receipt',color:'c-green',label:'Factura'},
+  email:{icon:'fa-envelope',color:'c-teal',label:'Email'},
+  pago:{icon:'fa-circle-dollar-to-slot',color:'c-green',label:'Pago'},
+  contrato:{icon:'fa-file-contract',color:'c-brand',label:'Contrato'},
+  tarea:{icon:'fa-list-check',color:'c-purple',label:'Tarea'},
+  general:{icon:'fa-circle-info',color:'c-brand',label:'Sistema'}
+};
+
+let _activityLog=[];
+let _afFilter='all';
+
+function _loadActivityLog(){
+  try{const s=localStorage.getItem('activity_log');if(s)_activityLog=JSON.parse(s);}catch(e){_activityLog=[];}
+}
+function _saveActivityLog(){
+  try{localStorage.setItem('activity_log',JSON.stringify(_activityLog.slice(0,500)));}catch(e){}
+}
+function logActivity(tipo,texto,meta={}){
+  const entry={id:Date.now(),tipo,texto,meta,ts:new Date().toISOString()};
+  _activityLog.unshift(entry);
+  _saveActivityLog();
+}
+function setAfFilter(filter,btn){
+  _afFilter=filter;
+  document.querySelectorAll('.af-filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderActividad();
+}
+function renderActividad(){
+  const el=document.getElementById('activity-feed-list');
+  if(!el) return;
+  _loadActivityLog();
+  let list=_activityLog;
+  if(_afFilter!=='all') list=list.filter(a=>a.tipo===_afFilter);
+  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-timeline"></i></div><h3>Sin actividad</h3><p>Las acciones del sistema aparecerán aquí</p></div>`;return;}
+  const fmtTs=ts=>{const d=new Date(ts);const now=new Date();const diff=Math.floor((now-d)/1000);if(diff<60)return'Hace un momento';if(diff<3600)return`Hace ${Math.floor(diff/60)} min`;if(diff<86400)return`Hace ${Math.floor(diff/3600)}h`;return d.toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});};
+  el.innerHTML=list.map(a=>{
+    const m=ACTIVITY_TYPE_META[a.tipo]||ACTIVITY_TYPE_META.general;
+    return`<div class="af-item">
+      <div class="af-dot ${m.color}"><i class="fa-solid ${m.icon}"></i></div>
+      <div class="af-content">
+        <div class="af-text">${a.texto}</div>
+        <div class="af-time"><i class="fa-regular fa-clock"></i>${fmtTs(a.ts)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function clearActivityLog(){
+  if(!confirm('¿Limpiar todo el historial de actividad?')) return;
+  _activityLog=[];_saveActivityLog();renderActividad();showToast('info','Historial limpiado');
+}
+
+
 /* ================================================================
    VIEW MODE SYSTEM
    ================================================================ */
@@ -4253,6 +4730,245 @@ function renderClienteDocuments(clienteId){
     </div>`;
   }).join('');
 }
+
+
+/* ================================================================
+   ADVANCED FILTERS
+   ================================================================ */
+function toggleAdvFilters(section){
+  const bar=document.getElementById(section+'-adv-filters');
+  if(!bar) return;
+  const showing=bar.style.display!=='none';
+  bar.style.display=showing?'none':'flex';
+  const btn=document.getElementById('btn-flt-'+section);
+  if(btn) btn.classList.toggle('active',!showing);
+  // Populate proyectos client filter
+  if(!showing&&section==='proyectos'){
+    const sel=document.getElementById('flt-pro-cliente');
+    if(sel){sel.innerHTML='<option value="">Todos los clientes</option>'+DB.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');}
+  }
+}
+function clearAdvFilters(section){
+  document.querySelectorAll(`[id^="flt-${section}-"]`).forEach(el=>{if(el.tagName==='SELECT')el.value='';else el.value='';});
+  applyAdvFilters(section);
+}
+function applyAdvFilters(section){
+  if(section==='clientes'){
+    const estado=document.getElementById('flt-cli-estado')?.value||'';
+    const empresa=(document.getElementById('flt-cli-empresa')?.value||'').toLowerCase();
+    const conProy=document.getElementById('flt-cli-proyectos')?.value||'';
+    let list=DB.clientes;
+    if(estado) list=list.filter(c=>c.estado===estado);
+    if(empresa) list=list.filter(c=>(c.empresa||'').toLowerCase().includes(empresa));
+    if(conProy==='si') list=list.filter(c=>DB.proyectos.some(p=>p.clienteId===c.id));
+    if(conProy==='no') list=list.filter(c=>!DB.proyectos.some(p=>p.clienteId===c.id));
+    renderClientes_filtered(list);
+  }
+  if(section==='proyectos'){
+    const estado=document.getElementById('flt-pro-estado')?.value||'';
+    const min=parseFloat(document.getElementById('flt-pro-min')?.value)||0;
+    const max=parseFloat(document.getElementById('flt-pro-max')?.value)||Infinity;
+    const clienteId=parseInt(document.getElementById('flt-pro-cliente')?.value)||0;
+    let list=DB.proyectos;
+    if(estado) list=list.filter(p=>p.estado===estado);
+    if(min>0) list=list.filter(p=>p.precio>=min);
+    if(max<Infinity) list=list.filter(p=>p.precio<=max);
+    if(clienteId) list=list.filter(p=>p.clienteId===clienteId);
+    renderProyectos_filtered(list);
+  }
+}
+function renderClientes_filtered(list){
+  const pCount=id=>DB.proyectos.filter(p=>p.clienteId===id).length;
+  const container=document.getElementById('clientes-view-container');
+  if(!container) return;
+  // Reuse renderClientes logic but with custom list
+  const mode=getViewMode('clientes');
+  if(mode==='grid'){
+    container.innerHTML=list.length?`<div class="catalog-grid">${list.map(c=>`<div class="card" style="padding:16px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="avatar-sm" style="width:38px;height:38px;font-size:14px">${initials(c.nombre)}</div><div style="flex:1;min-width:0"><div class="fw-600" style="color:var(--tx-1)">${c.nombre}</div><div class="text-muted text-sm">${c.empresa||c.email}</div></div>${statusBadge(c.estado)}</div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-secondary" style="flex:1" onclick="verCliente(${c.id})"><i class="fa-solid fa-eye"></i> Ver</button><button class="btn btn-sm btn-secondary btn-icon" onclick="editCliente(${c.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteCliente(${c.id})"><i class="fa-solid fa-trash"></i></button></div></div>`).join('')}</div>`:`<div class="card" style="padding:24px"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-users"></i></div><h3>Sin resultados</h3></div></div>`;
+  } else {
+    container.innerHTML=`<div class="card"><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Email</th><th>Teléfono</th><th>Empresa</th><th>Estado</th><th>Proyectos</th><th>Acciones</th></tr></thead><tbody>${list.map(c=>`<tr><td><div class="flex-center gap-8"><div class="avatar-sm">${initials(c.nombre)}</div><span class="fw-500">${c.nombre}</span></div></td><td class="text-muted">${c.email}</td><td class="text-muted">${c.telefono||'—'}</td><td>${c.empresa||'—'}</td><td>${statusBadge(c.estado)}</td><td><span class="tag">${pCount(c.id)}</span></td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="verCliente(${c.id})"><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="editCliente(${c.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteCliente(${c.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:18px;color:var(--tx-3)">Sin resultados</td></tr>'}</tbody></table></div></div>`;
+  }
+}
+function renderProyectos_filtered(list){
+  const container=document.getElementById('proyectos-view-container');
+  if(!container) return;
+  const mode=getViewMode('proyectos');
+  if(mode==='grid'){
+    container.innerHTML=list.length?`<div class="catalog-grid">${list.map(p=>{const pct=calcProgress(p.checklist);return`<div class="card" style="padding:16px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px"><div class="fw-600" style="flex:1">${p.nombre}</div>${statusBadge(p.estado)}</div><div class="text-muted text-sm mb-10">${getClienteName(p.clienteId)}</div><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div class="progress" style="flex:1"><div class="progress-fill" style="width:${pct}%"></div></div><span class="text-sm fw-600" style="color:var(--brand)">${pct}%</span></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-secondary" style="flex:1" onclick="verProyecto(${p.id})"><i class="fa-solid fa-eye"></i> Ver</button><button class="btn btn-sm btn-secondary btn-icon" onclick="editProyecto(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteProyecto(${p.id})"><i class="fa-solid fa-trash"></i></button></div></div>`;}).join('')}</div>`:`<div class="card" style="padding:24px"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-code-branch"></i></div><h3>Sin resultados</h3></div></div>`;
+  } else {
+    container.innerHTML=`<div class="card"><div class="table-wrap"><table><thead><tr><th>Proyecto</th><th>Cliente</th><th>Estado</th><th>Precio</th><th>Avance</th><th>Acciones</th></tr></thead><tbody>${list.map(p=>{const pct=calcProgress(p.checklist);return`<tr><td><span class="fw-500">${p.nombre}</span></td><td class="text-muted">${getClienteName(p.clienteId)}</td><td>${statusBadge(p.estado)}</td><td class="amount-positive">${fmtMoney(p.precio)}</td><td><div style="display:flex;align-items:center;gap:8px"><div class="progress" style="flex:1"><div class="progress-fill" style="width:${pct}%"></div></div><span class="text-sm">${pct}%</span></div></td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="verProyecto(${p.id})"><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="editProyecto(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteProyecto(${p.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`;}).join('')||'<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--tx-3)">Sin resultados</td></tr>'}</tbody></table></div></div>`;
+  }
+}
+
+/* ================================================================
+   REMINDERS
+   ================================================================ */
+let _reminders=[];
+function _loadReminders(){try{const s=localStorage.getItem('reminders');if(s)_reminders=JSON.parse(s);}catch(e){_reminders=[];}}
+function _saveReminders(){try{localStorage.setItem('reminders',JSON.stringify(_reminders));}catch(e){};}
+function populateReminderRef(){
+  const sel=document.getElementById('rem-ref');
+  if(!sel) return;
+  document.getElementById('rem-date').value=today();
+  sel.innerHTML='<option value="">— Opcional —</option>'+
+    '<optgroup label="Clientes">'+DB.clientes.map(c=>`<option value="cli-${c.id}">${c.nombre}</option>`).join('')+'</optgroup>'+
+    '<optgroup label="Proyectos">'+DB.proyectos.map(p=>`<option value="pro-${p.id}">${p.nombre}</option>`).join('')+'</optgroup>';
+}
+function saveReminder(){
+  const text=document.getElementById('rem-text').value.trim();
+  const date=document.getElementById('rem-date').value;
+  if(!text||!date){showToast('error','Texto y fecha son obligatorios');return;}
+  _loadReminders();
+  const r={id:Date.now(),text,date,tipo:document.getElementById('rem-tipo').value,ref:document.getElementById('rem-ref').value,done:false,creado:today()};
+  _reminders.push(r);_saveReminders();
+  closeModal('modal-reminder');renderDashReminders();
+  showToast('success','Recordatorio guardado');
+  logActivity('general',`Recordatorio: "${text}"`);
+}
+function doneReminder(id){
+  _loadReminders();const r=_reminders.find(r=>r.id===id);if(r){r.done=true;_saveReminders();renderDashReminders();showToast('success','Recordatorio completado ✓');}
+}
+function deleteReminder(id){
+  _loadReminders();_reminders=_reminders.filter(r=>r.id!==id);_saveReminders();renderDashReminders();
+}
+function renderDashReminders(){
+  _loadReminders();
+  const el=document.getElementById('dash-reminders');
+  if(!el) return;
+  const tod=today();
+  const pending=_reminders.filter(r=>!r.done).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  if(!pending.length){el.innerHTML='';return;}
+  const typeIco={cliente:'fa-user',proyecto:'fa-code-branch',factura:'fa-receipt',general:'fa-bell'};
+  el.innerHTML=`<div class="dash-reminders-title"><i class="fa-solid fa-bell" style="color:var(--amber)"></i> Recordatorios pendientes <span class="filter-active-count">${pending.length}</span></div>`+
+    pending.map(r=>{
+      const cls=r.date<tod?'overdue':r.date===tod?'today':'upcoming';
+      return`<div class="reminder-card ${cls}">
+        <div class="reminder-ico" style="background:var(--amber-soft);color:var(--amber)"><i class="fa-solid ${typeIco[r.tipo]||'fa-bell'}"></i></div>
+        <div style="flex:1"><div class="reminder-text">${r.text}</div><div class="reminder-sub">${fmtD(r.date)} · ${r.tipo}${r.date<tod?' · ⚠️ Vencido':r.date===tod?' · Hoy':''}</div></div>
+        <div class="reminder-actions">
+          <button class="btn btn-sm btn-success btn-icon" onclick="doneReminder(${r.id})" title="Completar"><i class="fa-solid fa-check"></i></button>
+          <button class="btn btn-sm btn-danger btn-icon" onclick="deleteReminder(${r.id})" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+/* ================================================================
+   DASHBOARD WIDGET PICKER
+   ================================================================ */
+const DASHBOARD_WIDGETS=[
+  {id:'ingresos_mes',label:'Ingresos del Mes',icon:'fa-arrow-trend-up'},
+  {id:'proyectos_activos',label:'Proyectos Activos',icon:'fa-code-branch'},
+  {id:'clientes',label:'Clientes Activos',icon:'fa-users'},
+  {id:'pagos_pendientes',label:'Pagos Pendientes',icon:'fa-hourglass-half'},
+  {id:'pipeline',label:'Pipeline Total',icon:'fa-filter'},
+  {id:'leads',label:'Leads en Pipeline',icon:'fa-bullseye'},
+];
+let _activeWidgets=new Set(['ingresos_mes','proyectos_activos','clientes','pagos_pendientes']);
+
+function _loadWidgets(){
+  try{const s=localStorage.getItem('dashboard_widgets');if(s)_activeWidgets=new Set(JSON.parse(s));}catch(e){}
+}
+function saveWidgetPrefs(){
+  _activeWidgets=new Set();
+  document.querySelectorAll('.widget-toggle-card').forEach(card=>{
+    if(card.classList.contains('enabled')) _activeWidgets.add(card.dataset.id);
+  });
+  try{localStorage.setItem('dashboard_widgets',JSON.stringify([..._activeWidgets]));}catch(e){}
+  showToast('success','Widgets actualizados');
+}
+function openWidgetPicker(){
+  _loadWidgets();
+  const grid=document.getElementById('widget-picker-grid');
+  if(!grid) return;
+  grid.innerHTML=DASHBOARD_WIDGETS.map(w=>`
+    <div class="widget-toggle-card ${_activeWidgets.has(w.id)?'enabled':''}" data-id="${w.id}" onclick="this.classList.toggle('enabled')">
+      <div class="wtc-ico"><i class="fa-solid ${w.icon}"></i></div>
+      <span class="wtc-name">${w.label}</span>
+      <div class="wtc-check">${_activeWidgets.has(w.id)?'<i class="fa-solid fa-check" style="font-size:10px"></i>':''}</div>
+    </div>`).join('');
+  document.getElementById('modal-widgets').classList.add('open');
+}
+
+/* ================================================================
+   AUTOSAVE DRAFTS
+   ================================================================ */
+let _autosaveTimers={};
+const DRAFT_FORMS={
+  'modal-cliente':{key:'draft_cliente',fields:['c-nombre','c-empresa','c-email','c-tel','c-estado','c-notas']},
+  'modal-proyecto':{key:'draft_proyecto',fields:['p-nombre','p-estado','p-precio','p-inicio','p-entrega']},
+  'modal-presupuesto':{key:'draft_presupuesto',fields:['pr-nombre','pr-desc','pr-precio','pr-estado','pr-fecha','pr-valido']},
+  'modal-factura':{key:'draft_factura',fields:['fct-desc','fct-monto','fct-fecha','fct-vence','fct-estado']},
+};
+
+function _saveDraft(modalId){
+  const cfg=DRAFT_FORMS[modalId];
+  if(!cfg) return;
+  // Only save if editing (no id field filled) — don't overwrite with edit mode
+  const idField={
+    'modal-cliente':'c-id','modal-proyecto':'p-id',
+    'modal-presupuesto':'pr-id','modal-factura':'fct-id'
+  }[modalId];
+  if(idField&&document.getElementById(idField)?.value) return;
+  const draft={};
+  cfg.fields.forEach(fid=>{const el=document.getElementById(fid);if(el)draft[fid]=el.value;});
+  const hasData=Object.values(draft).some(v=>v&&v.trim&&v.trim());
+  if(!hasData) return;
+  try{localStorage.setItem(cfg.key,JSON.stringify(draft));}catch(e){}
+}
+function _loadDraft(modalId){
+  const cfg=DRAFT_FORMS[modalId];
+  if(!cfg) return;
+  try{
+    const s=localStorage.getItem(cfg.key);
+    if(!s) return;
+    const draft=JSON.parse(s);
+    const hasData=Object.values(draft).some(v=>v&&String(v).trim());
+    if(!hasData) return;
+    cfg.fields.forEach(fid=>{const el=document.getElementById(fid);if(el&&draft[fid])el.value=draft[fid];});
+    // Show banner
+    _showDraftBanner(modalId,cfg.key);
+  }catch(e){}
+}
+function _showDraftBanner(modalId,draftKey){
+  const body=document.querySelector(`#${modalId} .modal-body`);
+  if(!body) return;
+  const existing=body.querySelector('.draft-banner');
+  if(existing) return;
+  const banner=document.createElement('div');
+  banner.className='draft-banner';
+  banner.innerHTML=`<i class="fa-solid fa-rotate-left"></i><span>Borrador recuperado automáticamente</span><div class="draft-banner-actions"><button class="btn btn-sm btn-secondary" onclick="discardDraft('${modalId}','${draftKey}')">Descartar</button></div>`;
+  body.insertBefore(banner,body.firstChild);
+}
+function discardDraft(modalId,draftKey){
+  try{localStorage.removeItem(draftKey);}catch(e){}
+  const modal=document.getElementById(modalId);
+  modal?.querySelector('.draft-banner')?.remove();
+  // Clear fields
+  const cfg=DRAFT_FORMS[modalId];
+  if(cfg) cfg.fields.forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+}
+function _clearDraft(modalId){
+  const cfg=DRAFT_FORMS[modalId];
+  if(cfg) try{localStorage.removeItem(cfg.key);}catch(e){}
+  document.querySelector(`#${modalId} .draft-banner`)?.remove();
+}
+function _setupAutosave(){
+  Object.keys(DRAFT_FORMS).forEach(modalId=>{
+    const modal=document.getElementById(modalId);
+    if(!modal) return;
+    const cfg=DRAFT_FORMS[modalId];
+    cfg.fields.forEach(fid=>{
+      const el=document.getElementById(fid);
+      if(!el) return;
+      el.addEventListener('input',()=>{
+        clearTimeout(_autosaveTimers[fid]);
+        _autosaveTimers[fid]=setTimeout(()=>_saveDraft(modalId),800);
+      });
+    });
+  });
+}
+
 
 /* ================================================================
    MOBILE MENU
@@ -4983,7 +5699,32 @@ setTimeout(()=>{applySystemSettings();_applyTopbarLogo();_initViewBtns();renderD
   });
 })();
 
-console.log('AlexisDigital Manager v5 — ready 🚀');
+// Init new v7 systems
+_loadActivityLog();
+_loadReminders();
+_loadWidgets();
+_setupAutosave();
+
+// Seed activity log from existing DB if empty
+if(_activityLog.length===0){
+  DB.clientes.forEach(c=>{if(c.creado)logActivity('cliente',`Cliente registrado: <strong>${c.nombre}</strong>`);});
+  DB.proyectos.forEach(p=>{if(p.inicio)logActivity('proyecto',`Proyecto creado: <strong>${p.nombre}</strong>`);});
+}
+
+// Auto-reminders: flag overdue facturas
+(function(){
+  const tod=today();
+  _loadReminders();
+  DB.facturas.filter(f=>f.estado==='pendiente'&&f.vence&&f.vence<tod).forEach(f=>{
+    const key=`auto-fact-${f.id}`;
+    if(!_reminders.find(r=>r.ref===key)){
+      _reminders.push({id:Date.now()+Math.random(),text:`Factura vencida: ${fmtMoney(f.monto)} de ${getClienteName(f.clienteId)}`,date:tod,tipo:'factura',ref:key,done:false,creado:tod});
+    }
+  });
+  _saveReminders();
+})();
+
+console.log('AlexisDigital Manager v7 — ready 🚀');
 </script>
 </body>
 </html>
