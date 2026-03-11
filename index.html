@@ -806,14 +806,15 @@ tbody tr:hover{background:var(--bg-3)}
 .proj-task-add{display:flex;gap:8px;margin-top:8px}
 
 /* ── CONFIG SUB-TABS ────────────────────────────────────────── */
-.cfg-layout{display:flex;gap:20px;align-items:flex-start}
+.cfg-layout{display:flex;gap:20px;align-items:flex-start;width:100%}
 .cfg-sidebar{
   background:var(--bg-1);border:1px solid var(--bd);
   border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);
-  flex:0 0 220px;width:220px;
+  flex:0 0 220px;width:220px;min-width:220px;
+  align-self:flex-start;
   position:sticky;top:16px;
 }
-#cfg-panels{flex:1;min-width:0}
+#cfg-panels{flex:1;min-width:0;min-height:200px}
 .cfg-sidebar-item{
   display:flex;align-items:center;gap:10px;
   padding:11px 16px;cursor:pointer;font-size:13px;font-weight:500;
@@ -1674,7 +1675,6 @@ tbody tr:hover{background:var(--bg-3)}
                   </div>
                 </div>
               </div>
-            </div>
 
             <!-- ─── AGENCIA ─── -->
             <div class="cfg-panel" id="cfgpanel-agencia">
@@ -3206,30 +3206,19 @@ CREATE TABLE IF NOT EXISTS reminders (
   ref TEXT, done BOOLEAN DEFAULT FALSE, user_id UUID REFERENCES auth.users(id)
 );
 
-ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE proyectos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE presupuestos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE facturas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE transacciones ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tareas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE kv_store ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users see own clientes"     ON clientes     FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own proyectos"    ON proyectos    FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own presupuestos" ON presupuestos FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own facturas"     ON facturas     FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own tareas"       ON tareas       FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own activity"     ON activity_log FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own reminders"    ON reminders    FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own kv"           ON kv_store     FOR ALL USING (auth.uid() = user_id);
-
 -- ══════════════════════════════════════════════
--- RLS POLICIES (ejecutar DESPUÉS de crear tablas)
+-- PERMISOS: Deshabilitar RLS para acceso libre
+-- (Si ya corriste este SQL antes, esto es seguro de re-ejecutar)
 -- ══════════════════════════════════════════════
+DROP POLICY IF EXISTS "Users see own clientes"     ON clientes;
+DROP POLICY IF EXISTS "Users see own proyectos"    ON proyectos;
+DROP POLICY IF EXISTS "Users see own presupuestos" ON presupuestos;
+DROP POLICY IF EXISTS "Users see own facturas"     ON facturas;
+DROP POLICY IF EXISTS "Users see own tareas"       ON tareas;
+DROP POLICY IF EXISTS "Users see own activity"     ON activity_log;
+DROP POLICY IF EXISTS "Users see own reminders"    ON reminders;
+DROP POLICY IF EXISTS "Users see own kv"           ON kv_store;
 
--- Opción A: Deshabilitar RLS (más simple para uso privado)
 ALTER TABLE clientes        DISABLE ROW LEVEL SECURITY;
 ALTER TABLE proyectos       DISABLE ROW LEVEL SECURITY;
 ALTER TABLE presupuestos    DISABLE ROW LEVEL SECURITY;
@@ -3240,10 +3229,6 @@ ALTER TABLE leads           DISABLE ROW LEVEL SECURITY;
 ALTER TABLE kv_store        DISABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_log    DISABLE ROW LEVEL SECURITY;
 ALTER TABLE reminders       DISABLE ROW LEVEL SECURITY;
-
--- Opción B: Permitir todo a usuarios autenticados
--- ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
--- CREATE POLICY "allow_all" ON clientes FOR ALL TO authenticated USING (true) WITH CHECK (true);
 `;
 
 window.SUPABASE_SCHEMA = SUPABASE_SCHEMA;
@@ -3462,19 +3447,28 @@ ALTER TABLE presupuestos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE facturas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transacciones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tareas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE kv_store ENABLE ROW LEVEL SECURITY;
+-- ══════════════════════════════════════════════
+-- PERMISOS: Deshabilitar RLS (re-ejecutable sin errores)
+-- ══════════════════════════════════════════════
+DROP POLICY IF EXISTS "Users see own clientes"     ON clientes;
+DROP POLICY IF EXISTS "Users see own proyectos"    ON proyectos;
+DROP POLICY IF EXISTS "Users see own presupuestos" ON presupuestos;
+DROP POLICY IF EXISTS "Users see own facturas"     ON facturas;
+DROP POLICY IF EXISTS "Users see own tareas"       ON tareas;
+DROP POLICY IF EXISTS "Users see own activity"     ON activity_log;
+DROP POLICY IF EXISTS "Users see own reminders"    ON reminders;
+DROP POLICY IF EXISTS "Users see own kv"           ON kv_store;
 
--- RLS Policies (users see only their own data)
-CREATE POLICY "Users see own clientes" ON clientes FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own proyectos" ON proyectos FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own presupuestos" ON presupuestos FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own facturas" ON facturas FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own tareas" ON tareas FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own activity" ON activity_log FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own reminders" ON reminders FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "Users see own kv" ON kv_store FOR ALL USING (auth.uid() = user_id);
+ALTER TABLE clientes        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE proyectos       DISABLE ROW LEVEL SECURITY;
+ALTER TABLE presupuestos    DISABLE ROW LEVEL SECURITY;
+ALTER TABLE facturas        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE transacciones   DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tareas          DISABLE ROW LEVEL SECURITY;
+ALTER TABLE leads           DISABLE ROW LEVEL SECURITY;
+ALTER TABLE kv_store        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_log    DISABLE ROW LEVEL SECURITY;
+ALTER TABLE reminders       DISABLE ROW LEVEL SECURITY;
 `;
 
 window.SUPABASE_SCHEMA = SUPABASE_SCHEMA;
