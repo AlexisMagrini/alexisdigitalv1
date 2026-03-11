@@ -5282,7 +5282,7 @@ function _toSnakeCase(arrayKey, record) {
   const map = {
     clientes: r => ({
       id: r.id, nombre: r.nombre, email: r.email, telefono: r.telefono,
-      empresa: r.empresa, estado: r.estado, notas: r.notas, creado: r.creado,
+      empresa: r.empresa, estado: r.estado, notas: r.notas,
     }),
     proyectos: r => ({
       id: r.id, nombre: r.nombre, cliente_id: r.clienteId, estado: r.estado,
@@ -5290,15 +5290,15 @@ function _toSnakeCase(arrayKey, record) {
       checklist: JSON.stringify(r.checklist || []),
     }),
     presupuestos: r => ({
-      id: r.id, nombre: r.nombre, cliente_id: r.clienteId, descripcion: r.desc || r.descripcion,
+      id: r.id, nombre: r.nombre, cliente_id: r.clienteId,
+      descripcion: r.desc || r.descripcion || '',
       precio: r.precio, estado: r.estado, fecha: r.fecha, valido: r.valido,
-      extras: JSON.stringify(r.extras || []),
     }),
     facturas: r => ({
-      id: r.id, cliente_id: r.clienteId, proyecto_id: r.proyectoId,
-      descripcion: r.desc || r.descripcion, monto: r.monto,
-      fecha: r.fecha, vence: r.vence, estado: r.estado,
-      metodo_pago: r.metodoPago, fecha_pago: r.fechaPago,
+      id: r.id, cliente_id: r.clienteId||null, proyecto_id: r.proyectoId||null,
+      descripcion: r.desc || r.descripcion || '',
+      monto: r.monto||0, fecha: r.fecha||null, vence: r.vence||null,
+      estado: r.estado||'pendiente',
     }),
     transacciones: r => ({
       id: r.id, tipo: r.tipo, fecha: r.fecha, descripcion: r.descripcion,
@@ -5359,6 +5359,12 @@ function _finishLogin(user){
   $('app').classList.add('active');
   $('sidebar-name').textContent=(user.nombre||user.name||'').split(' ')[0];
   $('sidebar-avatar').textContent=user.avatar||'AD';
+  // Persist session so page refresh doesn't log out
+  try{ localStorage.setItem('adm_session', JSON.stringify({
+    id:user.id, nombre:user.nombre||user.name, email:user.email,
+    rol:user.rol||user.role||'admin', avatar:user.avatar||'AD',
+    ts: Date.now()
+  })); }catch(e){}
   
   // Show role badge
   const rb=document.getElementById('topbar-role-badge');
@@ -5406,6 +5412,7 @@ function _applyRoleNav(rol){
 }
 function doLogout(){
   DB.currentUser=null;Object.keys(_charts).forEach(_dc);
+  try{ localStorage.removeItem('adm_session'); }catch(e){}
   $('app').classList.remove('active');$('login-screen').style.display='flex';
   toast('info','Sesión cerrada');
 }
@@ -8415,6 +8422,22 @@ document.addEventListener('DOMContentLoaded', ()=>{
    ================================================================ */
 
 (async function _boot() {
+  // 0. Restore saved session (prevents logout on page refresh)
+  try{
+    const sess=localStorage.getItem('adm_session');
+    if(sess){
+      const u=JSON.parse(sess);
+      // Session valid for 7 days
+      if(u&&u.ts&&(Date.now()-u.ts)<7*24*60*60*1000){
+        DB.currentUser=u;
+        // Skip login screen — will call _finishLogin after DB loads
+        window._autoLoginUser=u;
+      } else {
+        localStorage.removeItem('adm_session');
+      }
+    }
+  }catch(e){}
+
   // 1. Sync localStorage → in-memory DB (fast, sync fallback first)
   try{const saved=localStorage.getItem('adm_config');if(saved)DB.config={...DB.config,...JSON.parse(saved)};}catch(e){}
   try{const saved=localStorage.getItem('adm_sistema');if(saved)DB.sistema={...DB.sistema,...JSON.parse(saved)};}catch(e){}
@@ -8423,6 +8446,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
   try{const depts=localStorage.getItem('adm_departamentos');if(depts){const parsed=JSON.parse(depts);if(parsed.length)DB.departamentos=parsed;}}catch(e){}
   // v9: update connection status after boot
   setTimeout(updateConnectionStatus,200);
+  // Auto-login if session was found (skip login screen)
+  if(window._autoLoginUser){
+    _finishLogin(window._autoLoginUser);
+    window._autoLoginUser=null;
+  }
 
   // 2. If db layer available, also sync via db (supports Supabase future)
   if(window.db){
@@ -8488,6 +8516,12 @@ function updateConnectionStatus(){
   const mode = window.STORAGE_MODE||'local';
   el.className = 'conn-status ' + (mode==='supabase'?'conn-online':'conn-local');
   if(label) label.textContent = mode==='supabase'?'Supabase':'Local';
+  // Show sb-auth-notice on login screen only when Supabase is active
+  const notice = document.getElementById('sb-auth-notice');
+  if(notice){
+    const loginVisible = document.getElementById('login-screen')?.style.display !== 'none';
+    notice.style.display = (mode==='supabase' && loginVisible) ? '' : 'none';
+  }
 }
 
 /* ── DEPARTMENTS ────────────────────────────────────────────── */
