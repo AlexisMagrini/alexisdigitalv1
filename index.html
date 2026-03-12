@@ -5585,11 +5585,10 @@ function _finishLogin(user){
   const ps=$('portal-cliente-select');
   if(ps) ps.innerHTML='<option value="">— Seleccionar cliente —</option>'+DB.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
   
-  // Role-based initial section
+  // Role-based initial section (set by _applyRoleNav)
   const rol=user.rol||user.role||'admin';
-  if(rol==='client') navigate('portal');
-  else if(rol==='employee') navigate('tareas');
-  else navigate('dashboard');
+  _applyRoleNav(rol); // sets window._roleStartSection
+  navigate(window._roleStartSection || 'dashboard');
 
   // Load all data from Supabase on login (so any device sees the latest data)
   if (window.STORAGE_MODE === 'supabase' || window._supabaseClient) {
@@ -5602,19 +5601,55 @@ function _finishLogin(user){
 }
 
 function _applyRoleNav(rol){
-  // Admin sees everything. Employee hides client-only items. Client sees only portal.
-  const adminOnly = ['pipeline','plantillas_web','presupuestos','contratos','analytics','configuracion','actividad'];
-  const employeeHide = ['configuracion'];
-  const clientOnly  = ['portal'];
+  // Sections hidden per role
+  const roleConfig = {
+    admin: {
+      hide: [],  // admin ve todo
+      startSection: 'dashboard'
+    },
+    employee: {
+      // Empleado NO ve: dinero, finanzas, configuracion, analytics, dashboard
+      hide: ['dashboard','finanzas','facturacion','analytics','configuracion'],
+      startSection: 'calendario'
+    },
+    client: {
+      // Cliente SOLO ve su portal
+      hide: ['dashboard','clientes','proyectos','tareas','calendario','pipeline',
+             'plantillas_web','presupuestos','contratos','finanzas','facturacion',
+             'analytics','archivos','emails','actividad','configuracion'],
+      startSection: 'portal'
+    }
+  };
+
+  const cfg = roleConfig[rol] || roleConfig.admin;
+
   document.querySelectorAll('.nav-item[data-section]').forEach(el=>{
     const sec = el.dataset.section;
-    if(rol==='client'){
-      el.classList.toggle('role-hidden', !clientOnly.includes(sec));
-    } else if(rol==='employee'){
-      el.classList.toggle('role-hidden', employeeHide.includes(sec));
-    } else {
-      el.classList.remove('role-hidden');
-    }
+    el.classList.toggle('role-hidden', cfg.hide.includes(sec));
+  });
+
+  // Store start section for use in _finishLogin
+  window._roleStartSection = cfg.startSection;
+
+  // Config panel restrictions per role
+  _applyRoleCfgPanels(rol);
+}
+
+function _applyRoleCfgPanels(rol){
+  // Panels visible per role in Configuración
+  const adminPanels    = ['sistema','agencia','plantillas','extras','tipos_proyecto',
+                          'pipeline_estados','contratos_tpl','categorias','usuarios',
+                          'documentos','integraciones','departamentos','backup'];
+  const employeePanels = ['sistema']; // empleado solo ve Sistema (tema, idioma)
+  const clientPanels   = [];          // cliente no ve configuración
+
+  const allowed = rol==='admin' ? adminPanels
+                : rol==='employee' ? employeePanels
+                : clientPanels;
+
+  document.querySelectorAll('.cfg-sidebar-item[id^="cfgmenu-"]').forEach(el=>{
+    const panel = el.id.replace('cfgmenu-','');
+    el.classList.toggle('role-hidden', !allowed.includes(panel));
   });
 }
 async function doLogout(){
@@ -9139,27 +9174,33 @@ async function syncUsersFromSupabase(){
     showToast('warning','Conecta Supabase primero'); return;
   }
   try{
+    // Pull from usuarios table (our custom profiles table)
     const {data,error}=await window._supabaseClient.from('usuarios').select('*');
     if(error) throw error;
-    if(data&&data.length){
+    if(data && data.length){
+      // Merge with local — update existing, add new
       data.forEach(u=>{
-        const exists=DB.usuarios.find(lu=>lu.email===u.email);
-        if(!exists){
-          DB.usuarios.push({
-            id:u.id,nombre:u.name,email:u.email,
-            rol:u.role||'employee',departamentoId:u.department_id,
-            avatar:(u.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2),
-            password:'[supabase]'
-          });
-        }
+        const nombre = u.nombre || u.name || u.email?.split('@')[0] || 'Usuario';
+        const avatar = nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        const existing = DB.usuarios.findIndex(lu => lu.email === u.email);
+        const profile = {
+          id: u.id, nombre, email: u.email,
+          rol: u.rol || u.role || 'employee',
+          estado: u.estado || 'activo',
+          avatar: u.avatar || avatar,
+          password: '[supabase]'
+        };
+        if(existing >= 0) DB.usuarios[existing] = {...DB.usuarios[existing], ...profile};
+        else DB.usuarios.push(profile);
       });
-      renderUsuarios();
-      showToast('success',data.length+' usuarios sincronizados desde Supabase');
+      _persistArray('usuarios');
+      renderCfgUsuarios();
+      showToast('success', `${data.length} usuario(s) sincronizados ✓`);
     } else {
-      showToast('info','No hay usuarios en Supabase todavía');
+      showToast('info','No hay usuarios en la tabla usuarios todavía. Crealos desde el panel.');
     }
   }catch(err){
-    showToast('error','Error: '+err.message);
+    showToast('error','Sync error: '+err.message);
   }
 }
 
