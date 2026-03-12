@@ -5340,6 +5340,58 @@ function _persistArray(arrayKey) {
  * @param {object} record    - the record object (must have .id)
  * @param {boolean} isDelete - if true, deletes instead of upserts
  */
+async function _loadAllFromSupabase() {
+  if (window.STORAGE_MODE !== 'supabase' || !window._supabaseClient) return;
+  try {
+    toast('info', '⏳ Cargando datos desde Supabase...');
+    const tables = {
+      clientes:      'clientes',
+      proyectos:     'proyectos',
+      presupuestos:  'presupuestos',
+      facturas:      'facturas',
+      transacciones: 'transacciones',
+      tareas:        'tareas',
+      leads:         'leads',
+    };
+    const sb = window._supabaseClient;
+    await Promise.all(Object.entries(tables).map(async ([key, table]) => {
+      try {
+        const { data, error } = await sb.from(table).select('*');
+        if (error) { console.warn(`[load] ${table}:`, error.message); return; }
+        if (data && data.length > 0) {
+          // Map snake_case back to camelCase for app compatibility
+          DB[key] = data.map(r => {
+            const out = {...r};
+            if (r.cliente_id  !== undefined) { out.clienteId  = r.cliente_id;  }
+            if (r.proyecto_id !== undefined) { out.proyectoId = r.proyecto_id; }
+            if (r.metodo_pago !== undefined) { out.metodoPago = r.metodo_pago; }
+            if (r.fecha_pago  !== undefined) { out.fechaPago  = r.fecha_pago;  }
+            return out;
+          });
+          _persistArray(key);
+          console.log(`[load] ${table}: ${data.length} rows`);
+        }
+      } catch(e) { console.warn(`[load] ${table} failed:`, e.message); }
+    }));
+    toast('success', `✓ Datos cargados desde Supabase`);
+    // Re-render current section
+    const sec = document.querySelector('.section.active');
+    if (sec) {
+      const id = sec.id.replace('sec-','');
+      const renders = {
+        dashboard: renderDashboard, clientes: renderClientes,
+        proyectos: renderProyectos, tareas: renderTareas,
+        finanzas: renderFinanzas, facturacion: renderFacturacion,
+        analytics: renderAnalytics, leads: renderLeads,
+      };
+      (renders[id] || function(){})();
+    }
+  } catch(e) {
+    console.error('[load] Failed:', e);
+    toast('warning', 'Error cargando datos: ' + e.message);
+  }
+}
+
 async function _syncRecord(arrayKey, record, isDelete = false) {
   // Always persist to localStorage first
   _persistArray(arrayKey);
@@ -5490,6 +5542,11 @@ function _finishLogin(user){
   if(rol==='client') navigate('portal');
   else if(rol==='employee') navigate('tareas');
   else navigate('dashboard');
+
+  // Load all data from Supabase on login (so any device sees the latest data)
+  if (window.STORAGE_MODE === 'supabase' || window._supabaseClient) {
+    setTimeout(_loadAllFromSupabase, 400);
+  }
   
   applySystemSettings(); // always apply logo + branding on login
   updateConnectionStatus();
