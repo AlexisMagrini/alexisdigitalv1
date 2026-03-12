@@ -2585,12 +2585,26 @@ tbody tr:hover{background:var(--bg-3)}
       <div class="form-group"><label class="form-label">Email *</label><input type="email" class="form-input" id="usr-email" placeholder="usuario@agencia.com"></div>
       <div class="form-group"><label class="form-label">Contraseña</label><input type="password" class="form-input" id="usr-pass" placeholder="••••••••"></div>
     </div>
-    <div class="form-group"><label class="form-label">Rol</label>
-      <select class="form-select" id="usr-rol">
-        <option value="admin">Administrador</option>
-        <option value="empleado">Empleado</option>
-        <option value="viewer">Solo lectura</option>
-      </select>
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Rol</label>
+        <select class="form-select" id="usr-rol">
+          <option value="admin">Administrador — acceso total</option>
+          <option value="employee">Empleado — sin finanzas</option>
+          <option value="client">Cliente — solo portal</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Departamento</label>
+        <select class="form-select" id="usr-departamento">
+          <option value="">— Sin departamento —</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="usr-invite" checked style="width:16px;height:16px">
+        Enviar invitación por email (Supabase Auth)
+      </label>
+      <p class="text-muted text-sm" style="margin-top:4px">El usuario recibirá un email para crear su contraseña</p>
     </div>
   </div><div class="modal-footer">
     <button class="btn btn-secondary" onclick="closeModal('modal-usuario')">Cancelar</button>
@@ -5019,7 +5033,24 @@ function openModal(id) {
   }
   if (id === 'modal-contrato_tpl')   { document.getElementById('modal-contrato_tpl-title').textContent='Nueva Plantilla'; document.getElementById('ctpl-id').value=''; }
   if (id === 'modal-categoria')      { document.getElementById('modal-categoria-title').textContent='Nueva Categoría'; document.getElementById('cat-id').value=''; }
-  if (id === 'modal-usuario')        { document.getElementById('modal-usuario-title').textContent='Nuevo Usuario'; document.getElementById('usr-id').value=''; }
+  if (id === 'modal-usuario')        { 
+    document.getElementById('modal-usuario-title').textContent='Nuevo Usuario'; 
+    document.getElementById('usr-id').value='';
+    document.getElementById('usr-nombre').value='';
+    document.getElementById('usr-email').value='';
+    document.getElementById('usr-pass').value='';
+    document.getElementById('usr-avatar').value='';
+    document.getElementById('usr-rol').value='employee';
+    // Show invite checkbox for new users
+    const invRow=document.getElementById('usr-invite')?.closest('.form-group');
+    if(invRow) invRow.style.display='';
+    // Populate departamentos
+    const deptSel = document.getElementById('usr-departamento');
+    if(deptSel){
+      deptSel.innerHTML='<option value="">— Sin departamento —</option>' +
+        (DB.departamentos||[]).map(d=>`<option value="${d.id}">${d.emoji||'🏢'} ${d.nombre}</option>`).join('');
+    }
+  }
   if (id === 'modal-presupuesto') {
     populateClienteSelect('pr-cliente');
     populatePlantillaSelect('pr-plantilla');
@@ -5602,18 +5633,24 @@ function _finishLogin(user){
 
 function _applyRoleNav(rol){
   // Sections hidden per role
+  // Normalize role value (support both 'empleado'/'employee', 'cliente'/'client')
+  const normalizedRol = {
+    empleado:'employee', cliente:'client', viewer:'employee',
+    admin:'admin', employee:'employee', client:'client'
+  }[rol] || 'employee';
+
   const roleConfig = {
     admin: {
-      hide: [],  // admin ve todo
+      hide: [],
       startSection: 'dashboard'
     },
     employee: {
-      // Empleado NO ve: dinero, finanzas, configuracion, analytics, dashboard
+      // Empleado: NO ve finanzas, facturación, analytics, dashboard, configuración
       hide: ['dashboard','finanzas','facturacion','analytics','configuracion'],
       startSection: 'calendario'
     },
     client: {
-      // Cliente SOLO ve su portal
+      // Cliente: SOLO ve portal
       hide: ['dashboard','clientes','proyectos','tareas','calendario','pipeline',
              'plantillas_web','presupuestos','contratos','finanzas','facturacion',
              'analytics','archivos','emails','actividad','configuracion'],
@@ -5621,7 +5658,7 @@ function _applyRoleNav(rol){
     }
   };
 
-  const cfg = roleConfig[rol] || roleConfig.admin;
+  const cfg = roleConfig[normalizedRol] || roleConfig.employee;
 
   document.querySelectorAll('.nav-item[data-section]').forEach(el=>{
     const sec = el.dataset.section;
@@ -6632,25 +6669,89 @@ function renderCfgUsuarios(){
     </tr>`).join('');
 }
 
-function saveUsuario(){
-  const id=document.getElementById('usr-id').value;
-  const data={nombre:document.getElementById('usr-nombre').value.trim(),
-    avatar:document.getElementById('usr-avatar').value.trim().toUpperCase().slice(0,2)||'US',
-    email:document.getElementById('usr-email').value.trim(),rol:document.getElementById('usr-rol').value};
-  const pass=document.getElementById('usr-pass').value;
-  if(pass)data.password=pass;
-  if(!data.nombre||!data.email){toast('error','Nombre y email obligatorios');return;}
-  if(id){const idx=DB.usuarios.findIndex(u=>u.id==id);DB.usuarios[idx]={...DB.usuarios[idx],...data};}
-  else{data.id=nextId();DB.usuarios.push(data);}
-  closeModal('modal-usuario');renderCfgUsuarios();toast('success','Usuario guardado');
+async function saveUsuario(){
+  const id = document.getElementById('usr-id').value;
+  const nombre = document.getElementById('usr-nombre').value.trim();
+  const email  = document.getElementById('usr-email').value.trim();
+  const rol    = document.getElementById('usr-rol').value;
+  const deptId = document.getElementById('usr-departamento')?.value || '';
+  const invite = document.getElementById('usr-invite')?.checked !== false;
+  if(!nombre || !email){ toast('error','Nombre y email obligatorios'); return; }
+
+  const avatarInput = document.getElementById('usr-avatar').value.trim().toUpperCase().slice(0,2);
+  const avatar = avatarInput || nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+
+  const data = { nombre, email, rol, avatar, estado:'activo',
+    departamentoId: deptId ? parseInt(deptId) : null };
+  const pass = document.getElementById('usr-pass').value;
+  if(pass) data.password = pass;
+
+  if(id){
+    // Editing existing user
+    const idx = DB.usuarios.findIndex(u=>u.id==id);
+    DB.usuarios[idx] = {...DB.usuarios[idx], ...data};
+    // Update in Supabase usuarios table
+    if(window.STORAGE_MODE==='supabase' && window._supabaseClient){
+      try{
+        await window._supabaseClient.from('usuarios').upsert({
+          id: DB.usuarios[idx].id, nombre, email, rol,
+          avatar, estado:'activo'
+        });
+      }catch(e){ console.warn('Supabase update user:', e.message); }
+    }
+    toast('success','Usuario actualizado ✓');
+  } else {
+    // New user
+    data.id = nextId();
+    DB.usuarios.push(data);
+    // Save profile to Supabase usuarios table
+    if(window.STORAGE_MODE==='supabase' && window._supabaseClient){
+      try{
+        await window._supabaseClient.from('usuarios').insert({
+          id: data.id, nombre, email, rol, avatar, estado:'activo'
+        });
+        // Send Supabase Auth invitation
+        if(invite){
+          const {error:invErr} = await window._supabaseClient.auth.signInWithOtp({
+            email,
+            options:{ data:{ nombre, rol }, shouldCreateUser: true }
+          });
+          if(invErr) toast('warning',`Perfil guardado — invitación: ${invErr.message.slice(0,60)}`);
+          else toast('success',`✓ Usuario creado — invitación enviada a ${email}`);
+        } else {
+          toast('success','Usuario creado ✓');
+        }
+      }catch(e){
+        toast('warning','Local ✓ — Supabase: '+e.message.slice(0,60));
+      }
+    } else {
+      toast('success','Usuario creado (local) ✓');
+    }
+  }
+  _persistArray('usuarios');
+  closeModal('modal-usuario');
+  renderCfgUsuarios();
 }
 
 function editUsuario(id){
   const u=DB.usuarios.find(u=>u.id===id);if(!u)return;
   document.getElementById('modal-usuario-title').textContent='Editar Usuario';
-  document.getElementById('usr-id').value=u.id;document.getElementById('usr-nombre').value=u.nombre;
-  document.getElementById('usr-avatar').value=u.avatar;document.getElementById('usr-email').value=u.email;
-  document.getElementById('usr-rol').value=u.rol;document.getElementById('usr-pass').value='';
+  document.getElementById('usr-id').value=u.id;
+  document.getElementById('usr-nombre').value=u.nombre||'';
+  document.getElementById('usr-avatar').value=u.avatar||'';
+  document.getElementById('usr-email').value=u.email||'';
+  document.getElementById('usr-rol').value=u.rol||'employee';
+  document.getElementById('usr-pass').value='';
+  // Populate departamentos
+  const deptSel=document.getElementById('usr-departamento');
+  if(deptSel){
+    deptSel.innerHTML='<option value="">— Sin departamento —</option>'+
+      (DB.departamentos||[]).map(d=>`<option value="${d.id}">${d.emoji||'🏢'} ${d.nombre}</option>`).join('');
+    deptSel.value=u.departamentoId||'';
+  }
+  // Hide invite checkbox when editing
+  const inviteRow=document.getElementById('usr-invite')?.closest('.form-group');
+  if(inviteRow) inviteRow.style.display='none';
   document.getElementById('modal-usuario').classList.add('open');
 }
 
@@ -9210,9 +9311,12 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 async function syncUsersFromSupabase(){
   if(window.STORAGE_MODE!=='supabase'||!window._supabaseClient){
-    showToast('warning','Conecta Supabase primero'); return;
+    toast('warning','Conecta Supabase primero'); return;
   }
   try{
+    // Verify authenticated session before querying
+    const {data:{session}} = await window._supabaseClient.auth.getSession();
+    if(!session){ toast('warning','Iniciá sesión para sincronizar'); return; }
     // Pull from usuarios table (our custom profiles table)
     const {data,error}=await window._supabaseClient.from('usuarios').select('*');
     if(error) throw error;
