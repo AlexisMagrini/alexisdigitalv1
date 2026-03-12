@@ -2599,6 +2599,13 @@ tbody tr:hover{background:var(--bg-3)}
         </select>
       </div>
     </div>
+    <div class="form-group" id="usr-cliente-row" style="display:none">
+      <label class="form-label">Vincular con Cliente <span class="text-muted text-sm">(solo para rol Cliente)</span></label>
+      <select class="form-select" id="usr-cliente-id">
+        <option value="">— Seleccionar cliente —</option>
+      </select>
+      <p class="text-muted text-sm" style="margin-top:4px">Este usuario verá automáticamente el portal de ese cliente al iniciar sesión</p>
+    </div>
     <div class="form-group">
       <label class="form-label" style="display:flex;align-items:center;gap:8px">
         <input type="checkbox" id="usr-invite" checked style="width:16px;height:16px">
@@ -5050,6 +5057,17 @@ function openModal(id) {
       deptSel.innerHTML='<option value="">— Sin departamento —</option>' +
         (DB.departamentos||[]).map(d=>`<option value="${d.id}">${d.emoji||'🏢'} ${d.nombre}</option>`).join('');
     }
+    // Populate clientes select
+    const cliSel = document.getElementById('usr-cliente-id');
+    if(cliSel){
+      cliSel.innerHTML='<option value="">— Seleccionar cliente —</option>' +
+        (DB.clientes||[]).map(cl=>`<option value="${cl.id}">${cl.nombre}</option>`).join('');
+    }
+    document.getElementById('usr-cliente-row').style.display='none';
+    // Show/hide cliente row based on role
+    document.getElementById('usr-rol').onchange = function(){
+      document.getElementById('usr-cliente-row').style.display = this.value==='client' ? '' : 'none';
+    };
   }
   if (id === 'modal-presupuesto') {
     populateClienteSelect('pr-cliente');
@@ -5619,6 +5637,18 @@ function _finishLogin(user){
   // Role-based initial section (set by _applyRoleNav)
   const rol=user.rol||user.role||'admin';
   _applyRoleNav(rol); // sets window._roleStartSection
+
+  // If client role — auto-select linked cliente in portal
+  if(rol === 'client'){
+    const linkedClienteId = user.clienteId || DB.usuarios.find(u=>u.email===user.email)?.clienteId;
+    if(linkedClienteId){
+      setTimeout(()=>{
+        const sel = document.getElementById('portal-cliente-select');
+        if(sel){ sel.value = linkedClienteId; renderPortal(); }
+      }, 300);
+    }
+  }
+
   navigate(window._roleStartSection || 'dashboard');
 
   // Load all data from Supabase on login (so any device sees the latest data)
@@ -5667,6 +5697,13 @@ function _applyRoleNav(rol){
 
   // Store start section for use in _finishLogin
   window._roleStartSection = cfg.startSection;
+
+  // Hide portal cliente selector for client role (auto-loaded)
+  const portalSel = document.getElementById('portal-cliente-select');
+  const portalSelWrap = portalSel?.closest('.sec-toolbar, .flex, div[style]');
+  if(portalSel){
+    portalSel.style.display = normalizedRol === 'client' ? 'none' : '';
+  }
 
   // Config panel restrictions per role
   _applyRoleCfgPanels(rol);
@@ -6681,8 +6718,10 @@ async function saveUsuario(){
   const avatarInput = document.getElementById('usr-avatar').value.trim().toUpperCase().slice(0,2);
   const avatar = avatarInput || nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 
+  const clienteVinculado = document.getElementById('usr-cliente-id')?.value;
   const data = { nombre, email, rol, avatar, estado:'activo',
-    departamentoId: deptId ? parseInt(deptId) : null };
+    departamentoId: deptId ? parseInt(deptId) : null,
+    clienteId: clienteVinculado ? parseInt(clienteVinculado) : null };
   const pass = document.getElementById('usr-pass').value;
   if(pass) data.password = pass;
 
@@ -6749,6 +6788,18 @@ function editUsuario(id){
       (DB.departamentos||[]).map(d=>`<option value="${d.id}">${d.emoji||'🏢'} ${d.nombre}</option>`).join('');
     deptSel.value=u.departamentoId||'';
   }
+  // Populate clientes + show/hide row
+  const cliSel=document.getElementById('usr-cliente-id');
+  if(cliSel){
+    cliSel.innerHTML='<option value="">— Seleccionar cliente —</option>'+
+      (DB.clientes||[]).map(cl=>`<option value="${cl.id}">${cl.nombre}</option>`).join('');
+    cliSel.value=u.clienteId||'';
+  }
+  const cliRow=document.getElementById('usr-cliente-row');
+  if(cliRow) cliRow.style.display = u.rol==='client' ? '' : 'none';
+  document.getElementById('usr-rol').onchange = function(){
+    if(cliRow) cliRow.style.display = this.value==='client' ? '' : 'none';
+  };
   // Hide invite checkbox when editing
   const inviteRow=document.getElementById('usr-invite')?.closest('.form-group');
   if(inviteRow) inviteRow.style.display='none';
