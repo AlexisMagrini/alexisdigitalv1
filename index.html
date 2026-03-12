@@ -5871,8 +5871,10 @@ function renderFinanzas(){
     {label:'Balance',value:`$${fmt(balance)}`,color:balance>=0?'var(--brand)':'var(--red)',bar:Math.abs(balance)/maxVal*100},
     {label:'Por cobrar',value:`$${fmt(totalPend)}`,color:'var(--amber)',bar:totalPend/maxVal*100}
   ].map(f=>`<div class="fin-card"><div class="fin-label">${f.label}</div><div class="fin-value" style="color:${f.color}">${f.value}</div><div class="finance-bar"><div class="finance-bar-fill" style="width:${f.bar.toFixed(1)}%;background:${f.color}"></div></div></div>`).join('');
-  $('ingresos-tbody').innerHTML=ingresos.map(t=>`<tr><td class="text-muted text-sm">${fmtD(t.fecha)}</td><td>${t.descripcion}</td><td>${getClienteName(t.clienteId)}</td><td><span class="tag">${t.categoria}</span></td><td class="amount-positive">+$${fmt(t.monto)}</td><td><button class="btn btn-sm btn-danger btn-icon" onclick="deleteTransaccion(${t.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')||`<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--tx-3)">Sin ingresos</td></tr>`;
-  $('gastos-tbody').innerHTML=gastos.map(t=>`<tr><td class="text-muted text-sm">${fmtD(t.fecha)}</td><td>${t.descripcion}</td><td><span class="tag">${t.categoria}</span></td><td class="amount-negative">-$${fmt(t.monto)}</td><td><button class="btn btn-sm btn-danger btn-icon" onclick="deleteTransaccion(${t.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')||`<tr><td colspan="5" style="text-align:center;padding:18px;color:var(--tx-3)">Sin gastos</td></tr>`;
+  $('ingresos-tbody').innerHTML=ingresos.map(t=>`<tr><td class="text-muted text-sm">${fmtD(t.fecha)}</td><td>${t.descripcion}</td><td>${getClienteName(t.clienteId)}</td><td><span class="tag">${t.categoria}</span></td><td class="amount-positive">+$${fmt(t.monto)}</td><td><button class="btn btn-sm btn-secondary btn-icon" onclick="editTransaccion(${t.id})"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-sm btn-danger btn-icon" onclick="deleteTransaccion(${t.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')||`<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--tx-3)">Sin ingresos</td></tr>`;
+  $('gastos-tbody').innerHTML=gastos.map(t=>`<tr><td class="text-muted text-sm">${fmtD(t.fecha)}</td><td>${t.descripcion}</td><td><span class="tag">${t.categoria}</span></td><td class="amount-negative">-$${fmt(t.monto)}</td><td><button class="btn btn-sm btn-secondary btn-icon" onclick="editTransaccion(${t.id})"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn btn-sm btn-danger btn-icon" onclick="deleteTransaccion(${t.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')||`<tr><td colspan="5" style="text-align:center;padding:18px;color:var(--tx-3)">Sin gastos</td></tr>`;
   $('pendientes-tbody').innerHTML=pendientes.map(t=>`<tr><td class="text-muted text-sm">${fmtD(t.fecha)}</td><td>${t.descripcion}</td><td>${getClienteName(t.clienteId)}</td><td class="amount-positive">$${fmt(t.monto)}</td><td><span class="badge badge-amber">${fmtD(t.vence)}</span></td><td><div class="flex gap-6"><button class="btn btn-sm btn-success" onclick="markAsPaid(${t.id})"><i class="fa-solid fa-check"></i> Cobrado</button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteTransaccion(${t.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join('')||`<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--tx-3)">Sin pagos pendientes 🎉</td></tr>`;
   setTimeout(renderFinCharts,80);
 }
@@ -5896,6 +5898,18 @@ function saveTransaccion(){
   else{data.id=nextId();DB.transacciones.push(data);}
   _syncRecord('transacciones', id ? DB.transacciones.find(t=>t.id==id)||data : data);
   closeModal('modal-transaccion');renderFinanzas();toast('success','Transacción guardada');
+}
+function editTransaccion(id){
+  const t=DB.transacciones.find(t=>t.id===id);if(!t)return;
+  document.getElementById('modal-transaccion-title').textContent='Editar Transacción';
+  document.getElementById('t-id').value=t.id;
+  document.getElementById('t-tipo').value=t.tipo||'ingreso';
+  document.getElementById('t-descripcion').value=t.descripcion||'';
+  document.getElementById('t-monto').value=t.monto||0;
+  document.getElementById('t-fecha').value=t.fecha||today();
+  document.getElementById('t-categoria').value=t.categoria||'';
+  populateClienteSelect('t-cliente',t.clienteId||t.cliente_id);
+  document.getElementById('modal-transaccion').classList.add('open');
 }
 function deleteTransaccion(id){if(!confirm('¿Eliminar?'))return;DB.transacciones=DB.transacciones.filter(t=>t.id!==id);_syncRecord('transacciones',{id},true);renderFinanzas();toast('info','Eliminada');}
 function _markAsPaid_REPLACED(id){const t=DB.transacciones.find(t=>t.id===id);if(t){t.tipo='ingreso';delete t.vence;DB.actividad.unshift({icon:'fa-file-invoice-dollar',color:'green',texto:`Pago cobrado: <strong>$${fmt(t.monto)}</strong>`,tiempo:'Ahora'});renderFinanzas();toast('success','Marcado como cobrado');}}
@@ -5981,7 +5995,7 @@ function renderUpcoming(){
     const d=new Date(e.fecha+'T00:00:00');
     const typeColors={reunion:'var(--brand)',entrega:'var(--green)',llamada:'var(--teal)',recordatorio:'var(--amber)'};
     const typeIcons={reunion:'fa-users',entrega:'fa-flag',llamada:'fa-phone',recordatorio:'fa-bell'};
-    return`<div class="event-item"><div class="event-date-box"><span class="event-date-day">${d.getDate()}</span><span class="event-date-month">${MONTHS_SHORT[d.getMonth()]}</span></div><div style="flex:1"><div class="event-title">${e.titulo}</div><div class="event-meta"><i class="fa-solid ${typeIcons[e.tipo]||'fa-calendar'}" style="margin-right:5px;color:${typeColors[e.tipo]||'var(--brand)'}"></i>${getClienteName(e.clienteId)}</div></div><div><button class="btn btn-sm btn-danger btn-icon" onclick="deleteEvento(${e.id})"><i class="fa-solid fa-trash"></i></button></div></div>`;
+    return`<div class="event-item"><div class="event-date-box"><span class="event-date-day">${d.getDate()}</span><span class="event-date-month">${MONTHS_SHORT[d.getMonth()]}</span></div><div style="flex:1"><div class="event-title">${e.titulo}</div><div class="event-meta"><i class="fa-solid ${typeIcons[e.tipo]||'fa-calendar'}" style="margin-right:5px;color:${typeColors[e.tipo]||'var(--brand)'}"></i>${getClienteName(e.clienteId)}</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-secondary btn-icon" onclick="editEvento(${e.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-danger btn-icon" onclick="deleteEvento(${e.id})"><i class="fa-solid fa-trash"></i></button></div></div>`;
   }).join(''):`<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-calendar-check"></i></div><h3>Sin eventos próximos</h3><p>Agrega eventos desde el botón de arriba</p></div>`;
   // Deliveries
   const deliveries=DB.proyectos.filter(p=>p.entrega&&new Date(p.entrega+'T00:00:00')>=todayD).sort((a,b)=>a.entrega.localeCompare(b.entrega)).slice(0,5);
@@ -5999,6 +6013,17 @@ function saveEvento(){
   if(id){const idx=DB.eventos.findIndex(e=>e.id==id);DB.eventos[idx]={...DB.eventos[idx],...data};}
   else{data.id=nextId();DB.eventos.push(data);}
   closeModal('modal-evento');renderCalendario();toast('success','Evento guardado');
+}
+function editEvento(id){
+  const ev=DB.eventos.find(e=>e.id===id);if(!ev)return;
+  document.getElementById('modal-evento-title').textContent='Editar Evento';
+  document.getElementById('ev-id').value=ev.id;
+  document.getElementById('ev-titulo').value=ev.titulo||'';
+  document.getElementById('ev-fecha').value=ev.fecha||today();
+  document.getElementById('ev-tipo').value=ev.tipo||'reunion';
+  document.getElementById('ev-notas').value=ev.notas||'';
+  populateClienteSelect('ev-cliente',ev.clienteId||ev.cliente_id);
+  document.getElementById('modal-evento').classList.add('open');
 }
 function deleteEvento(id){if(!confirm('¿Eliminar?'))return;DB.eventos=DB.eventos.filter(e=>e.id!==id);renderCalendario();toast('info','Evento eliminado');}
 
@@ -6090,6 +6115,19 @@ function deleteContrato(id){if(!confirm('¿Eliminar?'))return;DB.contratos=DB.co
 let facturaCounter=100;
 /* saveFactura replaced by new version */
 function markFacturaPagada(id){const f=DB.facturas.find(f=>f.id===id);if(f){f.estado='pagada';f.fechaPago=f.fechaPago||today();_syncRecord('facturas',f);DB.actividad.unshift({icon:'fa-receipt',color:'green',texto:`Factura cobrada: <strong>$${fmt(f.monto)}</strong>`,tiempo:'Ahora'});renderFacturacion();showToast('success',`Pago registrado: ${fmtMoney(f.monto)}`);logActivity('pago',`Factura cobrada: <strong>${fmtMoney(f.monto)}</strong> de ${getClienteName(f.clienteId)}`);}}
+function editFactura(id){
+  const f=DB.facturas.find(f=>f.id===id);if(!f)return;
+  document.getElementById('modal-factura-title').textContent='Editar Factura';
+  document.getElementById('fct-id').value=f.id;
+  populateClienteSelect('fct-cliente',f.clienteId||f.cliente_id);
+  populateProyectoSelect('fct-proyecto',f.proyectoId||f.proyecto_id);
+  document.getElementById('fct-descripcion').value=f.descripcion||'';
+  document.getElementById('fct-monto').value=f.monto||0;
+  document.getElementById('fct-fecha').value=f.fecha||today();
+  document.getElementById('fct-vence').value=f.vence||'';
+  document.getElementById('fct-estado').value=f.estado||'pendiente';
+  document.getElementById('modal-factura').classList.add('open');
+}
 function deleteFactura(id){if(!confirm('¿Eliminar?'))return;DB.facturas=DB.facturas.filter(f=>f.id!==id);_syncRecord('facturas',{id},true);renderFacturacion();toast('info','Eliminada');}
 
 /* ================================================================
@@ -7385,6 +7423,7 @@ function renderFacturacion(){
         ${f.metodoPago?`<span class="pay-method mb-8">${f.metodoPago}</span>`:''}
         <div style="display:flex;gap:6px;margin-top:8px">
           ${f.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="openPagoModal(${f.id})" style="flex:1"><i class="fa-solid fa-circle-dollar-to-slot"></i> Cobrar</button>`:''}
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="editFactura(${f.id})"><i class="fa-solid fa-pen"></i></button>
           <button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('factura',${f.id})"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>
           <button class="btn btn-sm btn-danger btn-icon" onclick="deleteFactura(${f.id})"><i class="fa-solid fa-trash"></i></button>
         </div>
