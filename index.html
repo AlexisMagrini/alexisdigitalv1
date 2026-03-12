@@ -8838,20 +8838,21 @@ function _renderBackupHistory(){
 
 /* ── GLOBAL SUPABASE CONFIG INIT ───────────────────────────── */
 (function _initGlobalSBConfig(){
-  // Try to restore saved credentials and auto-connect
+  // Hardcoded credentials — auto-connect on any device
+  const url = 'https://tvwqaitwaljcnrbsccof.supabase.co';
+  const key = 'sb_publishable_IafHzeh5iT8WUa7LvS3-Hw_ijNRICmt';
   try{
-    const url=localStorage.getItem('sb_url');
-    const key=localStorage.getItem('sb_key');
-    if(url&&key&&window.supabase){
-      window.SUPABASE_CONFIG={url,anonKey:key};
+    // Always persist to localStorage so manual UI reads them too
+    localStorage.setItem('sb_url', url);
+    localStorage.setItem('sb_key', key);
+    if(window.supabase){
+      window.SUPABASE_CONFIG={url, anonKey:key};
       window._supabaseClient=window.supabase.createClient(url,key,{
         auth:{autoRefreshToken:true,persistSession:true}
       });
       window.STORAGE_MODE='supabase';
       console.log('[v9] Supabase auto-initialized ✓');
-      // Update status after DOM ready (delay > auto-login delay of 200ms)
       setTimeout(updateConnectionStatus,300);
-
     }
   }catch(e){console.warn('[v9] Supabase init failed:',e);}
 })();
