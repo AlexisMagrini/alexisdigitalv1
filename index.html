@@ -1675,6 +1675,7 @@ tbody tr:hover{background:var(--bg-3)}
                   </div>
                 </div>
               </div>
+            </div>
 
             <!-- ─── AGENCIA ─── -->
             <div class="cfg-panel" id="cfgpanel-agencia">
@@ -1708,8 +1709,9 @@ tbody tr:hover{background:var(--bg-3)}
                 <div class="table-wrap"><table>
                   <thead><tr><th>Emoji</th><th>Nombre</th><th>Tipo</th><th>Precio Base</th><th>Días</th><th>Acciones</th></tr></thead>
                   <tbody id="cfg-plantillas-tbody"></tbody>
-                </table></div>
+                </table>
               </div>
+            </div>
             </div>
 
             <!-- ─── EXTRAS PRESUPUESTO ─── -->
@@ -1800,7 +1802,7 @@ tbody tr:hover{background:var(--bg-3)}
                   <span class="admin-table-title"><i class="fa-solid fa-users-gear" style="margin-right:7px;color:var(--brand)"></i>Usuarios del Sistema</span>
                   <button class="btn btn-primary btn-sm" onclick="openModal('modal-usuario')"><i class="fa-solid fa-plus"></i></button>
                     <button class="btn btn-secondary btn-sm" onclick="syncUsersFromSupabase()"><i class="fa-solid fa-rotate"></i> Sync Supabase</button>
-                  </div> Nuevo usuario</button>
+                  <button class="btn btn-primary btn-sm" onclick="openModal('modal-usuario')"><i class="fa-solid fa-plus"></i> Nuevo usuario</button>
                 </div>
                 <div class="table-wrap"><table>
                   <thead><tr><th>Avatar</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
