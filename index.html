@@ -3122,113 +3122,171 @@ async function connectSupabase(url, key) {
 }
 
 const SUPABASE_SCHEMA = `
+-- ══════════════════════════════════════════════════════════════
 -- AlexisDigital Manager v9 — Supabase SQL Schema
--- Run this in your Supabase SQL Editor
+-- Ejecutar completo en Supabase → SQL Editor → Run
+-- Es seguro re-ejecutar (usa IF NOT EXISTS / IF EXISTS)
+-- ══════════════════════════════════════════════════════════════
 
--- Users profile table (extends Supabase Auth)
-CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY REFERENCES auth.users(id),
-  name TEXT NOT NULL,
-  email TEXT,
-  role TEXT DEFAULT 'employee' CHECK (role IN ('admin','employee','client')),
-  department_id BIGINT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Departments
-CREATE TABLE IF NOT EXISTS departments (
-  id BIGINT PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  emoji TEXT DEFAULT '🏢',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
+-- KV Store (config, temas, preferencias)
 CREATE TABLE IF NOT EXISTS kv_store (
-  key TEXT PRIMARY KEY, value TEXT,
+  key TEXT PRIMARY KEY,
+  value TEXT,
   user_id UUID REFERENCES auth.users(id),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Clientes
 CREATE TABLE IF NOT EXISTS clientes (
   id BIGINT PRIMARY KEY,
-  created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW(),
-  nombre TEXT NOT NULL, email TEXT, telefono TEXT, empresa TEXT,
-  estado TEXT DEFAULT 'lead', notas TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  nombre TEXT NOT NULL,
+  email TEXT,
+  telefono TEXT,
+  empresa TEXT,
+  estado TEXT DEFAULT 'lead',
+  notas TEXT,
   user_id UUID REFERENCES auth.users(id)
 );
+
+-- Proyectos
 CREATE TABLE IF NOT EXISTS proyectos (
   id BIGINT PRIMARY KEY,
-  created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW(),
-  nombre TEXT NOT NULL, cliente_id BIGINT REFERENCES clientes(id),
-  estado TEXT DEFAULT 'pendiente', precio NUMERIC DEFAULT 0,
-  inicio DATE, entrega DATE, checklist JSONB DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  nombre TEXT NOT NULL,
+  cliente_id BIGINT REFERENCES clientes(id),
+  estado TEXT DEFAULT 'pendiente',
+  precio NUMERIC DEFAULT 0,
+  inicio DATE,
+  entrega DATE,
+  checklist JSONB DEFAULT '[]',
   user_id UUID REFERENCES auth.users(id)
 );
+
+-- Presupuestos
 CREATE TABLE IF NOT EXISTS presupuestos (
   id BIGINT PRIMARY KEY,
-  created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW(),
-  nombre TEXT, cliente_id BIGINT REFERENCES clientes(id),
-  descripcion TEXT, precio NUMERIC DEFAULT 0,
-  estado TEXT DEFAULT 'pendiente', fecha DATE, valido DATE,
-  extras JSONB DEFAULT '[]', user_id UUID REFERENCES auth.users(id)
-);
-CREATE TABLE IF NOT EXISTS facturas (
-  id BIGINT PRIMARY KEY,
-  created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW(),
-  cliente_id BIGINT REFERENCES clientes(id), proyecto_id BIGINT REFERENCES proyectos(id),
-  descripcion TEXT, monto NUMERIC DEFAULT 0,
-  fecha DATE, vence DATE, estado TEXT DEFAULT 'pendiente',
-  metodo_pago TEXT, fecha_pago DATE, user_id UUID REFERENCES auth.users(id)
-);
-CREATE TABLE IF NOT EXISTS transacciones (
-  id BIGINT PRIMARY KEY,
-  created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW(),
-  tipo TEXT NOT NULL, fecha DATE, descripcion TEXT, monto NUMERIC DEFAULT 0,
-  categoria TEXT, cliente_id BIGINT REFERENCES clientes(id),
-  vence DATE, user_id UUID REFERENCES auth.users(id)
-);
-CREATE TABLE IF NOT EXISTS tareas (
-  id BIGINT PRIMARY KEY,
-  created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW(),
-  titulo TEXT NOT NULL, estado TEXT DEFAULT 'pendiente', prioridad TEXT DEFAULT 'media',
-  proyecto_id BIGINT REFERENCES proyectos(id), vence DATE, descripcion TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  nombre TEXT,
+  cliente_id BIGINT REFERENCES clientes(id),
+  descripcion TEXT,
+  precio NUMERIC DEFAULT 0,
+  estado TEXT DEFAULT 'pendiente',
+  fecha DATE,
+  valido DATE,
   user_id UUID REFERENCES auth.users(id)
 );
-CREATE TABLE IF NOT EXISTS activity_log (
-  id BIGINT PRIMARY KEY, created_at TIMESTAMPTZ DEFAULT NOW(),
-  tipo TEXT, texto TEXT, meta JSONB DEFAULT '{}',
-  ts TIMESTAMPTZ DEFAULT NOW(), user_id UUID REFERENCES auth.users(id)
+
+-- Facturas
+CREATE TABLE IF NOT EXISTS facturas (
+  id BIGINT PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  cliente_id BIGINT REFERENCES clientes(id),
+  proyecto_id BIGINT REFERENCES proyectos(id),
+  descripcion TEXT,
+  monto NUMERIC DEFAULT 0,
+  fecha DATE,
+  vence DATE,
+  estado TEXT DEFAULT 'pendiente',
+  user_id UUID REFERENCES auth.users(id)
 );
+
+-- Transacciones
+CREATE TABLE IF NOT EXISTS transacciones (
+  id BIGINT PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  tipo TEXT NOT NULL,
+  fecha DATE,
+  descripcion TEXT,
+  monto NUMERIC DEFAULT 0,
+  categoria TEXT,
+  cliente_id BIGINT REFERENCES clientes(id),
+  vence DATE,
+  user_id UUID REFERENCES auth.users(id)
+);
+
+-- Tareas
+CREATE TABLE IF NOT EXISTS tareas (
+  id BIGINT PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  titulo TEXT NOT NULL,
+  estado TEXT DEFAULT 'pendiente',
+  prioridad TEXT DEFAULT 'media',
+  proyecto_id BIGINT REFERENCES proyectos(id),
+  vence DATE,
+  descripcion TEXT,
+  user_id UUID REFERENCES auth.users(id)
+);
+
+-- Leads (Pipeline CRM)
+CREATE TABLE IF NOT EXISTS leads (
+  id BIGINT PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  nombre TEXT NOT NULL,
+  email TEXT,
+  empresa TEXT,
+  etapa TEXT DEFAULT 'nuevo',
+  valor NUMERIC DEFAULT 0,
+  notas TEXT,
+  user_id UUID REFERENCES auth.users(id)
+);
+
+-- Activity Log
+CREATE TABLE IF NOT EXISTS activity_log (
+  id BIGINT PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  tipo TEXT,
+  texto TEXT,
+  icono TEXT,
+  color TEXT,
+  tiempo TEXT,
+  user_id UUID REFERENCES auth.users(id)
+);
+
+-- Reminders
 CREATE TABLE IF NOT EXISTS reminders (
   id BIGINT PRIMARY KEY,
-  created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW(),
-  text TEXT NOT NULL, date DATE, tipo TEXT DEFAULT 'general',
-  ref TEXT, done BOOLEAN DEFAULT FALSE, user_id UUID REFERENCES auth.users(id)
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  text TEXT NOT NULL,
+  date DATE,
+  tipo TEXT DEFAULT 'general',
+  ref TEXT,
+  done BOOLEAN DEFAULT FALSE,
+  user_id UUID REFERENCES auth.users(id)
 );
 
 -- ══════════════════════════════════════════════
--- PERMISOS: Deshabilitar RLS para acceso libre
--- (Si ya corriste este SQL antes, esto es seguro de re-ejecutar)
+-- PERMISOS: Deshabilitar RLS
+-- (re-ejecutable sin errores)
 -- ══════════════════════════════════════════════
 DROP POLICY IF EXISTS "Users see own clientes"     ON clientes;
 DROP POLICY IF EXISTS "Users see own proyectos"    ON proyectos;
 DROP POLICY IF EXISTS "Users see own presupuestos" ON presupuestos;
 DROP POLICY IF EXISTS "Users see own facturas"     ON facturas;
 DROP POLICY IF EXISTS "Users see own tareas"       ON tareas;
+DROP POLICY IF EXISTS "Users see own leads"        ON leads;
 DROP POLICY IF EXISTS "Users see own activity"     ON activity_log;
 DROP POLICY IF EXISTS "Users see own reminders"    ON reminders;
 DROP POLICY IF EXISTS "Users see own kv"           ON kv_store;
 
-ALTER TABLE clientes        DISABLE ROW LEVEL SECURITY;
-ALTER TABLE proyectos       DISABLE ROW LEVEL SECURITY;
-ALTER TABLE presupuestos    DISABLE ROW LEVEL SECURITY;
-ALTER TABLE facturas        DISABLE ROW LEVEL SECURITY;
-ALTER TABLE transacciones   DISABLE ROW LEVEL SECURITY;
-ALTER TABLE tareas          DISABLE ROW LEVEL SECURITY;
-ALTER TABLE leads           DISABLE ROW LEVEL SECURITY;
-ALTER TABLE kv_store        DISABLE ROW LEVEL SECURITY;
-ALTER TABLE activity_log    DISABLE ROW LEVEL SECURITY;
-ALTER TABLE reminders       DISABLE ROW LEVEL SECURITY;
+ALTER TABLE clientes      DISABLE ROW LEVEL SECURITY;
+ALTER TABLE proyectos     DISABLE ROW LEVEL SECURITY;
+ALTER TABLE presupuestos  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE facturas      DISABLE ROW LEVEL SECURITY;
+ALTER TABLE transacciones DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tareas        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE leads         DISABLE ROW LEVEL SECURITY;
+ALTER TABLE kv_store      DISABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_log  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE reminders     DISABLE ROW LEVEL SECURITY;
 `;
 
 window.SUPABASE_SCHEMA = SUPABASE_SCHEMA;
@@ -3314,10 +3372,13 @@ async function connectSupabase(url, key) {
    Copy and run these in your Supabase SQL Editor.
 ──────────────────────────────────────────────────────────────── */
 const SUPABASE_SCHEMA = `
--- Enable Row Level Security on all tables
--- Run this in your Supabase SQL Editor
+-- ══════════════════════════════════════════════════════════════
+-- AlexisDigital Manager v9 — Supabase SQL Schema
+-- Ejecutar completo en Supabase → SQL Editor → Run
+-- Es seguro re-ejecutar (usa IF NOT EXISTS / IF EXISTS)
+-- ══════════════════════════════════════════════════════════════
 
--- KV Store (for settings, themes, preferences)
+-- KV Store (config, temas, preferencias)
 CREATE TABLE IF NOT EXISTS kv_store (
   key TEXT PRIMARY KEY,
   value TEXT,
@@ -3366,7 +3427,6 @@ CREATE TABLE IF NOT EXISTS presupuestos (
   estado TEXT DEFAULT 'pendiente',
   fecha DATE,
   valido DATE,
-  extras JSONB DEFAULT '[]',
   user_id UUID REFERENCES auth.users(id)
 );
 
@@ -3382,8 +3442,6 @@ CREATE TABLE IF NOT EXISTS facturas (
   fecha DATE,
   vence DATE,
   estado TEXT DEFAULT 'pendiente',
-  metodo_pago TEXT,
-  fecha_pago DATE,
   user_id UUID REFERENCES auth.users(id)
 );
 
@@ -3416,14 +3474,29 @@ CREATE TABLE IF NOT EXISTS tareas (
   user_id UUID REFERENCES auth.users(id)
 );
 
+-- Leads (Pipeline CRM)
+CREATE TABLE IF NOT EXISTS leads (
+  id BIGINT PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  nombre TEXT NOT NULL,
+  email TEXT,
+  empresa TEXT,
+  etapa TEXT DEFAULT 'nuevo',
+  valor NUMERIC DEFAULT 0,
+  notas TEXT,
+  user_id UUID REFERENCES auth.users(id)
+);
+
 -- Activity Log
 CREATE TABLE IF NOT EXISTS activity_log (
   id BIGINT PRIMARY KEY,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   tipo TEXT,
   texto TEXT,
-  meta JSONB DEFAULT '{}',
-  ts TIMESTAMPTZ DEFAULT NOW(),
+  icono TEXT,
+  color TEXT,
+  tiempo TEXT,
   user_id UUID REFERENCES auth.users(id)
 );
 
@@ -3440,35 +3513,30 @@ CREATE TABLE IF NOT EXISTS reminders (
   user_id UUID REFERENCES auth.users(id)
 );
 
--- Enable RLS
-ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE proyectos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE presupuestos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE facturas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE transacciones ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tareas ENABLE ROW LEVEL SECURITY;
 -- ══════════════════════════════════════════════
--- PERMISOS: Deshabilitar RLS (re-ejecutable sin errores)
+-- PERMISOS: Deshabilitar RLS
+-- (re-ejecutable sin errores)
 -- ══════════════════════════════════════════════
 DROP POLICY IF EXISTS "Users see own clientes"     ON clientes;
 DROP POLICY IF EXISTS "Users see own proyectos"    ON proyectos;
 DROP POLICY IF EXISTS "Users see own presupuestos" ON presupuestos;
 DROP POLICY IF EXISTS "Users see own facturas"     ON facturas;
 DROP POLICY IF EXISTS "Users see own tareas"       ON tareas;
+DROP POLICY IF EXISTS "Users see own leads"        ON leads;
 DROP POLICY IF EXISTS "Users see own activity"     ON activity_log;
 DROP POLICY IF EXISTS "Users see own reminders"    ON reminders;
 DROP POLICY IF EXISTS "Users see own kv"           ON kv_store;
 
-ALTER TABLE clientes        DISABLE ROW LEVEL SECURITY;
-ALTER TABLE proyectos       DISABLE ROW LEVEL SECURITY;
-ALTER TABLE presupuestos    DISABLE ROW LEVEL SECURITY;
-ALTER TABLE facturas        DISABLE ROW LEVEL SECURITY;
-ALTER TABLE transacciones   DISABLE ROW LEVEL SECURITY;
-ALTER TABLE tareas          DISABLE ROW LEVEL SECURITY;
-ALTER TABLE leads           DISABLE ROW LEVEL SECURITY;
-ALTER TABLE kv_store        DISABLE ROW LEVEL SECURITY;
-ALTER TABLE activity_log    DISABLE ROW LEVEL SECURITY;
-ALTER TABLE reminders       DISABLE ROW LEVEL SECURITY;
+ALTER TABLE clientes      DISABLE ROW LEVEL SECURITY;
+ALTER TABLE proyectos     DISABLE ROW LEVEL SECURITY;
+ALTER TABLE presupuestos  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE facturas      DISABLE ROW LEVEL SECURITY;
+ALTER TABLE transacciones DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tareas        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE leads         DISABLE ROW LEVEL SECURITY;
+ALTER TABLE kv_store      DISABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_log  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE reminders     DISABLE ROW LEVEL SECURITY;
 `;
 
 window.SUPABASE_SCHEMA = SUPABASE_SCHEMA;
