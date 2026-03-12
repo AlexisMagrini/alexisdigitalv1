@@ -3289,6 +3289,19 @@ ALTER TABLE leads         DISABLE ROW LEVEL SECURITY;
 ALTER TABLE kv_store      DISABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_log  DISABLE ROW LEVEL SECURITY;
 ALTER TABLE reminders     DISABLE ROW LEVEL SECURITY;
+
+-- Tabla de perfiles de usuario (gestión de equipo)
+CREATE TABLE IF NOT EXISTS usuarios (
+  id BIGINT PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  nombre TEXT NOT NULL,
+  email TEXT,
+  rol TEXT DEFAULT 'employee',
+  estado TEXT DEFAULT 'activo',
+  avatar TEXT,
+  password TEXT
+);
+ALTER TABLE usuarios DISABLE ROW LEVEL SECURITY;
 `;
 
 window.SUPABASE_SCHEMA = SUPABASE_SCHEMA;
@@ -3539,6 +3552,19 @@ ALTER TABLE leads         DISABLE ROW LEVEL SECURITY;
 ALTER TABLE kv_store      DISABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_log  DISABLE ROW LEVEL SECURITY;
 ALTER TABLE reminders     DISABLE ROW LEVEL SECURITY;
+
+-- Tabla de perfiles de usuario (gestión de equipo)
+CREATE TABLE IF NOT EXISTS usuarios (
+  id BIGINT PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  nombre TEXT NOT NULL,
+  email TEXT,
+  rol TEXT DEFAULT 'employee',
+  estado TEXT DEFAULT 'activo',
+  avatar TEXT,
+  password TEXT
+);
+ALTER TABLE usuarios DISABLE ROW LEVEL SECURITY;
 `;
 
 window.SUPABASE_SCHEMA = SUPABASE_SCHEMA;
@@ -5354,6 +5380,7 @@ async function _loadAllFromSupabase() {
       transacciones: 'transacciones',
       tareas:        'tareas',
       leads:         'leads',
+      usuarios:      'usuarios',
     };
     const sb = window._supabaseClient;
     await Promise.all(Object.entries(tables).map(async ([key, table]) => {
@@ -8956,39 +8983,26 @@ function renderFinancialKPIs(){
 
 /* ── ENHANCED USER MANAGEMENT WITH SUPABASE ────────────────── */
 async function createUserSupabase(userData){
-  if(window.STORAGE_MODE!=='supabase'||!window._supabaseClient){
-    // Local fallback — add to DB.usuarios
-    userData.id=nextId();
-    userData.avatar=(userData.nombre||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    DB.usuarios.push(userData);
+  userData.id=nextId();
+  userData.avatar=(userData.nombre||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  DB.usuarios.push(userData);
+  // Sync to Supabase if connected
+  if(window.STORAGE_MODE==='supabase'&&window._supabaseClient){
+    try{
+      const {error}=await window._supabaseClient.from('usuarios').upsert({
+        id:userData.id, nombre:userData.nombre, email:userData.email,
+        rol:userData.rol||'employee', estado:userData.estado||'activo',
+        avatar:userData.avatar
+      });
+      if(error) showToast('warning','Local ✓ — Supabase: '+error.message.slice(0,50));
+      else showToast('success','Usuario creado y sincronizado ✓');
+    }catch(e){ showToast('warning','Local ✓ — Supabase error'); }
+  } else {
     showToast('success','Usuario creado (modo local)');
-    renderUsuarios();
-    return;
   }
-  try{
-    // Create auth user
-    const {data,error}=await window._supabaseClient.auth.admin.createUser({
-      email:userData.email,
-      password:userData.password||'temporal123',
-      email_confirm:true,
-    });
-    if(error) throw error;
-    // Save profile
-    await window._supabaseClient.from('users').insert({
-      id:data.user.id,
-      name:userData.nombre,
-      email:userData.email,
-      role:userData.rol||'employee',
-      department_id:userData.departamentoId||null,
-    });
-    showToast('success','Usuario creado en Supabase');
-    renderUsuarios();
-  }catch(err){
-    showToast('error','Error al crear usuario: '+err.message);
-  }
+  renderCfgUsuarios();
 }
 
-/* ── ENHANCED PORTAL CLIENT VIEW ───────────────────────────── */
 function renderPortalEnhanced(clientId){
   const container=document.getElementById('portal-content');
   if(!container) return;
@@ -9080,7 +9094,7 @@ async function syncUsersFromSupabase(){
     showToast('warning','Conecta Supabase primero'); return;
   }
   try{
-    const {data,error}=await window._supabaseClient.from('users').select('*');
+    const {data,error}=await window._supabaseClient.from('usuarios').select('*');
     if(error) throw error;
     if(data&&data.length){
       data.forEach(u=>{
