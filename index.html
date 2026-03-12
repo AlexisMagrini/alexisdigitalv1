@@ -5371,6 +5371,12 @@ function _persistArray(arrayKey) {
 async function _loadAllFromSupabase() {
   if (window.STORAGE_MODE !== 'supabase' || !window._supabaseClient) return;
   try {
+    // Verify we have an active auth session before loading
+    const { data: { session } } = await window._supabaseClient.auth.getSession();
+    if (!session) {
+      console.warn('[load] No active session, skipping Supabase load');
+      return;
+    }
     toast('info', '⏳ Cargando datos desde Supabase...');
     const tables = {
       clientes:      'clientes',
@@ -5439,6 +5445,10 @@ async function _syncRecord(arrayKey, record, isDelete = false) {
     } else {
       // Normalize field names: camelCase → snake_case for Supabase
       const row = _toSnakeCase(arrayKey, record);
+      // Inject user_id from current Supabase Auth session (required for RLS)
+      const session = await window._supabaseClient.auth.getSession();
+      const uid = session?.data?.session?.user?.id;
+      if (uid) row.user_id = uid;
       const { error } = await window._supabaseClient
         .from(table).upsert(row, { onConflict: 'id' });
       if (error) throw error;
@@ -5511,11 +5521,20 @@ async function doLogin(){
       const {data,error}=await window._supabaseClient.auth.signInWithPassword({email,password:pass});
       if(error) throw error;
       // Load user profile from users table
-      const {data:profile}=await window._supabaseClient.from('users').select('*').eq('id',data.user.id).single();
-      if(profile){
-        DB.currentUser={...profile, nombre:profile.name, avatar:(profile.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)};
+      // Try to find profile in local usuarios DB
+      const localProfile = DB.usuarios.find(u => u.email === data.user.email);
+      if(localProfile){
+        DB.currentUser={...localProfile, id:data.user.id};
       } else {
-        DB.currentUser={id:data.user.id,nombre:data.user.email.split('@')[0],email:data.user.email,rol:'admin',avatar:'AD'};
+        // Build profile from auth data
+        const nombre = data.user.user_metadata?.nombre || data.user.email.split('@')[0];
+        DB.currentUser={
+          id: data.user.id,
+          nombre: nombre,
+          email: data.user.email,
+          rol: data.user.user_metadata?.rol || 'admin',
+          avatar: nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)
+        };
       }
       _finishLogin(DB.currentUser);
       return;
@@ -5598,9 +5617,13 @@ function _applyRoleNav(rol){
     }
   });
 }
-function doLogout(){
+async function doLogout(){
   DB.currentUser=null;Object.keys(_charts).forEach(_dc);
   try{ localStorage.removeItem('adm_session'); }catch(e){}
+  // Sign out from Supabase Auth
+  if(window._supabaseClient){
+    try{ await window._supabaseClient.auth.signOut(); }catch(e){}
+  }
   $('app').classList.remove('active');$('login-screen').style.display='flex';
   toast('info','Sesión cerrada');
 }
@@ -8634,11 +8657,33 @@ document.addEventListener('DOMContentLoaded', ()=>{
   try{const depts=localStorage.getItem('adm_departamentos');if(depts){const parsed=JSON.parse(depts);if(parsed.length)DB.departamentos=parsed;}}catch(e){}
   // v9: update connection status after boot
   setTimeout(updateConnectionStatus,200);
-  // Auto-login if session was found (skip login screen)
-  if(window._autoLoginUser){
-    _finishLogin(window._autoLoginUser);
-    window._autoLoginUser=null;
-  }
+  // Auto-login: try Supabase session first, then local session
+  setTimeout(async ()=>{
+    if(window._supabaseClient){
+      try{
+        const { data:{ session } } = await window._supabaseClient.auth.getSession();
+        if(session?.user){
+          const u = session.user;
+          const localProfile = DB.usuarios.find(lu => lu.email === u.email);
+          const nombre = localProfile?.nombre || u.user_metadata?.nombre || u.email.split('@')[0];
+          DB.currentUser = {
+            id: u.id,
+            nombre: nombre,
+            email: u.email,
+            rol: localProfile?.rol || u.user_metadata?.rol || 'admin',
+            avatar: nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)
+          };
+          _finishLogin(DB.currentUser);
+          return;
+        }
+      }catch(e){ console.warn('[boot] Supabase session check failed:', e); }
+    }
+    // Fallback: local session
+    if(window._autoLoginUser){
+      _finishLogin(window._autoLoginUser);
+      window._autoLoginUser=null;
+    }
+  }, 250);
 
   // 2. If db layer available, also sync via db (supports Supabase future)
   if(window.db){
