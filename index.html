@@ -5676,11 +5676,12 @@ function _applyRoleNav(rol){
     },
     employee: {
       // Empleado: NO ve finanzas, facturación, analytics, dashboard, configuración
-      hide: ['dashboard','finanzas','facturacion','analytics','configuracion'],
+      hide: ['dashboard','finanzas','facturacion','analytics','configuracion',
+             'pipeline','plantillas_web','presupuestos','contratos'],
       startSection: 'calendario'
     },
     client: {
-      // Cliente: SOLO ve portal
+      // Cliente: SOLO ve portal — todo lo demás oculto
       hide: ['dashboard','clientes','proyectos','tareas','calendario','pipeline',
              'plantillas_web','presupuestos','contratos','finanzas','facturacion',
              'analytics','archivos','emails','actividad','configuracion'],
@@ -5690,23 +5691,61 @@ function _applyRoleNav(rol){
 
   const cfg = roleConfig[normalizedRol] || roleConfig.employee;
 
+  // Hide nav items
   document.querySelectorAll('.nav-item[data-section]').forEach(el=>{
     const sec = el.dataset.section;
     el.classList.toggle('role-hidden', cfg.hide.includes(sec));
   });
+
+  // Hide nav-group-label spans when ALL following nav items are hidden
+  const navContainer = document.querySelector('.sidebar-nav');
+  if(navContainer){
+    const children = [...navContainer.children];
+    let currentLabel = null;
+    let labelItems = [];
+    children.forEach((el, i) => {
+      if(el.classList.contains('nav-group-label')){
+        // Process previous group
+        if(currentLabel && labelItems.length){
+          const allHidden = labelItems.every(item => item.classList.contains('role-hidden'));
+          currentLabel.style.display = allHidden ? 'none' : '';
+        }
+        currentLabel = el;
+        labelItems = [];
+      } else if(el.classList.contains('nav-item')){
+        labelItems.push(el);
+      }
+    });
+    // Process last group
+    if(currentLabel && labelItems.length){
+      const allHidden = labelItems.every(item => item.classList.contains('role-hidden'));
+      currentLabel.style.display = allHidden ? 'none' : '';
+    }
+  }
+
+  // For client: hide topbar role badge and fix sidebar user info
+  const roleBadge = document.getElementById('topbar-role-badge');
+  if(normalizedRol === 'client'){
+    if(roleBadge) roleBadge.style.display = 'none';
+    // Change sidebar label from "Administrador" to "Cliente"
+    const userRoleEl = document.querySelector('.user-role');
+    if(userRoleEl) userRoleEl.textContent = 'Cliente';
+  } else if(normalizedRol === 'employee'){
+    const userRoleEl = document.querySelector('.user-role');
+    if(userRoleEl) userRoleEl.textContent = 'Empleado';
+  }
 
   // Store start section for use in _finishLogin
   window._roleStartSection = cfg.startSection;
 
   // Hide portal cliente selector for client role (auto-loaded)
   const portalSel = document.getElementById('portal-cliente-select');
-  const portalSelWrap = portalSel?.closest('.sec-toolbar, .flex, div[style]');
   if(portalSel){
     portalSel.style.display = normalizedRol === 'client' ? 'none' : '';
   }
 
   // Config panel restrictions per role
-  _applyRoleCfgPanels(rol);
+  _applyRoleCfgPanels(normalizedRol);
 }
 
 function _applyRoleCfgPanels(rol){
@@ -6806,10 +6845,22 @@ function editUsuario(id){
   document.getElementById('modal-usuario').classList.add('open');
 }
 
-function deleteUsuario(id){
+async function deleteUsuario(id){
   if(id===DB.currentUser?.id){toast('error','No puedes eliminarte a ti mismo');return;}
-  if(!confirm('¿Eliminar?'))return;
-  DB.usuarios=DB.usuarios.filter(u=>u.id!==id);renderCfgUsuarios();toast('info','Usuario eliminado');
+  if(!confirm('¿Eliminar usuario? Esta acción no se puede deshacer.'))return;
+  DB.usuarios=DB.usuarios.filter(u=>u.id!==id);
+  _persistArray('usuarios');
+  // Delete from Supabase usuarios table
+  if(window.STORAGE_MODE==='supabase'&&window._supabaseClient){
+    try{
+      const {error}=await window._supabaseClient.from('usuarios').delete().eq('id',id);
+      if(error) toast('warning','Local ✓ — Supabase: '+error.message.slice(0,50));
+      else toast('info','Usuario eliminado ✓');
+    }catch(e){ toast('warning','Eliminado localmente — error Supabase: '+e.message.slice(0,40)); }
+  } else {
+    toast('info','Usuario eliminado');
+  }
+  renderCfgUsuarios();
 }
 
 
