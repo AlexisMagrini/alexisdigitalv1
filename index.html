@@ -985,6 +985,31 @@ tbody tr:hover{background:var(--bg-3)}
     <button class="btn btn-primary btn-full btn-login" onclick="doLogin()">
       <i class="fa-solid fa-right-to-bracket"></i> Ingresar al sistema
     </button>
+    <div style="text-align:center;margin-top:10px">
+      <button onclick="showForgotPassword()" style="background:none;border:none;color:var(--brand);font-size:13px;cursor:pointer;text-decoration:underline;padding:0">
+        <i class="fa-solid fa-key" style="margin-right:4px"></i>Olvidé mi contraseña
+      </button>
+    </div>
+
+    <!-- Panel recuperación de contraseña (oculto por defecto) -->
+    <div id="forgot-panel" style="display:none;margin-top:16px;padding:16px;background:var(--bg-2);border-radius:12px;border:1px solid var(--bd)">
+      <div style="font-size:14px;font-weight:600;color:var(--tx-1);margin-bottom:6px">
+        <i class="fa-solid fa-envelope-circle-check" style="color:var(--brand);margin-right:6px"></i>Recuperar contraseña
+      </div>
+      <p style="font-size:12.5px;color:var(--tx-3);margin-bottom:12px">Ingresá tu email y te enviaremos un link para restablecer tu contraseña.</p>
+      <div class="form-group" style="margin-bottom:10px">
+        <input type="email" class="form-input" id="forgot-email" placeholder="tu@email.com">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" style="flex:1;font-size:13px" onclick="sendPasswordReset()">
+          <i class="fa-solid fa-paper-plane"></i> Enviar link
+        </button>
+        <button class="btn btn-secondary" style="font-size:13px" onclick="hideForgotPassword()">
+          Cancelar
+        </button>
+      </div>
+      <div id="forgot-result" style="display:none;margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12.5px;text-align:center"></div>
+    </div>
     <div id="sb-auth-notice" style="display:none;margin-top:10px;padding:8px 12px;background:var(--brand-soft);border-radius:8px;font-size:11.5px;color:var(--brand);text-align:center;border:1px solid var(--brand)">
       <i class="fa-solid fa-cloud" style="margin-right:5px"></i> Conectado a Supabase
     </div>
@@ -5561,6 +5586,60 @@ function _toSnakeCase(arrayKey, record) {
 /* ================================================================
    AUTH
    ================================================================ */
+function showForgotPassword(){
+  const panel = document.getElementById('forgot-panel');
+  const emailInput = document.getElementById('forgot-email');
+  // Pre-fill with login email if already typed
+  emailInput.value = document.getElementById('login-email').value || '';
+  panel.style.display = 'block';
+  document.getElementById('forgot-result').style.display = 'none';
+  emailInput.focus();
+}
+
+function hideForgotPassword(){
+  document.getElementById('forgot-panel').style.display = 'none';
+}
+
+async function sendPasswordReset(){
+  const email = document.getElementById('forgot-email').value.trim();
+  const resultEl = document.getElementById('forgot-result');
+  if(!email){
+    resultEl.style.display = 'block';
+    resultEl.style.background = '#fee2e2';
+    resultEl.style.color = '#dc2626';
+    resultEl.textContent = 'Ingresá tu email primero.';
+    return;
+  }
+  if(!window._supabaseClient){
+    resultEl.style.display = 'block';
+    resultEl.style.background = '#fee2e2';
+    resultEl.style.color = '#dc2626';
+    resultEl.textContent = 'Sin conexión a Supabase.';
+    return;
+  }
+  const btn = document.querySelector('#forgot-panel .btn-primary');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+  try{
+    const { error } = await window._supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+    if(error) throw error;
+    resultEl.style.display = 'block';
+    resultEl.style.background = '#dcfce7';
+    resultEl.style.color = '#16a34a';
+    resultEl.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right:5px"></i>¡Email enviado! Revisá tu bandeja de entrada.';
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Enviado';
+  }catch(e){
+    resultEl.style.display = 'block';
+    resultEl.style.background = '#fee2e2';
+    resultEl.style.color = '#dc2626';
+    resultEl.textContent = 'Error: ' + (e.message || 'No se pudo enviar el email');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar link';
+  }
+}
+
 async function doLogin(){
   const email=$('login-email').value.trim(),pass=$('login-pass').value;
   
