@@ -1154,6 +1154,7 @@ tbody tr:hover{background:var(--bg-3)}
           <div><div class="sec-title">Panel de Control</div><div class="sec-sub" id="dashboard-date"></div></div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-secondary" onclick="openModal('modal-reminder');populateReminderRef()"><i class="fa-solid fa-bell"></i> Recordatorio</button>
+            <button class="btn btn-primary" onclick="generarReporteMensual()"><i class="fa-solid fa-file-pdf"></i> Reporte Mensual</button>
             <button class="btn btn-secondary" onclick="renderDashboard()"><i class="fa-solid fa-rotate-right"></i> Actualizar</button>
           </div>
         </div>
@@ -1480,6 +1481,7 @@ tbody tr:hover{background:var(--bg-3)}
           <div style="display:flex;gap:8px">
             <button class="btn btn-secondary" onclick="openWidgetPicker()"><i class="fa-solid fa-sliders"></i> Personalizar</button>
             <button class="btn btn-secondary" onclick="renderAnalytics()"><i class="fa-solid fa-rotate-right"></i> Actualizar</button>
+            <button class="btn btn-primary" onclick="generarReporteMensual()"><i class="fa-solid fa-file-pdf"></i> Reporte PDF</button>
           </div>
         </div>
         <div class="stats-grid" id="analytics-kpis"></div>
@@ -5573,10 +5575,11 @@ async function _loadAllFromSupabase() {
       : `✓ Todo sincronizado — ${loaded} tablas cargadas`;
     toast('success', msg);
 
-    // Re-apply role nav after data loads (ensures perms applied with full data)
+    // Re-apply role nav after data loads
     if(DB.currentUser){
       _applyRoleNav(DB.currentUser.rol || DB.currentUser.role || 'admin');
     }
+    updateNotifBadge();
 
     // Re-render current section
     const secEl = document.querySelector('.section.active');
@@ -6318,23 +6321,64 @@ function closeSearchDrop(){$('search-drop').classList.remove('open');}
    ================================================================ */
 function renderDashboard(){
   $('dashboard-date').textContent=new Date().toLocaleDateString('es-AR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  const ingresos=DB.transacciones.filter(t=>t.tipo==='ingreso').reduce((a,t)=>a+t.monto,0);
-  const pendientes=DB.transacciones.filter(t=>t.tipo==='pendiente').reduce((a,t)=>a+t.monto,0);
-  const proyActivos=DB.proyectos.filter(p=>p.estado==='en desarrollo').length;
-  const clienteActiv=DB.clientes.filter(c=>c.estado==='activo').length;
-  const tareasPend=DB.tareas.filter(t=>t.estado==='pendiente').length;
-  $('badge-tareas').textContent=tareasPend;
-  // Dynamic deltas
-  const factPagadas=DB.facturas.filter(f=>f.estado==='pagada').reduce((a,f)=>a+f.monto,0);
-  const proyTotal=DB.proyectos.length;
-  const tareasComp=DB.tareas.filter(t=>t.estado==='completada').length;
-  const tareasTotal=DB.tareas.length;
-  const convRate=DB.presupuestos.length?Math.round(DB.presupuestos.filter(p=>p.estado==='aprobado').length/DB.presupuestos.length*100):0;
+  const now = new Date();
+  const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
+  const lastMonth = thisMonth === 0 ? 11 : thisMonth-1;
+  const lastMonthYear = thisMonth === 0 ? thisYear-1 : thisYear;
+
+  // Helper: check if date string is in a given month/year
+  const inMonth = (dateStr, m, y) => { if(!dateStr) return false; const d=new Date(dateStr); return d.getMonth()===m && d.getFullYear()===y; };
+
+  // This month vs last month income
+  const ingMes = DB.transacciones.filter(t=>t.tipo==='ingreso'&&inMonth(t.fecha,thisMonth,thisYear)).reduce((a,t)=>a+t.monto,0);
+  const ingMesAnt = DB.transacciones.filter(t=>t.tipo==='ingreso'&&inMonth(t.fecha,lastMonth,lastMonthYear)).reduce((a,t)=>a+t.monto,0);
+  const ingDelta = ingMesAnt>0 ? Math.round((ingMes-ingMesAnt)/ingMesAnt*100) : 0;
+
+  // Facturas este mes
+  const factMes = DB.facturas.filter(f=>inMonth(f.fecha,thisMonth,thisYear)).reduce((a,f)=>a+f.monto,0);
+  const factMesAnt = DB.facturas.filter(f=>inMonth(f.fecha,lastMonth,lastMonthYear)).reduce((a,f)=>a+f.monto,0);
+  const factDelta = factMesAnt>0 ? Math.round((factMes-factMesAnt)/factMesAnt*100) : 0;
+
+  const pendientes = DB.facturas.filter(f=>f.estado==='pendiente').reduce((a,f)=>a+f.monto,0);
+  const proyActivos = DB.proyectos.filter(p=>p.estado==='en desarrollo').length;
+  const clienteActiv = DB.clientes.filter(c=>c.estado==='activo').length;
+  const tareasPend = DB.tareas.filter(t=>t.estado==='pendiente'||t.estado==='en progreso').length;
+  $('badge-tareas').textContent = tareasPend||'';
+
+  const sym = getCurrencySymbol();
+  const MONTHS_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
   $('stats-grid').innerHTML=[
-    {label:'Facturado Total',value:`$${fmt(factPagadas)}`,icon:'fa-arrow-trend-up',acc:'acc-green',si:'si-green',ch:ingresos>0?`+$${fmt(ingresos)} transacc.`:'Sin ingresos',dir:ingresos>0?'up':'flat'},
-    {label:'Proyectos Activos',value:proyActivos,icon:'fa-code-branch',acc:'acc-brand',si:'si-brand',ch:proyTotal>0?`${proyTotal} total`:'Sin proyectos',dir:'flat'},
-    {label:'Clientes Activos',value:clienteActiv,icon:'fa-users',acc:'acc-purple',si:'si-purple',ch:DB.clientes.length>0?`${DB.clientes.length} total`:'Sin clientes',dir:'flat'},
-    {label:'Pagos Pendientes',value:`$${fmt(pendientes)}`,icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:DB.facturas.filter(f=>f.estado==='pendiente').length>0?`${DB.facturas.filter(f=>f.estado==='pendiente').length} facturas`:'Al día ✓',dir:pendientes>0?'down':'flat'}
+    {
+      label:'Ingresos del Mes',
+      value:`${sym}${fmt(ingMes)}`,
+      icon:'fa-arrow-trend-up', acc:'acc-green', si:'si-green',
+      ch: ingMesAnt>0 ? `${ingDelta>=0?'+':''}${ingDelta}% vs ${MONTHS_ES[lastMonth]}` : `${sym}${fmt(ingMes)} acumulado`,
+      dir: ingDelta>0?'up':ingDelta<0?'down':'flat'
+    },
+    {
+      label:'Proyectos Activos',
+      value: proyActivos,
+      icon:'fa-code-branch', acc:'acc-brand', si:'si-brand',
+      ch: `${DB.proyectos.length} total · ${DB.proyectos.filter(p=>p.estado==='completado').length} completados`,
+      dir:'flat'
+    },
+    {
+      label:'Clientes Activos',
+      value: clienteActiv,
+      icon:'fa-users', acc:'acc-purple', si:'si-purple',
+      ch: `${DB.leads.filter(l=>l.etapa!=='cerrado').length} leads activos`,
+      dir: clienteActiv>0?'up':'flat'
+    },
+    {
+      label:'Facturas Pendientes',
+      value:`${sym}${fmt(pendientes)}`,
+      icon:'fa-hourglass-half', acc:'acc-amber', si:'si-amber',
+      ch: DB.facturas.filter(f=>f.estado==='pendiente').length>0
+        ? `${DB.facturas.filter(f=>f.estado==='pendiente').length} sin cobrar`
+        : 'Al día ✓',
+      dir: pendientes>0?'down':'flat'
+    }
   ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div><span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span></div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
   // Projects table
   const tbody=$('dash-projects-table').querySelector('tbody');
@@ -6349,8 +6393,9 @@ function renderDashboard(){
   $('dash-activity').innerHTML=DB.actividad.map(a=>{const s=colorMap[a.color]||colorMap.brand;return`<div class="activity-item"><div class="activity-icon" style="background:${s.bg};color:${s.c}"><i class="fa-solid ${a.icon}"></i></div><div><div class="activity-text">${a.texto}</div><div class="activity-time"><i class="fa-regular fa-clock" style="margin-right:3px"></i>${a.tiempo}</div></div></div>`;}).join('');
   renderDashCharts();
   renderDashReminders();
-  // Render widget-controlled stats
   _applyDashWidgets();
+  // Update notification badge with real counts
+  setTimeout(updateNotifBadge, 100);
 }
 function _applyDashWidgets(){
   _loadWidgets();
@@ -6377,11 +6422,59 @@ function _applyDashWidgets(){
 function quickCompleteTask(id){const t=DB.tareas.find(t=>t.id===id);if(t){t.estado=t.estado==='completada'?'pendiente':'completada';renderDashboard();}}
 function renderDashCharts(){
   const cc=chartColors();
+  const now=new Date(); const thisYear=now.getFullYear();
+  const MONTHS_ES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  // Build real monthly income data from transacciones + facturas pagadas
+  const monthlyIngresos = Array(12).fill(0);
+  const monthlyGastos   = Array(12).fill(0);
+  DB.transacciones.forEach(t=>{
+    if(!t.fecha) return;
+    const d=new Date(t.fecha);
+    if(d.getFullYear()===thisYear){
+      if(t.tipo==='ingreso') monthlyIngresos[d.getMonth()]+=t.monto||0;
+      if(t.tipo==='gasto')   monthlyGastos[d.getMonth()]+=t.monto||0;
+    }
+  });
+  DB.facturas.filter(f=>f.estado==='pagada'&&f.fecha).forEach(f=>{
+    const d=new Date(f.fecha);
+    if(d.getFullYear()===thisYear) monthlyIngresos[d.getMonth()]+=f.monto||0;
+  });
+
+  // Chart 1 — Monthly income line chart (real data)
   _dc('chart-ingresos');
-  _charts['chart-ingresos']=new Chart($('chart-ingresos').getContext('2d'),{type:'line',data:{labels:MONTHS_SHORT,datasets:[{label:'Ingresos ARS',data:[120000,95000,175000,360000,210000,280000,195000,320000,255000,415000,295000,385000],borderColor:'#4f46e5',backgroundColor:'rgba(79,70,229,.07)',borderWidth:2.5,pointBackgroundColor:'#4f46e5',pointRadius:3,pointHoverRadius:6,tension:0.42,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},border:{display:false},ticks:{color:cc.text}},y:{grid:{color:cc.grid},border:{display:false},ticks:{color:cc.text,callback:v=>'$'+fmt(v/1000)+'K'}}}}});
+  _charts['chart-ingresos']=new Chart($('chart-ingresos').getContext('2d'),{
+    type:'line',
+    data:{
+      labels:MONTHS_ES,
+      datasets:[
+        {label:'Ingresos',data:monthlyIngresos,borderColor:'#4f46e5',backgroundColor:'rgba(79,70,229,.08)',borderWidth:2.5,pointBackgroundColor:'#4f46e5',pointRadius:3,tension:.4,fill:true},
+        {label:'Gastos',data:monthlyGastos,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.05)',borderWidth:2,pointBackgroundColor:'#ef4444',pointRadius:3,tension:.4,fill:true}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{font:{size:11},boxWidth:12}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v>=1000?`$${(v/1000).toFixed(0)}k`:`$${v}`,font:{size:10}},grid:{color:cc.grid}},x:{ticks:{font:{size:10}},grid:{display:false}}}}
+  });
+
+  // Chart 2 — Projects donut (real data)
   _dc('chart-proyectos-donut');
-  const pend=DB.proyectos.filter(p=>p.estado==='pendiente').length,enD=DB.proyectos.filter(p=>p.estado==='en desarrollo').length,done=DB.proyectos.filter(p=>p.estado==='entregado').length;
-  _charts['chart-proyectos-donut']=new Chart($('chart-proyectos-donut').getContext('2d'),{type:'doughnut',data:{labels:['Pendiente','En Desarrollo','Entregado'],datasets:[{data:[pend,enD,done],backgroundColor:['rgba(245,158,11,.2)','rgba(79,70,229,.2)','rgba(16,185,129,.2)'],borderColor:['#f59e0b','#4f46e5','#10b981'],borderWidth:2,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{position:'bottom',labels:{color:cc.text}}}}});
+  const estados={desarrollo:0,revision:0,completado:0,pausado:0,otro:0};
+  DB.proyectos.forEach(p=>{
+    if(p.estado==='en desarrollo') estados.desarrollo++;
+    else if(p.estado==='revisión') estados.revision++;
+    else if(p.estado==='completado') estados.completado++;
+    else if(p.estado==='pausado') estados.pausado++;
+    else estados.otro++;
+  });
+  const donutData=[estados.desarrollo,estados.revision,estados.completado,estados.pausado,estados.otro];
+  const hasProyectos=donutData.some(v=>v>0);
+  _charts['chart-proyectos-donut']=new Chart($('chart-proyectos-donut').getContext('2d'),{
+    type:'doughnut',
+    data:{
+      labels:['En desarrollo','Revisión','Completado','Pausado','Otro'],
+      datasets:[{data:hasProyectos?donutData:[1],backgroundColor:hasProyectos?['#4f46e5','#f59e0b','#10b981','#6b7280','#a78bfa']:['#e5e7eb'],borderWidth:0,hoverOffset:4}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:8}},tooltip:{enabled:hasProyectos}}}
+  });
 }
 
 /* ================================================================
@@ -6723,6 +6816,41 @@ function savePresupuesto(){
 }
 function editPresupuesto(id){const p=DB.presupuestos.find(p=>p.id===id);populateClienteSelect('pr-cliente',p.clienteId);$('modal-presupuesto-title').textContent='Editar Presupuesto';$('pr-id').value=p.id;$('pr-nombre').value=p.nombre;$('pr-desc').value=p.desc;$('pr-precio').value=p.precio;$('pr-estado').value=p.estado;$('pr-fecha').value=p.fecha;$('pr-valido').value=p.valido||'';$('modal-presupuesto').classList.add('open');}
 function deletePresupuesto(id){if(!confirm('¿Eliminar?'))return;DB.presupuestos=DB.presupuestos.filter(p=>p.id!==id);_syncRecord('presupuestos',{id},true);renderPresupuestos();toast('info','Eliminado');}
+function convertirAFactura(id){
+  const p = DB.presupuestos.find(p=>p.id===id);
+  if(!p){ toast('error','Presupuesto no encontrado'); return; }
+  if(DB.facturas.find(f=>f.presupuestoId===id)){
+    toast('warning','Ya existe una factura para este presupuesto'); return;
+  }
+  if(!confirm(`¿Convertir "${p.nombre}" en factura por ${getCurrencySymbol()}${fmt(p.precio||p.total||0)}?`)) return;
+
+  const factura = {
+    id: nextId(),
+    presupuestoId: id,
+    clienteId: p.clienteId,
+    proyectoId: p.proyectoId||null,
+    descripcion: p.nombre || p.desc || '',
+    monto: p.precio || p.total || 0,
+    fecha: today(),
+    vence: (() => { const d=new Date(); d.setDate(d.getDate()+30); return d.toISOString().split('T')[0]; })(),
+    estado: 'pendiente',
+  };
+  DB.facturas.push(factura);
+  _persistArray('facturas');
+  _syncRecord('facturas', factura);
+
+  // Mark presupuesto as converted
+  const idx = DB.presupuestos.findIndex(p=>p.id===id);
+  DB.presupuestos[idx].convertida = true;
+  _persistArray('presupuestos');
+
+  logActivity('factura',`Factura generada desde presupuesto: <strong>${p.nombre}</strong>`);
+  toast('success',`✓ Factura creada por ${getCurrencySymbol()}${fmt(factura.monto)} — pendiente de cobro`);
+  renderPresupuestos();
+  // Ask if they want to go to facturacion
+  setTimeout(()=>{ if(confirm('¿Ir a Facturación para ver la factura?')) navigate('facturacion'); }, 300);
+}
+
 function approvePresupuesto(id){const p=DB.presupuestos.find(p=>p.id===id);if(p){p.estado='aprobado';renderPresupuestos();toast('success','Presupuesto aprobado');}}
 
 /* ================================================================
@@ -6778,52 +6906,143 @@ function deleteFactura(id){if(!confirm('¿Eliminar?'))return;DB.facturas=DB.fact
    PORTAL DEL CLIENTE
    ================================================================ */
 function renderPortal(){
-  const clienteId=parseInt($('portal-cliente-select').value)||null;
-  if(!clienteId){$('portal-content').innerHTML=`<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-globe"></i></div><h3>Selecciona un cliente</h3><p>Elige un cliente del menú para ver su portal personalizado</p></div>`;return;}
-  const c=DB.clientes.find(c=>c.id===clienteId);
-  const proyectos=DB.proyectos.filter(p=>p.clienteId===clienteId);
-  const facturas=DB.facturas.filter(f=>f.clienteId===clienteId);
-  const archivos=DB.archivos.filter(a=>true).slice(0,4);
-  const mainProy=proyectos[0];
-  const pct=mainProy?calcProgress(mainProy.checklist):0;
-  $('portal-content').innerHTML=`
-    <div class="portal-preview">
-      <div class="portal-topbar">
-        <div class="portal-topbar-logo"><i class="fa-solid fa-bolt-lightning"></i></div>
-        <div><div class="portal-topbar-title">Portal de ${c.nombre}</div><div class="portal-topbar-sub">Powered by AlexisDigital</div></div>
-        <div style="margin-left:auto"><span style="background:rgba(255,255,255,.15);color:#fff;font-size:11px;padding:3px 10px;border-radius:99px;font-weight:600"><i class="fa-solid fa-circle" style="font-size:7px;margin-right:4px"></i>Vista previa</span></div>
+  const clienteId = parseInt($('portal-cliente-select')?.value) ||
+    (DB.currentUser?.rol==='client' ? DB.currentUser?.clienteId : null);
+
+  if(!clienteId){
+    $('portal-content').innerHTML=`<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-globe"></i></div><h3>Selecciona un cliente</h3><p>Elige un cliente del menú para ver su portal personalizado</p></div>`;
+    return;
+  }
+
+  const cl = DB.clientes.find(c=>c.id===clienteId);
+  if(!cl){ $('portal-content').innerHTML='<p class="text-muted" style="padding:20px">Cliente no encontrado</p>'; return; }
+
+  const proyectos = DB.proyectos.filter(p=>p.clienteId===clienteId);
+  const facturas  = DB.facturas.filter(f=>f.clienteId===clienteId);
+  const sym = getCurrencySymbol();
+
+  // Stats
+  const totalFacturado = facturas.reduce((a,f)=>a+f.monto,0);
+  const totalPagado    = facturas.filter(f=>f.estado==='pagada').reduce((a,f)=>a+f.monto,0);
+  const totalPendiente = facturas.filter(f=>f.estado==='pendiente').reduce((a,f)=>a+f.monto,0);
+  const proyActivos    = proyectos.filter(p=>p.estado==='en desarrollo').length;
+  const proyCompletos  = proyectos.filter(p=>p.estado==='completado').length;
+
+  // Checklist progress across all projects
+  const allItems   = proyectos.flatMap(p=>p.checklist||[]);
+  const doneItems  = allItems.filter(i=>i.done).length;
+  const progGlobal = allItems.length ? Math.round(doneItems/allItems.length*100) : 0;
+
+  const isClient = DB.currentUser?.rol === 'client';
+
+  $('portal-content').innerHTML = `
+    <!-- Header cliente -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:20px;background:var(--bg-2);border-radius:16px;border:1px solid var(--bd)">
+      <div style="width:52px;height:52px;border-radius:14px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🌐</div>
+      <div style="flex:1">
+        <div style="font-size:20px;font-weight:700;color:var(--tx-1)">${cl.nombre}</div>
+        <div style="font-size:13px;color:var(--tx-3)">${cl.empresa||''}${cl.empresa&&cl.email?' · ':''}${cl.email||''}</div>
+        ${isClient?`<div style="font-size:12px;color:var(--brand);margin-top:3px;font-weight:600">👋 Bienvenido a tu panel de seguimiento</div>`:''}
       </div>
-      <div class="portal-body">
-        <!-- Proyecto principal -->
-        <div class="portal-card" style="grid-column:1/-1">
-          <div class="portal-card-title">🚀 Proyecto Principal</div>
-          ${mainProy?`<div style="font-size:15px;font-weight:700;color:var(--tx-1);margin-bottom:6px">${mainProy.nombre}</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div class="progress" style="flex:1"><div class="progress-fill" style="width:${pct}%"></div></div><span class="fw-600" style="color:var(--brand)">${pct}%</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px"><div><span class="text-muted">Inicio:</span> ${fmtD(mainProy.inicio)}</div><div><span class="text-muted">Entrega:</span> ${fmtD(mainProy.entrega)}</div><div><span class="text-muted">Estado:</span> ${statusBadge(mainProy.estado)}</div><div><span class="text-muted">Presupuesto:</span> <span class="amount-positive">$${fmt(mainProy.precio)}</span></div></div>`:'<p class="text-muted text-sm">Sin proyectos activos</p>'}
-        </div>
-        <!-- Tareas completadas -->
-        <div class="portal-card">
-          <div class="portal-card-title">✅ Tareas del Proyecto</div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            ${mainProy?(mainProy.checklist||[]).slice(0,5).map(item=>`<div style="display:flex;align-items:center;gap:8px;font-size:13px"><div style="width:16px;height:16px;border-radius:50%;background:${item.done?'var(--green)':'var(--bd)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:9px">${item.done?'✓':''}</div><span style="${item.done?'text-decoration:line-through;color:var(--tx-3)':'color:var(--tx-1)'}">${item.texto}</span></div>`).join(''):'<p class="text-muted text-sm">Sin tareas</p>'}
-          </div>
-        </div>
-        <!-- Archivos compartidos -->
-        <div class="portal-card">
-          <div class="portal-card-title">📁 Archivos Compartidos</div>
-          <div style="display:flex;flex-direction:column;gap:5px">
-            ${archivos.map(a=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg-2);border-radius:7px;font-size:12.5px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--bg-3)'" onmouseout="this.style.background='var(--bg-2)'">${fileIcons[a.tipo]||'📁'} <span style="flex:1;color:var(--tx-1)">${a.nombre}</span><span class="text-muted" style="font-size:11px">${a.size||''}</span></div>`).join('')}
-          </div>
-        </div>
-        <!-- Facturas -->
-        <div class="portal-card" style="grid-column:1/-1">
-          <div class="portal-card-title">🧾 Mis Facturas</div>
-          ${facturas.length?`<div style="overflow-x:auto"><table style="width:100%"><thead><tr><th style="padding:8px 12px;font-size:11px;font-weight:700;color:var(--tx-3);text-align:left;border-bottom:1px solid var(--bd)">Descripción</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:var(--tx-3);text-align:left;border-bottom:1px solid var(--bd)">Monto</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:var(--tx-3);text-align:left;border-bottom:1px solid var(--bd)">Vence</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:var(--tx-3);text-align:left;border-bottom:1px solid var(--bd)">Estado</th></tr></thead><tbody>${facturas.map(f=>`<tr><td style="padding:10px 12px;font-size:13px;color:var(--tx-1)">${f.desc}</td><td style="padding:10px 12px;font-size:13px;font-weight:600;color:var(--green)">$${fmt(f.monto)}</td><td style="padding:10px 12px;font-size:12px;color:var(--tx-2)">${fmtD(f.vence)}</td><td style="padding:10px 12px">${statusBadge(f.estado)}</td></tr>`).join('')}</tbody></table></div>`:
-          '<p class="text-muted text-sm">Sin facturas</p>'}
-        </div>
+      ${!isClient?`<div style="display:flex;gap:8px">
+        <button class="btn btn-sm btn-secondary" onclick="editCliente(${cl.id});closeModal('modal-ver-cliente')"><i class="fa-solid fa-pen"></i> Editar</button>
+        <button class="btn btn-sm btn-primary" onclick="generarReporteMensual()"><i class="fa-solid fa-file-pdf"></i> Reporte</button>
+      </div>`:''}
+    </div>
+
+    <!-- Stats row -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      <div class="stat-card"><div class="stat-accent acc-brand"></div><div class="stat-header"><div class="stat-ico si-brand"><i class="fa-solid fa-code-branch"></i></div></div><div class="stat-value">${proyActivos}</div><div class="stat-label">Proyectos Activos</div></div>
+      <div class="stat-card"><div class="stat-accent acc-green"></div><div class="stat-header"><div class="stat-ico si-green"><i class="fa-solid fa-circle-check"></i></div></div><div class="stat-value">${proyCompletos}</div><div class="stat-label">Completados</div></div>
+      <div class="stat-card"><div class="stat-accent acc-green"></div><div class="stat-header"><div class="stat-ico si-green"><i class="fa-solid fa-coins"></i></div></div><div class="stat-value">${sym}${fmt(totalPagado)}</div><div class="stat-label">Total Pagado</div></div>
+      <div class="stat-card"><div class="stat-accent acc-amber"></div><div class="stat-header"><div class="stat-ico si-amber"><i class="fa-solid fa-hourglass-half"></i></div></div><div class="stat-value">${sym}${fmt(totalPendiente)}</div><div class="stat-label">Pendiente</div></div>
+    </div>
+
+    ${allItems.length ? `
+    <!-- Progreso global -->
+    <div style="background:var(--bg-2);border-radius:12px;padding:16px 20px;margin-bottom:20px;border:1px solid var(--bd)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-weight:600;color:var(--tx-1)"><i class="fa-solid fa-chart-line" style="color:var(--brand);margin-right:8px"></i>Progreso General</div>
+        <span class="fw-700" style="color:var(--brand);font-size:18px">${progGlobal}%</span>
       </div>
+      <div class="progress" style="height:10px;border-radius:6px">
+        <div class="progress-fill" style="width:${progGlobal}%;border-radius:6px"></div>
+      </div>
+      <div style="font-size:12px;color:var(--tx-3);margin-top:6px">${doneItems} de ${allItems.length} tareas completadas en todos los proyectos</div>
+    </div>` : ''}
+
+    <!-- Proyectos detallados -->
+    <div style="display:grid;grid-template-columns:${facturas.length?'1fr 1fr':'1fr'};gap:16px">
+      <div>
+        <div style="font-weight:700;font-size:14px;color:var(--tx-1);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+          <i class="fa-solid fa-code-branch" style="color:var(--brand)"></i>Proyectos
+        </div>
+        ${proyectos.length ? proyectos.map(p=>{
+          const pct = calcProgress(p.checklist);
+          const done = (p.checklist||[]).filter(i=>i.done).length;
+          const total = (p.checklist||[]).length;
+          return `<div style="background:var(--bg-2);border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid var(--bd)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+              <div>
+                <div style="font-weight:600;color:var(--tx-1)">${p.nombre}</div>
+                <div style="font-size:12px;color:var(--tx-3)">${fmtD(p.inicio)} → ${fmtD(p.entrega)}</div>
+              </div>
+              ${statusBadge(p.estado)}
+            </div>
+            ${total>0?`
+            <div style="margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tx-3);margin-bottom:4px">
+                <span>Progreso</span><span>${done}/${total} tareas</span>
+              </div>
+              <div class="progress"><div class="progress-fill" style="width:${pct}%"></div></div>
+            </div>
+            ${isClient?`
+            <div style="margin-top:10px">
+              ${(p.checklist||[]).slice(0,4).map(item=>`
+                <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)">
+                  <i class="fa-solid fa-${item.done?'circle-check':'circle'}" style="color:${item.done?'var(--green)':'var(--tx-3)'};font-size:14px"></i>
+                  <span style="font-size:12.5px;color:${item.done?'var(--tx-3)':'var(--tx-1)'};text-decoration:${item.done?'line-through':''}">${item.texto}</span>
+                </div>`).join('')}
+              ${(p.checklist||[]).length>4?`<div style="font-size:11px;color:var(--tx-3);margin-top:6px">+${(p.checklist||[]).length-4} tareas más...</div>`:''}
+            </div>`:''}
+            `:'<p style="font-size:12px;color:var(--tx-3)">Sin tareas definidas</p>'}
+            <div style="margin-top:10px;font-size:13px;font-weight:600;color:var(--brand)">${sym}${fmt(p.precio||0)}</div>
+          </div>`;
+        }).join('') : '<p class="text-muted text-sm">Sin proyectos</p>'}
+      </div>
+
+      ${facturas.length ? `<div>
+        <div style="font-weight:700;font-size:14px;color:var(--tx-1);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+          <i class="fa-solid fa-receipt" style="color:var(--brand)"></i>Facturas
+        </div>
+        <div style="background:var(--bg-2);border-radius:12px;overflow:hidden;border:1px solid var(--bd)">
+          <table style="width:100%;border-collapse:collapse">
+            <thead><tr style="background:var(--bg-3)">
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--tx-3);text-transform:uppercase">Descripción</th>
+              <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;color:var(--tx-3);text-transform:uppercase">Monto</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--tx-3);text-transform:uppercase">Estado</th>
+            </tr></thead>
+            <tbody>
+              ${facturas.map(f=>`<tr style="border-bottom:1px solid var(--bd)">
+                <td style="padding:10px 14px;font-size:13px;color:var(--tx-1)">
+                  <div style="font-weight:500">${f.descripcion||f.desc||'Factura'}</div>
+                  <div style="font-size:11px;color:var(--tx-3)">${fmtD(f.fecha)}${f.vence?' · vence '+fmtD(f.vence):''}</div>
+                </td>
+                <td style="padding:10px 14px;text-align:right;font-weight:700;font-size:13px;color:var(--tx-1)">${sym}${fmt(f.monto)}</td>
+                <td style="padding:10px 14px;text-align:center">${statusBadge(f.estado)}</td>
+              </tr>`).join('')}
+              <tr style="background:var(--bg-3)">
+                <td style="padding:10px 14px;font-size:13px;font-weight:700;color:var(--tx-1)">Total</td>
+                <td style="padding:10px 14px;text-align:right;font-size:14px;font-weight:800;color:var(--brand)">${sym}${fmt(totalFacturado)}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>` : ''}
     </div>`;
 }
+
 
 /* ================================================================
    CONFIGURACIÓN
@@ -7402,7 +7621,122 @@ async function deleteUsuario(id){
 }
 
 
-function showNotifications(){const p=DB.tareas.filter(t=>t.estado==='pendiente').length;const pay=DB.transacciones.filter(t=>t.tipo==='pendiente').length;toast('info',`${p} tareas pendientes · ${pay} pagos por cobrar`);}
+function _getSmartNotifications(){
+  const notifs = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  const in7 = new Date(today); in7.setDate(in7.getDate()+7);
+  const in3 = new Date(today); in3.setDate(in3.getDate()+3);
+
+  // Overdue invoices
+  DB.facturas.filter(f=>f.estado==='pendiente'&&f.vence).forEach(f=>{
+    const v=new Date(f.vence); v.setHours(0,0,0,0);
+    if(v<today){
+      notifs.push({type:'danger',icon:'fa-receipt',title:'Factura vencida',
+        body:`${getClienteName(f.clienteId)} — ${getCurrencySymbol()}${fmt(f.monto)}`,
+        date:f.vence, action:()=>navigate('facturacion')});
+    } else if(v<=in3){
+      notifs.push({type:'warning',icon:'fa-receipt',title:'Factura por vencer',
+        body:`${getClienteName(f.clienteId)} — vence ${fmtD(f.vence)}`,
+        date:f.vence, action:()=>navigate('facturacion')});
+    }
+  });
+
+  // Overdue tasks
+  DB.tareas.filter(t=>t.estado!=='completada'&&t.vence).forEach(t=>{
+    const v=new Date(t.vence); v.setHours(0,0,0,0);
+    if(v<today){
+      notifs.push({type:'danger',icon:'fa-list-check',title:'Tarea vencida',
+        body:t.titulo, date:t.vence, action:()=>navigate('tareas')});
+    } else if(v<=in3){
+      notifs.push({type:'warning',icon:'fa-list-check',title:'Tarea por vencer',
+        body:`${t.titulo} — vence ${fmtD(t.vence)}`,
+        date:t.vence, action:()=>navigate('tareas')});
+    }
+  });
+
+  // Projects past delivery date
+  DB.proyectos.filter(p=>p.estado==='en desarrollo'&&p.entrega).forEach(p=>{
+    const v=new Date(p.entrega); v.setHours(0,0,0,0);
+    if(v<today){
+      notifs.push({type:'danger',icon:'fa-code-branch',title:'Proyecto atrasado',
+        body:`${p.nombre} — entrega ${fmtD(p.entrega)}`,
+        date:p.entrega, action:()=>navigate('proyectos')});
+    }
+  });
+
+  // Leads without activity (no etapa change in >7 days — approximate with leads in early stages)
+  DB.leads.filter(l=>l.etapa==='nuevo').forEach(l=>{
+    notifs.push({type:'info',icon:'fa-filter',title:'Lead sin gestionar',
+      body:`${l.nombre}${l.empresa?' · '+l.empresa:''}`,
+      date:null, action:()=>navigate('pipeline')});
+  });
+
+  // Reminders due today
+  (DB.reminders||[]).filter(r=>!r.done&&r.fecha===today.toISOString().split('T')[0]).forEach(r=>{
+    notifs.push({type:'info',icon:'fa-bell',title:'Recordatorio de hoy',
+      body:r.texto||r.title||'', date:r.fecha, action:()=>{}});
+  });
+
+  return notifs;
+}
+
+function updateNotifBadge(){
+  const notifs = _getSmartNotifications();
+  const dot = document.querySelector('.notif-dot');
+  if(dot) dot.style.display = notifs.length>0 ? 'block' : 'none';
+  // Update count badge
+  let badge = document.getElementById('notif-count');
+  if(!badge){
+    badge = document.createElement('span');
+    badge.id='notif-count';
+    badge.style.cssText='position:absolute;top:2px;right:2px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 4px;min-width:14px;text-align:center';
+    document.querySelector('.tb-btn [class*="fa-bell"]')?.parentElement?.appendChild(badge);
+  }
+  badge.textContent = notifs.length>9?'9+':notifs.length||'';
+  badge.style.display = notifs.length>0?'block':'none';
+}
+
+function showNotifications(){
+  const panel = document.getElementById('notif-panel');
+  const isOpen = panel.style.display==='flex';
+  if(isOpen){ panel.style.display='none'; return; }
+
+  const notifs = _getSmartNotifications();
+  const colors = {danger:'var(--red)',warning:'var(--amber)',info:'var(--brand)',success:'var(--green)'};
+  const bgs    = {danger:'var(--red-soft)',warning:'var(--amber-soft)',info:'var(--brand-soft)',success:'var(--green-soft)'};
+
+  document.getElementById('notif-list').innerHTML = notifs.length ? notifs.map((n,i)=>`
+    <div onclick="closeNotifPanel();(${n.action.toString()})()" style="display:flex;align-items:flex-start;gap:12px;padding:12px 20px;cursor:pointer;border-bottom:1px solid var(--bd);transition:background .15s" onmouseover="this.style.background='var(--bg-2)'" onmouseout="this.style.background=''">
+      <div style="width:34px;height:34px;border-radius:10px;background:${bgs[n.type]};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fa-solid ${n.icon}" style="color:${colors[n.type]};font-size:14px"></i>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px;color:var(--tx-1)">${n.title}</div>
+        <div style="font-size:12px;color:var(--tx-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n.body}</div>
+        ${n.date?`<div style="font-size:11px;color:var(--tx-3);margin-top:2px"><i class="fa-regular fa-calendar" style="margin-right:3px"></i>${fmtD(n.date)}</div>`:''}
+      </div>
+    </div>`).join('') :
+    `<div style="text-align:center;padding:32px 20px;color:var(--tx-3)">
+      <i class="fa-solid fa-circle-check" style="font-size:28px;color:var(--green);display:block;margin-bottom:10px"></i>
+      <div style="font-weight:600;margin-bottom:4px">Todo al día</div>
+      <div style="font-size:12px">Sin notificaciones pendientes</div>
+    </div>`;
+
+  panel.style.display='flex';
+
+  // Close on outside click
+  setTimeout(()=>{
+    document.addEventListener('click', function handler(e){
+      if(!panel.contains(e.target) && !e.target.closest('.tb-btn')){
+        panel.style.display='none';
+        document.removeEventListener('click',handler);
+      }
+    });
+  },100);
+}
+
+function closeNotifPanel(){ document.getElementById('notif-panel').style.display='none'; }
+function markAllRead(){ closeNotifPanel(); toast('success','Notificaciones marcadas como leídas'); }
 
 /* ================================================================
    PLANTILLAS WEB
@@ -8131,6 +8465,7 @@ function renderPresupuestos(){
           <button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('presupuesto',${p.id})" title="PDF"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>
           <button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button>
           ${p.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="approvePresupuesto(${p.id})"><i class="fa-solid fa-check"></i></button>`:''}
+          ${p.estado==='aprobado'?`<button class="btn btn-sm btn-primary" onclick="convertirAFactura(${p.id})" title="Convertir a Factura"><i class="fa-solid fa-file-invoice"></i> Facturar</button>`:''}
           <button class="btn btn-sm btn-danger btn-icon" onclick="deletePresupuesto(${p.id})"><i class="fa-solid fa-trash"></i></button>
         </div>
       </div>`).join('')}</div>`:`<div class="card" style="padding:24px"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-file-invoice"></i></div><h3>Sin presupuestos</h3></div></div>`;
@@ -9034,6 +9369,190 @@ function showEmailCompose(tipo){openSendEmailModal(null,null);}
    PDF GENERATOR
    ================================================================ */
 let _pdfDocData=null;
+
+function generarReporteMensual(mes, anio){
+  const now = new Date();
+  const m = mes !== undefined ? mes : now.getMonth();
+  const y = anio || now.getFullYear();
+  const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const mesNombre = MONTHS_ES[m];
+  const sym = getCurrencySymbol();
+  const brandColor = DB.sistema?.colorBrand || '#4f46e5';
+  const agencia = DB.config?.agencia || DB.sistema?.nombre || 'AlexisDigital';
+  const s = DB.sistema || {};
+  const logoHtml = s.logoLight
+    ? `<img src="${s.logoLight}" style="height:40px;object-fit:contain" alt="Logo">`
+    : `<div style="font-size:22px;font-weight:800;color:${brandColor}">${agencia}</div>`;
+
+  const inMonth = (dateStr) => {
+    if(!dateStr) return false;
+    const d = new Date(dateStr);
+    return d.getMonth()===m && d.getFullYear()===y;
+  };
+
+  // ── Calcular métricas del mes ──────────────────────────────
+  const facturasDelMes = DB.facturas.filter(f => inMonth(f.fecha));
+  const facturado = facturasDelMes.reduce((a,f) => a+f.monto, 0);
+  const cobrado = facturasDelMes.filter(f=>f.estado==='pagada').reduce((a,f) => a+f.monto, 0);
+  const pendiente = facturasDelMes.filter(f=>f.estado==='pendiente').reduce((a,f) => a+f.monto, 0);
+
+  const ingresos = DB.transacciones.filter(t=>t.tipo==='ingreso'&&inMonth(t.fecha)).reduce((a,t) => a+t.monto, 0);
+  const gastos   = DB.transacciones.filter(t=>t.tipo==='gasto'&&inMonth(t.fecha)).reduce((a,t) => a+t.monto, 0);
+  const balance  = ingresos - gastos;
+
+  const proyNuevos    = DB.proyectos.filter(p => inMonth(p.inicio)).length;
+  const proyCompletos = DB.proyectos.filter(p => p.estado==='completado'&&inMonth(p.entrega)).length;
+  const proyActivos   = DB.proyectos.filter(p => p.estado==='en desarrollo').length;
+
+  const tareasComp = DB.tareas.filter(t => t.estado==='completada').length;
+  const tareasPend = DB.tareas.filter(t => t.estado!=='completada').length;
+
+  const leadsNuevos  = DB.leads.filter(l => inMonth(l.creado||'')).length;
+  const leadsCerrados= DB.leads.filter(l => l.etapa==='cerrado').length;
+  const convRate     = DB.leads.length ? Math.round(leadsCerrados/DB.leads.length*100) : 0;
+
+  // ── Top clientes por facturación ──────────────────────────
+  const clienteTotals = {};
+  facturasDelMes.forEach(f => {
+    const nombre = getClienteName(f.clienteId);
+    clienteTotals[nombre] = (clienteTotals[nombre]||0) + f.monto;
+  });
+  const topClientes = Object.entries(clienteTotals)
+    .sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  // ── Gastos por categoría ───────────────────────────────────
+  const catTotals = {};
+  DB.transacciones.filter(t=>t.tipo==='gasto'&&inMonth(t.fecha)).forEach(t => {
+    const cat = t.categoria||'Sin categoría';
+    catTotals[cat] = (catTotals[cat]||0) + t.monto;
+  });
+  const topGastos = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  // ── Build HTML report ─────────────────────────────────────
+  const statBox = (label, value, sub='', color=brandColor) =>
+    `<div style="background:#f8fafc;border-radius:10px;padding:16px;border:1px solid #e2e8f0;text-align:center">
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:6px">${label}</div>
+      <div style="font-size:22px;font-weight:800;color:${color}">${value}</div>
+      ${sub?`<div style="font-size:11px;color:#94a3b8;margin-top:3px">${sub}</div>`:''}
+    </div>`;
+
+  const tableRow = (label, value, highlight=false) =>
+    `<tr style="border-bottom:1px solid #f1f5f9;${highlight?`background:${brandColor}10`:''}">
+      <td style="padding:9px 14px;font-size:13px;color:#334155">${label}</td>
+      <td style="padding:9px 14px;text-align:right;font-size:13px;font-weight:600;color:#0f172a">${value}</td>
+    </tr>`;
+
+  document.getElementById('pdf-content').innerHTML = `
+    <div style="max-width:680px;margin:0 auto;font-family:'Poppins',sans-serif">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:20px;border-bottom:3px solid ${brandColor};margin-bottom:28px">
+        ${logoHtml}
+        <div style="text-align:right">
+          <div style="font-size:22px;font-weight:800;color:${brandColor}">REPORTE MENSUAL</div>
+          <div style="font-size:14px;color:#64748b;margin-top:2px">${mesNombre} ${y}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px">Generado el ${fmtD(today())}</div>
+        </div>
+      </div>
+
+      <!-- KPIs principales -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px">
+        ${statBox('Facturado', `${sym}${fmt(facturado)}`, `${facturasDelMes.length} facturas`)}
+        ${statBox('Cobrado', `${sym}${fmt(cobrado)}`, 'efectivo', '#10b981')}
+        ${statBox('Pendiente', `${sym}${fmt(pendiente)}`, 'por cobrar', '#f59e0b')}
+        ${statBox('Balance', `${sym}${fmt(balance)}`, `ing. - gas.`, balance>=0?'#10b981':'#ef4444')}
+      </div>
+
+      <!-- Ingresos y gastos -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+            <span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block"></span>Ingresos
+          </div>
+          <table style="width:100%;border-collapse:collapse">
+            ${DB.transacciones.filter(t=>t.tipo==='ingreso'&&inMonth(t.fecha)).slice(0,6)
+              .map(t=>tableRow(t.descripcion||'Ingreso', `${sym}${fmt(t.monto)}`)).join('')
+              || tableRow('Sin ingresos registrados','—')}
+            ${tableRow('TOTAL INGRESOS', `${sym}${fmt(ingresos)}`, true)}
+          </table>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+            <span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span>Gastos por categoría
+          </div>
+          <table style="width:100%;border-collapse:collapse">
+            ${topGastos.map(([cat,monto])=>tableRow(cat, `${sym}${fmt(monto)}`)).join('')
+              || tableRow('Sin gastos registrados','—')}
+            ${tableRow('TOTAL GASTOS', `${sym}${fmt(gastos)}`, true)}
+          </table>
+        </div>
+      </div>
+
+      <!-- Proyectos y Ventas -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px">
+        <div style="background:#f8fafc;border-radius:12px;padding:16px;border:1px solid #e2e8f0">
+          <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:12px">
+            <i style="margin-right:6px">🚀</i>Proyectos
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e8f0">
+            <span style="font-size:12.5px;color:#475569">Activos</span>
+            <span style="font-weight:700;color:#0f172a">${proyActivos}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e8f0">
+            <span style="font-size:12.5px;color:#475569">Nuevos este mes</span>
+            <span style="font-weight:700;color:${brandColor}">${proyNuevos}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0">
+            <span style="font-size:12.5px;color:#475569">Completados</span>
+            <span style="font-weight:700;color:#10b981">${proyCompletos}</span>
+          </div>
+        </div>
+        <div style="background:#f8fafc;border-radius:12px;padding:16px;border:1px solid #e2e8f0">
+          <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:12px">
+            <i style="margin-right:6px">🎯</i>Ventas & Leads
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e8f0">
+            <span style="font-size:12.5px;color:#475569">Leads totales</span>
+            <span style="font-weight:700;color:#0f172a">${DB.leads.length}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e8f0">
+            <span style="font-size:12.5px;color:#475569">Cerrados</span>
+            <span style="font-weight:700;color:#10b981">${leadsCerrados}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0">
+            <span style="font-size:12.5px;color:#475569">Tasa de conversión</span>
+            <span style="font-weight:700;color:${brandColor}">${convRate}%</span>
+          </div>
+        </div>
+      </div>
+
+      ${topClientes.length ? `
+      <!-- Top clientes -->
+      <div style="margin-bottom:28px">
+        <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px">🏆 Top Clientes del Mes</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:#f8fafc">
+            <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;border-bottom:2px solid #e2e8f0">Cliente</th>
+            <th style="padding:9px 14px;text-align:right;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;border-bottom:2px solid #e2e8f0">Facturado</th>
+          </thead>
+          <tbody>${topClientes.map(([nombre,monto],i)=>
+            `<tr style="border-bottom:1px solid #f1f5f9;background:${i===0?brandColor+'08':''}">
+              <td style="padding:9px 14px;font-size:13px;color:#334155">${i===0?'🥇 ':''}${nombre}</td>
+              <td style="padding:9px 14px;text-align:right;font-size:13px;font-weight:600;color:${brandColor}">${sym}${fmt(monto)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>` : ''}
+
+      <!-- Footer -->
+      <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:11px;color:#94a3b8">${agencia} · ${DB.config?.email_agencia||''}</div>
+        <div style="font-size:11px;color:#94a3b8">Reporte generado por AlexisDigital Manager</div>
+      </div>
+    </div>`;
+
+  document.getElementById('pdf-preview-title').textContent = `Reporte ${mesNombre} ${y}`;
+  document.getElementById('modal-pdf-preview').classList.add('open');
+}
 
 function generarPDF(tipo, id){
   let data={};
@@ -10033,5 +10552,13 @@ console.log('[v9] SaaS core loaded ✓');
     </div>
   </div>
 
+  <!-- Notifications Panel -->
+  <div id="notif-panel" style="display:none;position:fixed;top:62px;right:16px;width:360px;max-height:480px;background:var(--bg-1);border:1px solid var(--bd);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:9999;overflow:hidden;flex-direction:column">
+    <div style="padding:16px 20px 12px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-weight:700;font-size:15px;color:var(--tx-1)"><i class="fa-solid fa-bell" style="color:var(--brand);margin-right:8px"></i>Notificaciones</div>
+      <button onclick="markAllRead()" style="background:none;border:none;font-size:12px;color:var(--brand);cursor:pointer;font-weight:600">Marcar todo leído</button>
+    </div>
+    <div id="notif-list" style="overflow-y:auto;max-height:380px;padding:8px 0"></div>
+  </div>
 </body>
 </html>
