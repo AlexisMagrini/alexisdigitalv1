@@ -963,7 +963,7 @@ tbody tr:hover{background:var(--bg-3)}
   <div class="login-card">
     <div class="login-logo">
       <div class="login-logo-mark"><i class="fa-solid fa-bolt-lightning"></i></div>
-      <div class="login-logo-text">AlexisDigital <span>Manager · v9</span></div>
+      <div class="login-logo-text" id="login-app-name">AlexisDigital Manager</div>
     </div>
     <div class="login-title">Bienvenido de vuelta 👋</div>
     <div class="login-sub">Ingresa a tu panel de gestión de agencia <span class="v9-badge">SaaS v9</span></div>
@@ -1092,11 +1092,10 @@ tbody tr:hover{background:var(--bg-3)}
         <div class="nav-icon"><i class="fa-solid fa-gear"></i></div><span>Configuración</span>
       </div>
     </nav>
-    <div class="sidebar-footer">
-      <div class="user-tile" onclick="navigate('configuracion')">
-        <div class="user-av" id="sidebar-avatar">AA</div>
-        <div><div class="user-name" id="sidebar-name">Admin</div><div class="user-role">Administrador</div></div>
-      </div>
+    <!-- Hidden elements kept for JS compatibility -->
+    <div style="display:none">
+      <span id="sidebar-avatar">AA</span>
+      <span id="sidebar-name">Admin</span>
     </div>
   </aside>
 
@@ -1124,24 +1123,48 @@ tbody tr:hover{background:var(--bg-3)}
         <div class="search-drop" id="search-drop"></div>
       </div>
       <div class="topbar-actions">
-        <!-- DB Connection Status -->
-        <div id="conn-status" class="conn-status conn-local" title="Estado de conexión" onclick="navigate('configuracion');switchCfgPanel('integraciones',document.getElementById('cfgmenu-integraciones'))">
+        <!-- DB Connection dot only (no label) -->
+        <div id="conn-status" class="conn-status conn-local" title="Estado de conexión" onclick="navigate('configuracion');switchCfgPanel('integraciones',document.getElementById('cfgmenu-integraciones'))" style="min-width:0;padding:0 6px">
           <span class="conn-dot"></span>
-          <span class="conn-label" id="conn-label">Local</span>
         </div>
-        <!-- User role badge -->
-        <div id="topbar-role-badge" class="role-badge role-admin" style="display:none"></div>
         <!-- Dark mode toggle -->
         <div class="dm-toggle" id="dm-toggle" onclick="toggleDarkMode()" title="Cambiar tema">
           <div class="dm-btn" id="dm-light"><i class="fa-solid fa-sun"></i></div>
           <div class="dm-btn" id="dm-dark"><i class="fa-solid fa-moon"></i></div>
         </div>
-        <button class="tb-btn" onclick="showNotifications()" title="Notificaciones">
+        <!-- Notifications -->
+        <button class="tb-btn" onclick="showNotifications()" title="Notificaciones" style="position:relative">
           <i class="fa-solid fa-bell"></i><span class="notif-dot"></span>
         </button>
-        <button class="tb-btn" onclick="doLogout()" title="Cerrar sesión">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <!-- Settings -->
+        <button class="tb-btn" onclick="navigate('configuracion')" title="Configuración">
+          <i class="fa-solid fa-gear"></i>
         </button>
+        <!-- User avatar with dropdown -->
+        <div style="position:relative">
+          <div id="topbar-avatar" onclick="toggleUserMenu()" title="Mi cuenta"
+            style="width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;user-select:none;flex-shrink:0">
+            AA
+          </div>
+          <!-- User dropdown -->
+          <div id="user-menu" style="display:none;position:absolute;top:42px;right:0;width:200px;background:var(--bg-1);border:1px solid var(--bd);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:9999;overflow:hidden">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--bd)">
+              <div id="um-name" style="font-weight:700;font-size:13px;color:var(--tx-1)">Admin</div>
+              <div id="um-role" style="font-size:11px;color:var(--tx-3);margin-top:2px">Administrador</div>
+              <div id="um-email" style="font-size:11px;color:var(--tx-3)"></div>
+            </div>
+            <div style="padding:6px">
+              <button onclick="navigate('configuracion');closeUserMenu()" style="width:100%;text-align:left;padding:8px 12px;border:none;background:none;cursor:pointer;border-radius:8px;font-size:13px;color:var(--tx-1);display:flex;align-items:center;gap:8px" onmouseover="this.style.background='var(--bg-2)'" onmouseout="this.style.background='none'">
+                <i class="fa-solid fa-gear" style="color:var(--brand);width:16px"></i> Configuración
+              </button>
+              <button onclick="doLogout()" style="width:100%;text-align:left;padding:8px 12px;border:none;background:none;cursor:pointer;border-radius:8px;font-size:13px;color:var(--red);display:flex;align-items:center;gap:8px" onmouseover="this.style.background='var(--bg-2)'" onmouseout="this.style.background='none'">
+                <i class="fa-solid fa-arrow-right-from-bracket" style="width:16px"></i> Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Hidden role badge (kept for JS compatibility) -->
+        <div id="topbar-role-badge" style="display:none"></div>
       </div>
     </header>
 
@@ -5957,6 +5980,18 @@ function _finishLogin(user){
   $('app').classList.add('active');
   $('sidebar-name').textContent=(user.nombre||user.name||'').split(' ')[0];
   $('sidebar-avatar').textContent=user.avatar||'AD';
+  // Update topbar avatar
+  const av = user.avatar || (user.nombre||'AD').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const topAv = document.getElementById('topbar-avatar');
+  if(topAv) topAv.textContent = av;
+  // Update user menu info
+  const rolLabels = {admin:'Administrador', employee:'Empleado', client:'Cliente'};
+  const umName = document.getElementById('um-name');
+  const umRole = document.getElementById('um-role');
+  const umEmail = document.getElementById('um-email');
+  if(umName) umName.textContent = user.nombre||user.name||'';
+  if(umRole) umRole.textContent = rolLabels[user.rol||user.role||'admin']||'';
+  if(umEmail) umEmail.textContent = user.email||'';
   // Persist session if "mantener sesión" is checked (default: true)
   const rememberMe = document.getElementById('login-remember')?.checked !== false;
   if(rememberMe){
@@ -6100,13 +6135,33 @@ function savePermisos(){
 async function loadPermisosFromSupabase(){
   if(window.STORAGE_MODE!=='supabase'||!window._supabaseClient) return;
   try{
+    // Load multiple kv_store keys at once
     const {data,error} = await window._supabaseClient
-      .from('kv_store').select('value').eq('key','permisos').single();
-    if(data?.value){
-      if(!DB.config) DB.config={};
-      DB.config.permisos = JSON.parse(data.value);
+      .from('kv_store').select('key,value').in('key',[
+        'permisos','sistema_logoLight','sistema_logoDark','sistema_favicon'
+      ]);
+    if(data){
+      data.forEach(row=>{
+        if(row.key==='permisos'){
+          if(!DB.config) DB.config={};
+          try{ DB.config.permisos = JSON.parse(row.value); }catch(e){}
+        } else if(row.key==='sistema_logoLight'){
+          DB.sistema=DB.sistema||{};
+          DB.sistema.logoLight = row.value;
+        } else if(row.key==='sistema_logoDark'){
+          DB.sistema=DB.sistema||{};
+          DB.sistema.logoDark = row.value;
+        } else if(row.key==='sistema_favicon'){
+          DB.sistema=DB.sistema||{};
+          DB.sistema.favicon = row.value;
+        }
+      });
+      // Apply logos/branding after loading
+      if(data.some(r=>r.key.startsWith('sistema_'))){
+        applySystemSettings();
+      }
     }
-  }catch(e){ console.warn('perms load:', e.message); }
+  }catch(e){ console.warn('kv load:', e.message); }
 }
 
 // Current role being edited in permissions panel
@@ -7427,7 +7482,13 @@ function saveSistemaPanel(){
   DB.config.notificaciones=g('cfg-notif')?.checked??true;
   applySystemSettings();
   _persistAll();
-  toast('success','¡Configuración del sistema aplicada!');
+  // Sync sistema config to Supabase kv_store
+  if(window.STORAGE_MODE==='supabase'&&window._supabaseClient){
+    window._supabaseClient.from('kv_store')
+      .upsert({key:'sistema_config', value:JSON.stringify(DB.sistema)})
+      .then(()=>{}).catch(e=>console.warn('sistema sync:', e.message));
+  }
+  toast('success','¡Configuración guardada y sincronizada!');
 }
 
 function applySystemSettings(){
@@ -8056,6 +8117,22 @@ function showNotifications(){
 }
 
 function closeNotifPanel(){ document.getElementById('notif-panel').style.display='none'; }
+function toggleUserMenu(){
+  const menu = document.getElementById('user-menu');
+  const isOpen = menu.style.display === 'block';
+  if(isOpen){ menu.style.display='none'; return; }
+  menu.style.display = 'block';
+  setTimeout(()=>{
+    document.addEventListener('click', function handler(e){
+      if(!menu.contains(e.target) && !document.getElementById('topbar-avatar').contains(e.target)){
+        menu.style.display='none';
+        document.removeEventListener('click',handler);
+      }
+    });
+  },100);
+}
+function closeUserMenu(){ document.getElementById('user-menu').style.display='none'; }
+
 function markAllRead(){
   closeNotifPanel();
   // Hide badge
@@ -9230,15 +9307,29 @@ function handleLogoUpload(inputId, storageKey, previewId){
   if(!input||!input.files||!input.files[0])return;
   const file=input.files[0];
   if(!file.type.startsWith('image/')){toast('error','Por favor sube una imagen');return;}
-  if(file.size>500000){toast('error','El archivo es muy grande (máx 500KB)');return;}
+  if(file.size>2000000){toast('error','El archivo es muy grande (máx 2MB)');return;}
   const reader=new FileReader();
-  reader.onload=e=>{
+  reader.onload=async e=>{
     const b64=e.target.result;
+    DB.sistema=DB.sistema||{};
     DB.sistema[storageKey]=b64;
     const prev=document.getElementById(previewId);
     if(prev){prev.src=b64;prev.style.display='block';}
-    _persistAll();applySystemSettings();
-    toast('success','Logo actualizado');
+    _persistAll();
+    applySystemSettings();
+    // Sync to Supabase kv_store so logo persists across devices
+    if(window.STORAGE_MODE==='supabase'&&window._supabaseClient){
+      try{
+        await window._supabaseClient.from('kv_store')
+          .upsert({key:'sistema_'+storageKey, value:b64});
+        toast('success','Logo guardado y sincronizado ✓');
+      }catch(e){
+        toast('success','Logo guardado localmente ✓');
+        console.warn('Logo sync:', e.message);
+      }
+    } else {
+      toast('success','Logo actualizado ✓');
+    }
   };
   reader.readAsDataURL(file);
 }
