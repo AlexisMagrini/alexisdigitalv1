@@ -1477,22 +1477,31 @@ tbody tr:hover{background:var(--bg-3)}
       <!-- ANALYTICS -->
       <section class="section" id="sec-analytics">
         <div class="sec-header">
-          <div><div class="sec-title">Analytics</div><div class="sec-sub">Métricas e indicadores clave de la agencia</div></div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-secondary" onclick="openWidgetPicker()"><i class="fa-solid fa-sliders"></i> Personalizar</button>
-            <button class="btn btn-secondary" onclick="renderAnalytics()"><i class="fa-solid fa-rotate-right"></i> Actualizar</button>
+          <div><div class="sec-title">Analytics</div><div class="sec-sub" id="analytics-period-label">Métricas e indicadores clave de la agencia</div></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;background:var(--bg-2);border-radius:8px;padding:3px;gap:2px;border:1px solid var(--bd)">
+              <button id="analytics-tab-week"    class="analytics-tab" onclick="setAnalyticsPeriod('week')"    style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:none;color:var(--tx-3)">Semana</button>
+              <button id="analytics-tab-month"   class="analytics-tab" onclick="setAnalyticsPeriod('month')"   style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:var(--brand);color:#fff">Mes</button>
+              <button id="analytics-tab-quarter" class="analytics-tab" onclick="setAnalyticsPeriod('quarter')" style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:none;color:var(--tx-3)">Trimestre</button>
+              <button id="analytics-tab-year"    class="analytics-tab" onclick="setAnalyticsPeriod('year')"    style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:none;color:var(--tx-3)">Año</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="date" id="analytics-from" class="form-input" style="padding:5px 8px;font-size:12px;width:130px" onchange="setAnalyticsPeriod('custom')">
+              <span style="font-size:12px;color:var(--tx-3)">→</span>
+              <input type="date" id="analytics-to" class="form-input" style="padding:5px 8px;font-size:12px;width:130px" onchange="setAnalyticsPeriod('custom')">
+            </div>
             <button class="btn btn-primary" onclick="generarReporteMensual()"><i class="fa-solid fa-file-pdf"></i> Reporte PDF</button>
           </div>
         </div>
-        <div class="stats-grid" id="analytics-kpis"></div>
-        <div class="stats-grid" id="analytics-fin-extra" style="margin-top:16px"></div>
+        <!-- KPI stats row -->
+        <div class="stats-grid" id="analytics-stats" style="margin-bottom:16px"></div>
         <div class="dash-row">
-          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-line"></i> Ingresos por Mes (últimos 12 meses)</div></div><div class="chart-wrap"><canvas id="chart-analytics-ingresos"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-bar"></i> Proyectos por Estado</div></div><div class="chart-wrap"><canvas id="chart-analytics-proyectos"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-bar"></i> Ingresos vs Gastos</div></div><div class="chart-wrap"><canvas id="chart-analytics-ingresos"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-pie"></i> Proyectos por Estado</div></div><div class="chart-wrap"><canvas id="chart-analytics-proyectos"></canvas></div></div>
         </div>
         <div class="dash-row">
-          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-users"></i> Clientes Nuevos por Mes</div></div><div class="chart-wrap chart-wrap-sm"><canvas id="chart-analytics-clientes"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-scale-balanced"></i> Balance Mensual</div></div><div class="chart-wrap chart-wrap-sm"><canvas id="chart-analytics-balance"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-filter"></i> Leads por Etapa</div></div><div class="chart-wrap chart-wrap-sm"><canvas id="chart-analytics-pipeline"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fa-solid fa-list-check"></i> Estado de Tareas</div></div><div class="chart-wrap chart-wrap-sm"><canvas id="chart-analytics-tareas"></canvas></div></div>
         </div>
       </section>
 
@@ -6288,7 +6297,23 @@ function navigate(id){
     configuracion:renderConfig,calendario:renderCalendario,pipeline:renderProspectos,emails:renderEmails,
     presupuestos:renderPresupuestos,contratos:renderContratos,facturacion:renderFacturacion,
     plantillas_web:renderPlantillasWeb,
-    analytics:renderAnalytics,portal:renderPortal,actividad:renderActividad}[id]||function(){})();
+    analytics:renderAnalytics,portal:renderPortalFull,actividad:renderActividad}[id]||function(){})();
+}
+
+function renderPortalFull(){
+  // Always repopulate select before rendering
+  const ps = $('portal-cliente-select');
+  if(ps && DB.clientes.length){
+    const currentVal = ps.value;
+    ps.innerHTML = '<option value="">— Seleccionar cliente —</option>' +
+      DB.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+    if(currentVal) ps.value = currentVal;
+  }
+  // Auto-select for client role
+  if(DB.currentUser?.rol==='client' && DB.currentUser?.clienteId){
+    if(ps) ps.value = DB.currentUser.clienteId;
+  }
+  renderPortal();
 }
 
 /* ================================================================
@@ -6851,7 +6876,16 @@ function convertirAFactura(id){
   setTimeout(()=>{ if(confirm('¿Ir a Facturación para ver la factura?')) navigate('facturacion'); }, 300);
 }
 
-function approvePresupuesto(id){const p=DB.presupuestos.find(p=>p.id===id);if(p){p.estado='aprobado';renderPresupuestos();toast('success','Presupuesto aprobado');}}
+function approvePresupuesto(id){
+  const p=DB.presupuestos.find(p=>p.id===id);
+  if(p){
+    p.estado='aprobado';
+    _persistArray('presupuestos');
+    _syncRecord('presupuestos', p);
+    renderPresupuestos();
+    toast('success','Presupuesto aprobado ✓ — ahora podés convertirlo en factura');
+  }
+}
 
 /* ================================================================
    CONTRATOS
@@ -7736,7 +7770,18 @@ function showNotifications(){
 }
 
 function closeNotifPanel(){ document.getElementById('notif-panel').style.display='none'; }
-function markAllRead(){ closeNotifPanel(); toast('success','Notificaciones marcadas como leídas'); }
+function markAllRead(){
+  closeNotifPanel();
+  // Hide badge
+  const badge = document.getElementById('notif-count');
+  if(badge) badge.style.display='none';
+  const dot = document.querySelector('.notif-dot');
+  if(dot) dot.style.display='none';
+  // Store read timestamp so we don't re-show same notifications
+  window._notifLastRead = Date.now();
+  try{ localStorage.setItem('adm_notif_read', window._notifLastRead); }catch(e){}
+  toast('success','Todo al día ✓');
+}
 
 /* ================================================================
    PLANTILLAS WEB
@@ -9102,34 +9147,200 @@ function _persistProyectoTareas(){
 /* ================================================================
    ANALYTICS — Enhanced KPIs
    ================================================================ */
+// Analytics period state
+window._analyticsPeriod = 'month';
+window._analyticsFrom = null;
+window._analyticsTo = null;
+
+function setAnalyticsPeriod(period){
+  window._analyticsPeriod = period;
+  // Update tab styles
+  ['week','month','quarter','year'].forEach(t=>{
+    const btn = document.getElementById(`analytics-tab-${t}`);
+    if(btn){
+      const active = t===period;
+      btn.style.background = active ? 'var(--brand)' : 'none';
+      btn.style.color = active ? '#fff' : 'var(--tx-3)';
+    }
+  });
+  // For custom: read date inputs
+  if(period==='custom'){
+    window._analyticsFrom = document.getElementById('analytics-from')?.value;
+    window._analyticsTo   = document.getElementById('analytics-to')?.value;
+    if(!window._analyticsFrom || !window._analyticsTo) return;
+    // deactivate all tabs
+    ['week','month','quarter','year'].forEach(t=>{
+      const btn = document.getElementById(`analytics-tab-${t}`);
+      if(btn){ btn.style.background='none'; btn.style.color='var(--tx-3)'; }
+    });
+  }
+  renderAnalytics();
+}
+
+function _getAnalyticsDateRange(){
+  const now = new Date(); now.setHours(23,59,59,999);
+  let from, to = now;
+  const period = window._analyticsPeriod || 'month';
+  if(period==='custom' && window._analyticsFrom && window._analyticsTo){
+    from = new Date(window._analyticsFrom); from.setHours(0,0,0,0);
+    to   = new Date(window._analyticsTo);   to.setHours(23,59,59,999);
+  } else if(period==='week'){
+    from = new Date(now); from.setDate(now.getDate()-7); from.setHours(0,0,0,0);
+  } else if(period==='month'){
+    from = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if(period==='quarter'){
+    from = new Date(now); from.setMonth(now.getMonth()-3); from.setDate(1); from.setHours(0,0,0,0);
+  } else { // year
+    from = new Date(now.getFullYear(), 0, 1);
+  }
+  return {from, to};
+}
+
 function renderAnalytics(){
-  const cc=chartColors();
-  const ingresos=DB.transacciones.filter(t=>t.tipo==='ingreso');
-  const gastos=DB.transacciones.filter(t=>t.tipo==='gasto');
-  const totalIngresos=ingresos.reduce((a,t)=>a+t.monto,0);
-  const totalGastos=gastos.reduce((a,t)=>a+t.monto,0);
-  const factPend=DB.facturas.filter(f=>f.estado==='pendiente');
-  const totalPend=factPend.reduce((a,f)=>a+f.monto,0);
-  /* Ingresos del mes actual */
-  const mesActual=new Date().toISOString().slice(0,7);
-  const ingresosMes=ingresos.filter(t=>t.fecha&&t.fecha.startsWith(mesActual));
-  const totalMes=ingresosMes.reduce((a,t)=>a+t.monto,0);
-  /* Leads count */
-  const totalLeads=DB.leads.length;
-  const leadsCerrados=DB.leads.filter(l=>l.etapa==='cerrado').length;
-  const convRate=totalLeads?Math.round(leadsCerrados/totalLeads*100):0;
-  const proyActivos=DB.proyectos.filter(p=>p.estado==='en desarrollo').length;
-  /* KPI grid */
-  $('analytics-kpis').innerHTML=[
-    {label:'Ingresos del Mes',value:'$'+fmt(totalMes),icon:'fa-calendar-check',acc:'acc-brand',si:'si-brand',ch:'Mes actual',dir:'up'},
-    {label:'Ingresos Totales',value:'$'+fmt(totalIngresos),icon:'fa-coins',acc:'acc-green',si:'si-green',ch:`$${fmt(totalGastos)} gastos`,dir:'up'},
-    {label:'Facturas Pendientes',value:factPend.length,icon:'fa-hourglass-half',acc:'acc-amber',si:'si-amber',ch:'$'+fmt(totalPend),dir:'flat'},
-    {label:'Proyectos Activos',value:proyActivos,icon:'fa-code-branch',acc:'acc-blue',si:'si-blue',ch:DB.proyectos.length+' total',dir:'flat'},
-    {label:'Clientes Totales',value:DB.clientes.filter(c=>c.estado==='activo').length,icon:'fa-users',acc:'acc-purple',si:'si-purple',ch:DB.clientes.length+' registrados',dir:'up'},
-    {label:'Leads en Pipeline',value:totalLeads,icon:'fa-filter',acc:'acc-teal',si:'si-teal',ch:convRate+'% conversión',dir:'flat'}
-  ].map(s=>`<div class="stat-card"><div class="stat-accent ${s.acc}"></div><div class="stat-header"><div class="stat-ico ${s.si}"><i class="fa-solid ${s.icon}"></i></div><span class="stat-change ch-${s.dir}"><i class="fa-solid fa-arrow-${s.dir==='up'?'up':s.dir==='down'?'down':'right'}"></i>${s.ch}</span></div><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
-  setTimeout(()=>renderAnalyticsCharts(cc),80);
-  renderFinancialKPIs();
+  const cc = chartColors();
+  const {from, to} = _getAnalyticsDateRange();
+  const period = window._analyticsPeriod || 'month';
+  const MONTHS_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  // Update period label
+  const label = {
+    week: 'Últimos 7 días', month: 'Este mes',
+    quarter: 'Último trimestre', year: 'Este año',
+    custom: `${from.toLocaleDateString('es-AR')} → ${to.toLocaleDateString('es-AR')}`
+  }[period] || 'Este mes';
+  const el = document.getElementById('analytics-period-label');
+  if(el) el.textContent = label;
+
+  // Set date inputs if not custom
+  if(period!=='custom'){
+    const fi = document.getElementById('analytics-from');
+    const ti = document.getElementById('analytics-to');
+    if(fi) fi.value = from.toISOString().split('T')[0];
+    if(ti) ti.value = to.toISOString().split('T')[0];
+  }
+
+  // Filter helpers
+  const inRange = (dateStr) => {
+    if(!dateStr) return false;
+    const d = new Date(dateStr);
+    return d >= from && d <= to;
+  };
+
+  // Filtered data
+  const ingresos  = DB.transacciones.filter(t=>t.tipo==='ingreso' && inRange(t.fecha));
+  const gastos    = DB.transacciones.filter(t=>t.tipo==='gasto'   && inRange(t.fecha));
+  const facturas  = DB.facturas.filter(f=>inRange(f.fecha));
+  const totalIngresos = ingresos.reduce((a,t)=>a+t.monto,0);
+  const totalGastos   = gastos.reduce((a,t)=>a+t.monto,0);
+  const totalFacturas = facturas.reduce((a,f)=>a+f.monto,0);
+  const balance       = totalIngresos - totalGastos;
+
+  const leadsCerrados = DB.leads.filter(l=>l.etapa==='cerrado').length;
+  const convRate = DB.leads.length ? Math.round(leadsCerrados/DB.leads.length*100) : 0;
+  const sym = getCurrencySymbol();
+
+  // Stats KPIs
+  const statsEl = document.getElementById('analytics-stats');
+  if(statsEl) statsEl.innerHTML = [
+    {label:'Ingresos', value:`${sym}${fmt(totalIngresos)}`, icon:'fa-arrow-trend-up', color:'var(--green)'},
+    {label:'Gastos',   value:`${sym}${fmt(totalGastos)}`,   icon:'fa-arrow-trend-down', color:'var(--red)'},
+    {label:'Balance',  value:`${sym}${fmt(balance)}`,       icon:'fa-scale-balanced', color: balance>=0?'var(--green)':'var(--red)'},
+    {label:'Facturado',value:`${sym}${fmt(totalFacturas)}`, icon:'fa-receipt', color:'var(--brand)'},
+    {label:'Proyectos activos', value: DB.proyectos.filter(p=>p.estado==='en desarrollo').length, icon:'fa-code-branch', color:'var(--brand)'},
+    {label:'Conversión leads',  value:`${convRate}%`, icon:'fa-bullseye', color:'var(--amber)'},
+  ].map(s=>`<div class="stat-card"><div class="stat-header"><div class="stat-ico" style="background:${s.color}20"><i class="fa-solid ${s.icon}" style="color:${s.color}"></i></div></div><div class="stat-value" style="font-size:20px">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+
+  // Build time-series data for chart
+  // Group by day/week/month depending on period
+  const daysDiff = Math.round((to-from)/(1000*60*60*24));
+  let labels = [], ingData = [], gasData = [];
+
+  if(daysDiff <= 31){ // daily
+    for(let d=new Date(from); d<=to; d.setDate(d.getDate()+1)){
+      const ds = d.toISOString().split('T')[0];
+      labels.push(`${d.getDate()}/${d.getMonth()+1}`);
+      ingData.push(ingresos.filter(t=>t.fecha===ds).reduce((a,t)=>a+t.monto,0));
+      gasData.push(gastos.filter(t=>t.fecha===ds).reduce((a,t)=>a+t.monto,0));
+    }
+  } else if(daysDiff <= 90){ // weekly
+    let wStart = new Date(from);
+    while(wStart <= to){
+      const wEnd = new Date(wStart); wEnd.setDate(wEnd.getDate()+6);
+      labels.push(`${wStart.getDate()}/${wStart.getMonth()+1}`);
+      ingData.push(ingresos.filter(t=>{ const d=new Date(t.fecha); return d>=wStart&&d<=wEnd; }).reduce((a,t)=>a+t.monto,0));
+      gasData.push(gastos.filter(t=>{ const d=new Date(t.fecha); return d>=wStart&&d<=wEnd; }).reduce((a,t)=>a+t.monto,0));
+      wStart.setDate(wStart.getDate()+7);
+    }
+  } else { // monthly
+    const months = [];
+    let cur = new Date(from.getFullYear(), from.getMonth(), 1);
+    while(cur <= to){
+      months.push(new Date(cur));
+      cur.setMonth(cur.getMonth()+1);
+    }
+    labels = months.map(m=>MONTHS_ES[m.getMonth()]);
+    ingData = months.map(m=>ingresos.filter(t=>{ const d=new Date(t.fecha); return d.getMonth()===m.getMonth()&&d.getFullYear()===m.getFullYear(); }).reduce((a,t)=>a+t.monto,0));
+    gasData = months.map(m=>gastos.filter(t=>{ const d=new Date(t.fecha); return d.getMonth()===m.getMonth()&&d.getFullYear()===m.getFullYear(); }).reduce((a,t)=>a+t.monto,0));
+  }
+
+  // Chart 1 - Income vs Expenses
+  _dc('chart-analytics-ingresos');
+  _charts['chart-analytics-ingresos']=new Chart($('chart-analytics-ingresos').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Ingresos',data:ingData,backgroundColor:'rgba(16,185,129,.7)',borderRadius:4},
+      {label:'Gastos',  data:gasData,backgroundColor:'rgba(239,68,68,.6)', borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}},
+      scales:{y:{beginAtZero:true,ticks:{callback:v=>v>=1000?`${sym}${(v/1000).toFixed(0)}k`:`${sym}${v}`,font:{size:10}},grid:{color:cc.grid}},x:{ticks:{font:{size:10}},grid:{display:false}}}}
+  });
+
+  // Chart 2 - Projects donut
+  _dc('chart-analytics-proyectos');
+  const pStates={desarrollo:0,revision:0,completado:0,pausado:0};
+  DB.proyectos.forEach(p=>{
+    if(p.estado==='en desarrollo') pStates.desarrollo++;
+    else if(p.estado==='revisión') pStates.revision++;
+    else if(p.estado==='completado') pStates.completado++;
+    else pStates.pausado++;
+  });
+  _charts['chart-analytics-proyectos']=new Chart($('chart-analytics-proyectos').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['Desarrollo','Revisión','Completado','Pausado'],
+      datasets:[{data:[pStates.desarrollo,pStates.revision,pStates.completado,pStates.pausado],
+        backgroundColor:['#4f46e5','#f59e0b','#10b981','#6b7280'],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:8}}}}
+  });
+
+  // Chart 3 - Pipeline funnel
+  const PIPELINE_COLS2 = DB.pipeline_estados?.length ? DB.pipeline_estados : [{id:'nuevo',nombre:'Nuevo'},{id:'contactado',nombre:'Contactado'},{id:'propuesta',nombre:'Propuesta'},{id:'negociacion',nombre:'Negociación'},{id:'cerrado',nombre:'Cerrado'}];
+  _dc('chart-analytics-pipeline');
+  _charts['chart-analytics-pipeline']=new Chart($('chart-analytics-pipeline').getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:PIPELINE_COLS2.map(c=>c.nombre),
+      datasets:[{data:PIPELINE_COLS2.map(c=>DB.leads.filter(l=>l.etapa===c.id).length),
+        backgroundColor:['#4f46e5','#f59e0b','#10b981','#8b5cf6','#06b6d4'],borderRadius:6}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}},grid:{color:cc.grid}},
+        x:{ticks:{font:{size:10}},grid:{display:false}}}}
+  });
+
+  // Chart 4 - Tasks completion
+  const tareasComp = DB.tareas.filter(t=>t.estado==='completada').length;
+  const tareasPend = DB.tareas.filter(t=>t.estado==='pendiente').length;
+  const tareasEnProg = DB.tareas.filter(t=>t.estado==='en progreso').length;
+  _dc('chart-analytics-tareas');
+  _charts['chart-analytics-tareas']=new Chart($('chart-analytics-tareas').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['Completadas','Pendientes','En progreso'],
+      datasets:[{data:[tareasComp,tareasPend,tareasEnProg],
+        backgroundColor:['#10b981','#6b7280','#f59e0b'],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:8}}}}
+  });
 }
 
 function renderAnalyticsCharts(cc){
