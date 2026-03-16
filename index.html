@@ -1879,8 +1879,7 @@ tbody tr:hover{background:var(--bg-3)}
               <div class="admin-table-wrap">
                 <div class="admin-table-header">
                   <span class="admin-table-title"><i class="fa-solid fa-users-gear" style="margin-right:7px;color:var(--brand)"></i>Usuarios del Sistema</span>
-                  <button class="btn btn-primary btn-sm" onclick="openModal('modal-usuario')"><i class="fa-solid fa-plus"></i></button>
-                    <button class="btn btn-secondary btn-sm" onclick="syncUsersFromSupabase()"><i class="fa-solid fa-rotate"></i> Sync Supabase</button>
+                  <button class="btn btn-secondary btn-sm" onclick="syncUsersFromSupabase()"><i class="fa-solid fa-rotate"></i> Sync Supabase</button>
                   <button class="btn btn-primary btn-sm" onclick="openModal('modal-usuario')"><i class="fa-solid fa-plus"></i> Nuevo usuario</button>
                 </div>
                 <div class="table-wrap"><table>
@@ -2477,6 +2476,7 @@ tbody tr:hover{background:var(--bg-3)}
     <div class="grid-2 mb-16">
       <div class="form-group"><label class="form-label">Nombre del proyecto *</label><input type="text" class="form-input" id="pr-nombre" placeholder="Nombre del servicio"></div>
       <div class="form-group"><label class="form-label">Cliente *</label><select class="form-select" id="pr-cliente"></select></div>
+      <div class="form-group"><label class="form-label">Proyecto vinculado</label><select class="form-select" id="pr-proyecto"><option value="">— Ninguno —</option></select></div>
     </div>
     <div class="grid-2 mb-16">
       <div class="form-group"><label class="form-label">Plantilla base</label><select class="form-select" id="pr-plantilla" onchange="calcPresupuesto()"><option value="">— Sin plantilla —</option></select></div>
@@ -2595,6 +2595,52 @@ tbody tr:hover{background:var(--bg-3)}
   </div><div class="modal-footer">
     <button class="btn btn-secondary" onclick="closeModal('modal-factura')">Cancelar</button>
     <button class="btn btn-primary" onclick="saveFactura()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+  </div></div>
+</div>
+
+<!-- Modal Facturar Presupuesto -->
+<div class="modal-overlay" id="modal-facturar-pres">
+  <div class="modal"><div class="modal-header">
+    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-file-invoice"></i></div><div class="modal-title">Generar Factura</div></div>
+    <button class="modal-close" onclick="closeModal('modal-facturar-pres')"><i class="fa-solid fa-xmark"></i></button>
+  </div><div class="modal-body">
+    <div id="facturar-pres-info" style="background:var(--bg-2);border-radius:10px;padding:14px;margin-bottom:16px;border:1px solid var(--bd)"></div>
+    <div class="grid-2 mb-16">
+      <div class="form-group">
+        <label class="form-label">% a facturar</label>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button class="btn btn-sm btn-secondary" onclick="setPorcentaje(25)">25%</button>
+          <button class="btn btn-sm btn-secondary" onclick="setPorcentaje(50)">50%</button>
+          <button class="btn btn-sm btn-secondary" onclick="setPorcentaje(75)">75%</button>
+          <button class="btn btn-sm btn-secondary" onclick="setPorcentaje(100)">100%</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="number" class="form-input" id="fp-porcentaje" min="1" max="100" value="50" style="width:80px" oninput="calcFacturaMonto()">
+          <span style="color:var(--tx-3)">%</span>
+          <span style="font-size:13px;font-weight:700;color:var(--brand)" id="fp-monto-calc"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Vencimiento</label>
+        <input type="date" class="form-input" id="fp-vence">
+      </div>
+    </div>
+    <div class="form-group mb-16">
+      <label class="form-label">Descripción en la factura</label>
+      <input type="text" class="form-input" id="fp-desc" placeholder="Adelanto 50% — Desarrollo web">
+    </div>
+    <div class="form-group mb-16">
+      <label class="form-label">Vincular / crear proyecto</label>
+      <select class="form-select" id="fp-proyecto">
+        <option value="">— No vincular proyecto —</option>
+        <option value="__nuevo__">➕ Crear proyecto nuevo automáticamente</option>
+      </select>
+      <p class="text-muted text-sm" style="margin-top:4px">Al cobrar el adelanto podés crear el proyecto automáticamente</p>
+    </div>
+    <div id="fp-saldo-info" style="display:none;padding:12px;background:var(--amber-soft);border-radius:10px;border:1px solid var(--amber);font-size:13px;color:var(--tx-1)"></div>
+  </div><div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-facturar-pres')">Cancelar</button>
+    <button class="btn btn-primary" onclick="confirmarFacturarPresupuesto()"><i class="fa-solid fa-file-invoice"></i> Crear Factura</button>
   </div></div>
 </div>
 
@@ -5203,12 +5249,14 @@ function openModal(id) {
   if (id === 'modal-presupuesto') {
     populateClienteSelect('pr-cliente');
     populatePlantillaSelect('pr-plantilla');
+    populateProyectoSelect('pr-proyecto');
     renderExtrasGrid(); calcPresupuesto();
     document.getElementById('pr-fecha').value = today();
     const v = new Date(); v.setDate(v.getDate()+30);
     document.getElementById('pr-valido').value = v.toISOString().split('T')[0];
     document.getElementById('modal-presupuesto-title').textContent = 'Nuevo Presupuesto';
     document.getElementById('pr-id').value = '';
+    document.getElementById('pr-proyecto').value = '';
   }
   if (id === 'modal-contrato')       { populateClienteSelect('ct-cliente'); populateProyectoSelect('ct-proyecto'); document.getElementById('ct-fecha').value=today(); document.getElementById('modal-contrato-title').textContent='Nuevo Contrato'; document.getElementById('ct-id').value=''; }
   if (id === 'modal-factura')        { populateClienteSelect('fct-cliente'); populateProyectoSelect('fct-proyecto'); document.getElementById('fct-fecha').value=today(); document.getElementById('modal-factura-title').textContent='Nueva Factura'; document.getElementById('fct-id').value=''; }
@@ -5708,6 +5756,7 @@ function _toSnakeCase(arrayKey, record) {
     }),
     presupuestos: r => ({
       id: r.id, nombre: r.nombre, cliente_id: r.clienteId,
+      proyecto_id: r.proyectoId||null,
       descripcion: r.desc || r.descripcion || '',
       precio: r.precio, estado: r.estado, fecha: r.fecha, valido: r.valido,
     }),
@@ -6890,86 +6939,197 @@ function _legacyPresupuestos_REPLACED(){
 }
 function savePresupuesto(){
   const id=$('pr-id').value;
-  const data={nombre:$('pr-nombre').value.trim(),clienteId:parseInt($('pr-cliente').value)||null,desc:$('pr-desc').value.trim(),precio:parseFloat($('pr-precio').value)||0,estado:$('pr-estado').value,fecha:$('pr-fecha').value,valido:$('pr-valido').value};
+  const data={nombre:$('pr-nombre').value.trim(),clienteId:parseInt($('pr-cliente').value)||null,proyectoId:parseInt($('pr-proyecto').value)||null,desc:$('pr-desc').value.trim(),precio:parseFloat($('pr-precio').value)||0,estado:$('pr-estado').value,fecha:$('pr-fecha').value,valido:$('pr-valido').value};
   if(!data.nombre||!data.precio){toast('error','Nombre y precio son obligatorios');return;}
   if(id){const idx=DB.presupuestos.findIndex(p=>p.id==id);DB.presupuestos[idx]={...DB.presupuestos[idx],...data};showToast('success','Presupuesto actualizado');}
   else{data.id=nextId();DB.presupuestos.push(data);showToast('success',`Presupuesto creado: ${data.nombre||'Nuevo'}`);logActivity('presupuesto',`Presupuesto creado: <strong>${data.nombre||'Nuevo'}</strong> — ${fmtMoney(data.precio)}`);}
   _syncRecord('presupuestos', id ? DB.presupuestos.find(p=>p.id==id)||data : data);
   _clearDraft('modal-presupuesto');closeModal('modal-presupuesto');renderPresupuestos();
 }
-function editPresupuesto(id){const p=DB.presupuestos.find(p=>p.id===id);populateClienteSelect('pr-cliente',p.clienteId);$('modal-presupuesto-title').textContent='Editar Presupuesto';$('pr-id').value=p.id;$('pr-nombre').value=p.nombre;$('pr-desc').value=p.desc;$('pr-precio').value=p.precio;$('pr-estado').value=p.estado;$('pr-fecha').value=p.fecha;$('pr-valido').value=p.valido||'';$('modal-presupuesto').classList.add('open');}
+function editPresupuesto(id){
+  const p=DB.presupuestos.find(p=>p.id===id);
+  populateClienteSelect('pr-cliente',p.clienteId);
+  populateProyectoSelect('pr-proyecto', p.proyectoId||null);
+  $('modal-presupuesto-title').textContent='Editar Presupuesto';
+  $('pr-id').value=p.id;
+  $('pr-nombre').value=p.nombre;
+  $('pr-desc').value=p.desc||'';
+  $('pr-precio').value=p.precio;
+  $('pr-estado').value=p.estado;
+  $('pr-fecha').value=p.fecha||today();
+  $('pr-valido').value=p.valido||'';
+  tempExtras=p.extras?[...p.extras]:[];
+  renderExtrasGrid();
+  calcPresupuesto();
+  $('modal-presupuesto').classList.add('open');
+}
+
 function deletePresupuesto(id){if(!confirm('¿Eliminar?'))return;DB.presupuestos=DB.presupuestos.filter(p=>p.id!==id);_syncRecord('presupuestos',{id},true);renderPresupuestos();toast('info','Eliminado');}
+// Current presupuesto being billed
+window._facturandoPresId = null;
+
 function convertirAFactura(id){
   const p = DB.presupuestos.find(p=>p.id===id);
   if(!p){ toast('error','Presupuesto no encontrado'); return; }
-  if(DB.facturas.find(f=>f.presupuestoId===id)){
-    toast('warning','Ya existe una factura para este presupuesto'); return;
-  }
+  window._facturandoPresId = id;
 
   const sym = getCurrencySymbol();
-  const total = p.precio || p.total || 0;
-  const mitad = Math.round(total / 2 * 100) / 100;
+  const total = p.precio || 0;
 
-  // Ask: full invoice or 50/50
-  const opcion = confirm(
-    `Presupuesto: ${sym}${fmt(total)}
+  // Calculate already billed amount
+  const yaFacturado = DB.facturas
+    .filter(f=>f.presupuestoId===id)
+    .reduce((a,f)=>a+f.monto,0);
+  const saldo = total - yaFacturado;
 
-` +
-    `¿Crear DOS facturas de 50% cada una?
-` +
-    `• Adelanto: ${sym}${fmt(mitad)}
-` +
-    `• Saldo final: ${sym}${fmt(total - mitad)}
+  // Info box
+  document.getElementById('facturar-pres-info').innerHTML = `
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:12px;color:var(--tx-3)">Presupuesto</div>
+        <div style="font-weight:700;font-size:14px;color:var(--tx-1)">${p.nombre||'Sin nombre'}</div>
+        <div style="font-size:12px;color:var(--tx-3)">${getClienteName(p.clienteId)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:var(--tx-3)">Total presupuesto</div>
+        <div style="font-weight:800;font-size:18px;color:var(--brand)">${sym}${fmt(total)}</div>
+        ${yaFacturado>0?`<div style="font-size:12px;color:var(--tx-3)">Ya facturado: ${sym}${fmt(yaFacturado)}</div>`:''}
+        ${saldo<total?`<div style="font-size:12px;font-weight:700;color:var(--green)">Saldo pendiente: ${sym}${fmt(saldo)}</div>`:''}
+      </div>
+    </div>`;
 
-` +
-    `Aceptar = 2 facturas 50/50
-Cancelar = 1 factura por el total`
-  );
+  // Set default % — if nothing billed yet → 50%, else → remaining %
+  const pctDefault = yaFacturado === 0 ? 50 : Math.round(saldo/total*100);
+  const inputPct = document.getElementById('fp-porcentaje');
+  if(inputPct) inputPct.value = pctDefault;
 
-  const vence30 = () => { const d=new Date(); d.setDate(d.getDate()+30); return d.toISOString().split('T')[0]; };
-  const vence60 = () => { const d=new Date(); d.setDate(d.getDate()+60); return d.toISOString().split('T')[0]; };
+  // Default description
+  const desc = yaFacturado === 0
+    ? `Adelanto ${pctDefault}% — ${p.nombre||p.desc||'Servicios'}`
+    : `Saldo ${pctDefault}% — ${p.nombre||p.desc||'Servicios'}`;
+  document.getElementById('fp-desc').value = desc;
 
-  if(opcion){
-    // TWO invoices 50/50
-    const f1 = {
-      id: nextId(), presupuestoId: id, clienteId: p.clienteId,
-      proyectoId: p.proyectoId||null,
-      descripcion: `${p.nombre||p.desc||'Servicio'} — Adelanto 50%`,
-      monto: mitad, fecha: today(), vence: vence30(),
-      estado: 'pendiente', cuota: '1/2'
-    };
-    const f2 = {
-      id: nextId(), presupuestoId: id, clienteId: p.clienteId,
-      proyectoId: p.proyectoId||null,
-      descripcion: `${p.nombre||p.desc||'Servicio'} — Saldo final 50%`,
-      monto: total - mitad, fecha: today(), vence: vence60(),
-      estado: 'pendiente', cuota: '2/2'
-    };
-    DB.facturas.push(f1, f2);
-    _persistArray('facturas');
-    _syncRecord('facturas', f1);
-    _syncRecord('facturas', f2);
-    logActivity('factura', `2 facturas 50/50 desde presupuesto: <strong>${p.nombre}</strong>`);
-    toast('success', `✓ Facturas creadas — Adelanto ${sym}${fmt(mitad)} + Saldo ${sym}${fmt(total-mitad)}`);
+  // Default vence: 30 days
+  const v = new Date(); v.setDate(v.getDate()+30);
+  document.getElementById('fp-vence').value = v.toISOString().split('T')[0];
+
+  // Populate proyecto select
+  const fpProy = document.getElementById('fp-proyecto');
+  fpProy.innerHTML = '<option value="">— No vincular proyecto —</option>' +
+    '<option value="__nuevo__">➕ Crear proyecto nuevo automáticamente</option>' +
+    DB.proyectos.filter(proj=>proj.clienteId===p.clienteId)
+      .map(proj=>`<option value="${proj.id}" ${p.proyectoId==proj.id?'selected':''}>${proj.nombre}</option>`)
+      .join('');
+
+  // Show saldo warning if partially billed
+  const saldoInfo = document.getElementById('fp-saldo-info');
+  if(yaFacturado > 0 && saldo > 0){
+    saldoInfo.style.display = 'block';
+    saldoInfo.innerHTML = `⚠️ Ya facturaste ${sym}${fmt(yaFacturado)} de este presupuesto. Saldo restante: <strong>${sym}${fmt(saldo)}</strong>`;
   } else {
-    // Single invoice
-    const f = {
-      id: nextId(), presupuestoId: id, clienteId: p.clienteId,
-      proyectoId: p.proyectoId||null,
-      descripcion: p.nombre || p.desc || '',
-      monto: total, fecha: today(), vence: vence30(),
-      estado: 'pendiente'
-    };
-    DB.facturas.push(f);
-    _persistArray('facturas');
-    _syncRecord('facturas', f);
-    logActivity('factura', `Factura generada desde presupuesto: <strong>${p.nombre}</strong>`);
-    toast('success', `✓ Factura creada por ${sym}${fmt(total)}`);
+    saldoInfo.style.display = 'none';
   }
 
-  renderPresupuestos();
-  setTimeout(()=>{ if(confirm('¿Ir a Facturación para ver las facturas?')) navigate('facturacion'); }, 300);
+  calcFacturaMonto();
+  document.getElementById('modal-facturar-pres').classList.add('open');
 }
+
+function setPorcentaje(pct){
+  document.getElementById('fp-porcentaje').value = pct;
+  calcFacturaMonto();
+  // Update description
+  const id = window._facturandoPresId;
+  const p = DB.presupuestos.find(p=>p.id===id);
+  if(p){
+    const yaFacturado = DB.facturas.filter(f=>f.presupuestoId===id).reduce((a,f)=>a+f.monto,0);
+    const label = yaFacturado > 0 ? 'Saldo' : 'Adelanto';
+    document.getElementById('fp-desc').value = `${label} ${pct}% — ${p.nombre||p.desc||'Servicios'}`;
+  }
+}
+
+function calcFacturaMonto(){
+  const id = window._facturandoPresId;
+  const p = DB.presupuestos.find(p=>p.id===id);
+  if(!p) return;
+  const pct = parseFloat(document.getElementById('fp-porcentaje')?.value)||0;
+  const monto = Math.round(p.precio * pct) / 100;
+  const sym = getCurrencySymbol();
+  const el = document.getElementById('fp-monto-calc');
+  if(el) el.textContent = `= ${sym}${fmt(monto)}`;
+}
+
+async function confirmarFacturarPresupuesto(){
+  const id = window._facturandoPresId;
+  const p = DB.presupuestos.find(p=>p.id===id);
+  if(!p){ toast('error','Presupuesto no encontrado'); return; }
+
+  const pct    = parseFloat(document.getElementById('fp-porcentaje').value)||0;
+  const desc   = document.getElementById('fp-desc').value.trim();
+  const vence  = document.getElementById('fp-vence').value;
+  const proyId = document.getElementById('fp-proyecto').value;
+  const sym    = getCurrencySymbol();
+
+  if(!pct || pct<=0 || pct>100){ toast('error','Porcentaje inválido (1-100)'); return; }
+  if(!desc){ toast('error','Ingresá una descripción'); return; }
+
+  const monto = Math.round(p.precio * pct) / 100;
+
+  // Handle proyecto
+  let proyectoId = proyId === '__nuevo__' ? null : (parseInt(proyId)||null);
+  if(proyId === '__nuevo__'){
+    // Create project automatically
+    const nuevoProyecto = {
+      id: nextId(),
+      nombre: p.nombre || `Proyecto — ${getClienteName(p.clienteId)}`,
+      clienteId: p.clienteId,
+      estado: 'en desarrollo',
+      precio: p.precio,
+      inicio: today(),
+      entrega: '',
+      checklist: [],
+    };
+    DB.proyectos.push(nuevoProyecto);
+    _persistArray('proyectos');
+    _syncRecord('proyectos', nuevoProyecto);
+    proyectoId = nuevoProyecto.id;
+    // Link presupuesto to project
+    const pidx = DB.presupuestos.findIndex(pr=>pr.id===id);
+    DB.presupuestos[pidx].proyectoId = proyectoId;
+    _persistArray('presupuestos');
+    toast('info',`Proyecto "${nuevoProyecto.nombre}" creado automáticamente`);
+  } else if(proyectoId){
+    // Link presupuesto to existing project
+    const pidx = DB.presupuestos.findIndex(pr=>pr.id===id);
+    DB.presupuestos[pidx].proyectoId = proyectoId;
+    _persistArray('presupuestos');
+  }
+
+  // Create invoice
+  const factura = {
+    id: nextId(),
+    presupuestoId: id,
+    clienteId: p.clienteId,
+    proyectoId,
+    descripcion: desc,
+    desc,
+    monto,
+    fecha: today(),
+    vence,
+    estado: 'pendiente',
+    porcentaje: pct,
+  };
+
+  DB.facturas.push(factura);
+  _persistArray('facturas');
+  _syncRecord('facturas', factura);
+  logActivity('factura', `Factura ${pct}% — <strong>${desc}</strong> — ${sym}${fmt(monto)}`);
+
+  closeModal('modal-facturar-pres');
+  toast('success', `✓ Factura creada: ${pct}% = ${sym}${fmt(monto)}`);
+  renderPresupuestos();
+  setTimeout(()=>{ if(confirm('¿Ir a Facturación?')) navigate('facturacion'); }, 300);
+}
+
 
 function approvePresupuesto(id){
   const p=DB.presupuestos.find(p=>p.id===id);
@@ -8636,13 +8796,19 @@ function renderPresupuestos(){
           <button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('presupuesto',${p.id})" title="PDF"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>
           <button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button>
           ${p.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="approvePresupuesto(${p.id})"><i class="fa-solid fa-check"></i></button>`:''}
-          ${p.estado==='aprobado'?`<button class="btn btn-sm btn-primary" onclick="convertirAFactura(${p.id})" title="Generar factura"><i class="fa-solid fa-file-invoice"></i> Facturar</button>`:''}
+          ${p.estado==='aprobado'?`
+          <button class="btn btn-sm btn-primary" onclick="convertirAFactura(${p.id})" title="Generar factura">
+            <i class="fa-solid fa-file-invoice"></i>
+            ${(()=>{const yaf=DB.facturas.filter(f=>f.presupuestoId===p.id).reduce((a,f)=>a+f.monto,0);return yaf>0?'Facturar saldo':'Facturar';})()}
+          </button>
+          ${(()=>{const yaf=DB.facturas.filter(f=>f.presupuestoId===p.id).reduce((a,f)=>a+f.monto,0);const pct=p.precio>0?Math.round(yaf/p.precio*100):0;return yaf>0?`<span class="badge badge-amber" style="font-size:11px">${pct}% facturado</span>`:''})()}
+        `:''}
           <button class="btn btn-sm btn-danger btn-icon" onclick="deletePresupuesto(${p.id})"><i class="fa-solid fa-trash"></i></button>
         </div>
       </div>`).join('')}</div>`:`<div class="card" style="padding:24px"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-file-invoice"></i></div><h3>Sin presupuestos</h3></div></div>`;
   } else {
     container.innerHTML=`<div class="card"><div class="table-wrap"><table><thead><tr><th>Presupuesto</th><th>Cliente</th><th>Precio</th><th>Fecha</th><th>Válido hasta</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="presupuestos-tbody">${
-      DB.presupuestos.length?DB.presupuestos.map(p=>`<tr><td><span class="fw-500">${p.nombre||p.desc||'Presupuesto'}</span></td><td>${getClienteName(p.clienteId)}</td><td class="amount-positive">${sym+fmt(p.precio)}</td><td class="text-muted text-sm">${fmtD(p.fecha)}</td><td class="text-muted text-sm">${fmtD(p.valido||p.valido_hasta)}</td><td>${statusBadge(p.estado)}</td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('presupuesto',${p.id})" title="PDF"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>
+      DB.presupuestos.length?DB.presupuestos.map(p=>`<tr><td><span class="fw-500">${p.nombre||p.desc||'Presupuesto'}</span></td><td>${getClienteName(p.clienteId)}</td><td class="amount-positive">${sym+fmt(p.precio)}</td><td class="text-muted text-sm">${fmtD(p.fecha)}</td><td class="text-muted text-sm">${fmtD(p.valido||p.valido_hasta)}</td><td>${statusBadge(p.estado)}</td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('presupuesto',${p.id})" title="PDF"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>
               <button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button>
               ${p.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="approvePresupuesto(${p.id})"><i class="fa-solid fa-check"></i> Aprobar</button>`:''}
               ${p.estado==='aprobado'?`<button class="btn btn-sm btn-primary" onclick="convertirAFactura(${p.id})"><i class="fa-solid fa-file-invoice"></i> Facturar</button>`:''}
