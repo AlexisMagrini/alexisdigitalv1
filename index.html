@@ -5563,6 +5563,11 @@ async function _loadAllFromSupabase() {
       : `✓ Todo sincronizado — ${loaded} tablas cargadas`;
     toast('success', msg);
 
+    // Re-apply role nav after data loads (ensures perms applied with full data)
+    if(DB.currentUser){
+      _applyRoleNav(DB.currentUser.rol || DB.currentUser.role || 'admin');
+    }
+
     // Re-render current section
     const secEl = document.querySelector('.section.active');
     if (secEl) {
@@ -5837,36 +5842,39 @@ function _finishLogin(user){
     rb.style.display='';
   }
   
-  // Apply role-based navigation visibility
-  _applyRoleNav(user.rol||user.role||'admin');
-  
+  const rol = user.rol||user.role||'admin';
+
   // Populate portal select
   const ps=$('portal-cliente-select');
   if(ps) ps.innerHTML='<option value="">— Seleccionar cliente —</option>'+DB.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
-  
-  // Role-based initial section (set by _applyRoleNav)
-  const rol=user.rol||user.role||'admin';
-  _applyRoleNav(rol); // sets window._roleStartSection
 
-  // If client role — auto-select linked cliente in portal
-  if(rol === 'client'){
-    const linkedClienteId = user.clienteId || DB.usuarios.find(u=>u.email===user.email)?.clienteId;
-    if(linkedClienteId){
-      setTimeout(()=>{
-        const sel = document.getElementById('portal-cliente-select');
-        if(sel){ sel.value = linkedClienteId; renderPortal(); }
-      }, 300);
+  // Load permisos first, THEN apply role nav
+  const applyRoleAndNavigate = () => {
+    _applyRoleNav(rol); // uses DB.config.permisos if available
+
+    // If client role — auto-select linked cliente in portal
+    if(rol === 'client'){
+      const linkedClienteId = user.clienteId || DB.usuarios.find(u=>u.email===user.email)?.clienteId;
+      if(linkedClienteId){
+        setTimeout(()=>{
+          const sel = document.getElementById('portal-cliente-select');
+          if(sel){ sel.value = linkedClienteId; renderPortal(); }
+        }, 200);
+      }
     }
-  }
+    navigate(window._roleStartSection || 'dashboard');
+  };
 
-  navigate(window._roleStartSection || 'dashboard');
-
-  // Load all data from Supabase on login (so any device sees the latest data)
+  // Load all data from Supabase on login
   if (window.STORAGE_MODE === 'supabase' || window._supabaseClient) {
-    setTimeout(async () => {
-      await loadPermisosFromSupabase();
-      _loadAllFromSupabase();
-    }, 400);
+    // Load permisos FIRST so _applyRoleNav has correct data
+    loadPermisosFromSupabase().then(() => {
+      applyRoleAndNavigate();
+      setTimeout(() => _loadAllFromSupabase(), 200);
+    });
+  } else {
+    // Local mode — apply immediately
+    applyRoleAndNavigate();
   }
   
   applySystemSettings(); // always apply logo + branding on login
