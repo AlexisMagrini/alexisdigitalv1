@@ -1730,7 +1730,47 @@ tbody tr:hover{background:var(--bg-3)}
                     <div class="form-group"><label class="form-label">Teléfono</label><input type="text" class="form-input" id="cfg-tel" placeholder="+54 11 1234-5678"></div>
                   </div>
                   <div class="form-group mb-16"><label class="form-label">Dirección</label><input type="text" class="form-input" id="cfg-dir" placeholder="Buenos Aires, Argentina"></div>
-                  <div class="form-group"><label class="form-label">Descripción / Slogan</label><input type="text" class="form-input" id="cfg-slogan" placeholder="Diseño y desarrollo web profesional"></div>
+                  <div class="form-group mb-16"><label class="form-label">Descripción / Slogan</label><input type="text" class="form-input" id="cfg-slogan" placeholder="Diseño y desarrollo web profesional"></div>
+                </div>
+              </div>
+              <!-- Datos Fiscales -->
+              <div class="config-section" style="margin-top:16px">
+                <div class="config-section-header"><i class="fa-solid fa-file-invoice"></i><div class="config-section-title">Datos Fiscales (para facturas y presupuestos)</div></div>
+                <div class="config-section-body">
+                  <div class="grid-2 mb-16">
+                    <div class="form-group"><label class="form-label">Razón Social</label><input type="text" class="form-input" id="cfg-razon-social" placeholder="MAGRINI, ALEXIS GABRIEL"></div>
+                    <div class="form-group"><label class="form-label">Condición fiscal</label>
+                      <select class="form-select" id="cfg-condicion-fiscal">
+                        <option value="MONOTRIBUTISTA">Monotributista</option>
+                        <option value="RESPONSABLE INSCRIPTO">Responsable Inscripto</option>
+                        <option value="EXENTO">Exento</option>
+                        <option value="CONSUMIDOR FINAL">Consumidor Final</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="grid-2 mb-16">
+                    <div class="form-group"><label class="form-label">CUIT</label><input type="text" class="form-input" id="cfg-cuit" placeholder="20-12345678-9"></div>
+                    <div class="form-group"><label class="form-label">IIBB</label><input type="text" class="form-input" id="cfg-iibb" placeholder="20-12345678-9"></div>
+                  </div>
+                  <div class="grid-2 mb-16">
+                    <div class="form-group"><label class="form-label">Inicio de Actividades</label><input type="date" class="form-input" id="cfg-inicio-actividades"></div>
+                    <div class="form-group"><label class="form-label">Número de factura (correlativo)</label><input type="number" class="form-input" id="cfg-nro-factura" placeholder="1" min="1"></div>
+                  </div>
+                  <div class="grid-2 mb-16">
+                    <div class="form-group"><label class="form-label">Punto de venta</label><input type="text" class="form-input" id="cfg-pto-venta" placeholder="0001"></div>
+                    <div class="form-group"><label class="form-label">Tipo de factura</label>
+                      <select class="form-select" id="cfg-tipo-factura">
+                        <option value="C">Factura C (Monotributista)</option>
+                        <option value="B">Factura B</option>
+                        <option value="A">Factura A (Resp. Inscripto)</option>
+                        <option value="X">Recibo X / Proforma</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Nota al pie de facturas</label>
+                    <input type="text" class="form-input" id="cfg-nota-factura" placeholder="Gracias por confiar en nosotros. Precios en ARS.">
+                  </div>
                 </div>
               </div>
             </div>
@@ -2220,6 +2260,10 @@ tbody tr:hover{background:var(--bg-3)}
     </div>
     <div class="form-group mb-16"><label class="form-label">Estado</label>
       <select class="form-select" id="c-estado"><option value="lead">🟡 Lead</option><option value="activo">🟢 Activo</option><option value="finalizado">⚫ Finalizado</option></select>
+    </div>
+    <div class="grid-2 mb-16">
+      <div class="form-group"><label class="form-label">Dirección</label><input type="text" class="form-input" id="c-dir" placeholder="Calle 123, Ciudad, País"></div>
+      <div class="form-group"><label class="form-label">NIE / DNI / ID Fiscal</label><input type="text" class="form-input" id="c-nie" placeholder="Y9622145V"></div>
     </div>
     <div class="form-group"><label class="form-label">Notas internas</label><textarea class="form-input" id="c-notas" placeholder="Notas sobre el cliente..."></textarea></div>
   </div><div class="modal-footer">
@@ -5655,6 +5699,7 @@ function _toSnakeCase(arrayKey, record) {
     clientes: r => ({
       id: r.id, nombre: r.nombre, email: r.email, telefono: r.telefono,
       empresa: r.empresa, estado: r.estado, notas: r.notas,
+      direccion: r.direccion||'', nie: r.nie||'',
     }),
     proyectos: r => ({
       id: r.id, nombre: r.nombre, cliente_id: r.clienteId, estado: r.estado,
@@ -6508,7 +6553,7 @@ function renderDashCharts(){
 function filterClientes(v){renderClientes(v);}
 async function saveCliente(){
   const id=$('c-id').value;
-  const data={nombre:$('c-nombre').value.trim(),email:$('c-email').value.trim(),telefono:$('c-tel').value.trim(),empresa:$('c-empresa').value.trim(),estado:$('c-estado').value,notas:$('c-notas').value.trim()};
+  const data={nombre:$('c-nombre').value.trim(),email:$('c-email').value.trim(),telefono:$('c-tel').value.trim(),empresa:$('c-empresa').value.trim(),estado:$('c-estado').value,notas:$('c-notas').value.trim(),direccion:$('c-dir')?.value.trim()||'',nie:$('c-nie')?.value.trim()||''};
   if(!data.nombre||!data.email){toast('error','Nombre y email son obligatorios');return;}
 
   const isNew = !id;
@@ -6565,7 +6610,20 @@ async function saveCliente(){
   const ps=$('portal-cliente-select');
   if(ps)ps.innerHTML='<option value="">— Seleccionar cliente —</option>'+DB.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
 }
-function editCliente(id){const c=DB.clientes.find(c=>c.id===id);$('modal-cliente-title').textContent='Editar Cliente';$('c-id').value=c.id;$('c-nombre').value=c.nombre;$('c-email').value=c.email;$('c-tel').value=c.telefono||'';$('c-empresa').value=c.empresa||'';$('c-estado').value=c.estado;$('c-notas').value=c.notas||'';$('modal-cliente').classList.add('open');}
+function editCliente(id){
+  const c=DB.clientes.find(c=>c.id===id);
+  $('modal-cliente-title').textContent='Editar Cliente';
+  $('c-id').value=c.id;
+  $('c-nombre').value=c.nombre;
+  $('c-email').value=c.email;
+  $('c-tel').value=c.telefono||'';
+  $('c-empresa').value=c.empresa||'';
+  $('c-estado').value=c.estado;
+  $('c-notas').value=c.notas||'';
+  if($('c-dir')) $('c-dir').value=c.direccion||'';
+  if($('c-nie')) $('c-nie').value=c.nie||'';
+  $('modal-cliente').classList.add('open');
+}
 function deleteCliente(id){if(!confirm('¿Eliminar?'))return;DB.clientes=DB.clientes.filter(c=>c.id!==id);_syncRecord('clientes',{id},true);toast('info','Cliente eliminado');renderClientes();}
 function verCliente(id){
   const c=DB.clientes.find(c=>c.id===id);const proyectos=DB.proyectos.filter(p=>p.clienteId===id);
@@ -6847,33 +6905,70 @@ function convertirAFactura(id){
   if(DB.facturas.find(f=>f.presupuestoId===id)){
     toast('warning','Ya existe una factura para este presupuesto'); return;
   }
-  if(!confirm(`¿Convertir "${p.nombre}" en factura por ${getCurrencySymbol()}${fmt(p.precio||p.total||0)}?`)) return;
 
-  const factura = {
-    id: nextId(),
-    presupuestoId: id,
-    clienteId: p.clienteId,
-    proyectoId: p.proyectoId||null,
-    descripcion: p.nombre || p.desc || '',
-    monto: p.precio || p.total || 0,
-    fecha: today(),
-    vence: (() => { const d=new Date(); d.setDate(d.getDate()+30); return d.toISOString().split('T')[0]; })(),
-    estado: 'pendiente',
-  };
-  DB.facturas.push(factura);
-  _persistArray('facturas');
-  _syncRecord('facturas', factura);
+  const sym = getCurrencySymbol();
+  const total = p.precio || p.total || 0;
+  const mitad = Math.round(total / 2 * 100) / 100;
 
-  // Mark presupuesto as converted
-  const idx = DB.presupuestos.findIndex(p=>p.id===id);
-  DB.presupuestos[idx].convertida = true;
-  _persistArray('presupuestos');
+  // Ask: full invoice or 50/50
+  const opcion = confirm(
+    `Presupuesto: ${sym}${fmt(total)}
 
-  logActivity('factura',`Factura generada desde presupuesto: <strong>${p.nombre}</strong>`);
-  toast('success',`✓ Factura creada por ${getCurrencySymbol()}${fmt(factura.monto)} — pendiente de cobro`);
+` +
+    `¿Crear DOS facturas de 50% cada una?
+` +
+    `• Adelanto: ${sym}${fmt(mitad)}
+` +
+    `• Saldo final: ${sym}${fmt(total - mitad)}
+
+` +
+    `Aceptar = 2 facturas 50/50
+Cancelar = 1 factura por el total`
+  );
+
+  const vence30 = () => { const d=new Date(); d.setDate(d.getDate()+30); return d.toISOString().split('T')[0]; };
+  const vence60 = () => { const d=new Date(); d.setDate(d.getDate()+60); return d.toISOString().split('T')[0]; };
+
+  if(opcion){
+    // TWO invoices 50/50
+    const f1 = {
+      id: nextId(), presupuestoId: id, clienteId: p.clienteId,
+      proyectoId: p.proyectoId||null,
+      descripcion: `${p.nombre||p.desc||'Servicio'} — Adelanto 50%`,
+      monto: mitad, fecha: today(), vence: vence30(),
+      estado: 'pendiente', cuota: '1/2'
+    };
+    const f2 = {
+      id: nextId(), presupuestoId: id, clienteId: p.clienteId,
+      proyectoId: p.proyectoId||null,
+      descripcion: `${p.nombre||p.desc||'Servicio'} — Saldo final 50%`,
+      monto: total - mitad, fecha: today(), vence: vence60(),
+      estado: 'pendiente', cuota: '2/2'
+    };
+    DB.facturas.push(f1, f2);
+    _persistArray('facturas');
+    _syncRecord('facturas', f1);
+    _syncRecord('facturas', f2);
+    logActivity('factura', `2 facturas 50/50 desde presupuesto: <strong>${p.nombre}</strong>`);
+    toast('success', `✓ Facturas creadas — Adelanto ${sym}${fmt(mitad)} + Saldo ${sym}${fmt(total-mitad)}`);
+  } else {
+    // Single invoice
+    const f = {
+      id: nextId(), presupuestoId: id, clienteId: p.clienteId,
+      proyectoId: p.proyectoId||null,
+      descripcion: p.nombre || p.desc || '',
+      monto: total, fecha: today(), vence: vence30(),
+      estado: 'pendiente'
+    };
+    DB.facturas.push(f);
+    _persistArray('facturas');
+    _syncRecord('facturas', f);
+    logActivity('factura', `Factura generada desde presupuesto: <strong>${p.nombre}</strong>`);
+    toast('success', `✓ Factura creada por ${sym}${fmt(total)}`);
+  }
+
   renderPresupuestos();
-  // Ask if they want to go to facturacion
-  setTimeout(()=>{ if(confirm('¿Ir a Facturación para ver la factura?')) navigate('facturacion'); }, 300);
+  setTimeout(()=>{ if(confirm('¿Ir a Facturación para ver las facturas?')) navigate('facturacion'); }, 300);
 }
 
 function approvePresupuesto(id){
@@ -6923,7 +7018,7 @@ function editFactura(id){
   document.getElementById('fct-id').value=f.id;
   populateClienteSelect('fct-cliente',f.clienteId||f.cliente_id);
   populateProyectoSelect('fct-proyecto',f.proyectoId||f.proyecto_id);
-  document.getElementById('fct-descripcion').value=f.descripcion||'';
+  document.getElementById('fct-desc').value=f.descripcion||f.desc||'';
   document.getElementById('fct-monto').value=f.monto||0;
   document.getElementById('fct-fecha').value=f.fecha||today();
   document.getElementById('fct-vence').value=f.vence||'';
@@ -7101,6 +7196,7 @@ function renderConfig(){
 
 function switchCfgPanel(name, btn){
   if(name === 'permisos') setTimeout(openCfgPermisos, 50);
+  if(name === 'agencia')  setTimeout(loadCfgAgencia, 50);
   _currentCfgPanel = name;
   document.querySelectorAll('.cfg-panel').forEach(p=>p.classList.remove('active'));
   const panel=document.getElementById('cfgpanel-'+name);
@@ -7253,15 +7349,45 @@ function _populateAgenciaPanel(){
 }
 
 function saveAgenciaPanel(){
-  const g=id=>document.getElementById(id);
-  DB.config.agencia=g('cfg-agencia')?.value||DB.config.agencia;
-  DB.config.email_agencia=g('cfg-email')?.value||DB.config.email_agencia;
-  DB.config.telefono=g('cfg-tel')?.value||DB.config.telefono;
-  DB.config.direccion=g('cfg-dir')?.value||DB.config.direccion;
-  DB.config.web=g('cfg-web')?.value||'';
-  DB.config.slogan=g('cfg-slogan')?.value||'';
+  const g = id => document.getElementById(id)?.value || '';
+  DB.config.agencia           = g('cfg-agencia')            || DB.config.agencia;
+  DB.config.email_agencia     = g('cfg-email')              || DB.config.email_agencia;
+  DB.config.telefono          = g('cfg-tel')                || DB.config.telefono;
+  DB.config.direccion         = g('cfg-dir')                || DB.config.direccion;
+  DB.config.web               = g('cfg-web');
+  DB.config.slogan            = g('cfg-slogan');
+  // Fiscal data
+  DB.config.razon_social      = g('cfg-razon-social');
+  DB.config.condicion_fiscal  = g('cfg-condicion-fiscal');
+  DB.config.cuit              = g('cfg-cuit');
+  DB.config.iibb              = g('cfg-iibb');
+  DB.config.inicio_actividades= g('cfg-inicio-actividades');
+  DB.config.nro_factura       = parseInt(g('cfg-nro-factura'))||1;
+  DB.config.pto_venta         = g('cfg-pto-venta')||'0001';
+  DB.config.tipo_factura      = g('cfg-tipo-factura')||'C';
+  DB.config.nota_factura      = g('cfg-nota-factura');
   _persistAll();
-  toast('success','Datos de agencia guardados');
+  toast('success','Datos guardados ✓');
+}
+
+function loadCfgAgencia(){
+  const s = (id,val) => { const el=document.getElementById(id); if(el&&val!==undefined) el.value=val; };
+  const cfg = DB.config||{};
+  s('cfg-agencia',          cfg.agencia);
+  s('cfg-email',            cfg.email_agencia);
+  s('cfg-tel',              cfg.telefono);
+  s('cfg-dir',              cfg.direccion);
+  s('cfg-web',              cfg.web);
+  s('cfg-slogan',           cfg.slogan);
+  s('cfg-razon-social',     cfg.razon_social);
+  s('cfg-condicion-fiscal', cfg.condicion_fiscal||'MONOTRIBUTISTA');
+  s('cfg-cuit',             cfg.cuit);
+  s('cfg-iibb',             cfg.iibb);
+  s('cfg-inicio-actividades',cfg.inicio_actividades);
+  s('cfg-nro-factura',      cfg.nro_factura||1);
+  s('cfg-pto-venta',        cfg.pto_venta||'0001');
+  s('cfg-tipo-factura',     cfg.tipo_factura||'C');
+  s('cfg-nota-factura',     cfg.nota_factura);
 }
 
 function _persistAll(){
@@ -8193,7 +8319,7 @@ function saveFactura(){
   const data={
     clienteId:parseInt($('fct-cliente').value)||null,
     proyectoId:parseInt($('fct-proyecto').value)||null,
-    desc:$('fct-desc').value.trim(),monto:parseFloat($('fct-monto').value)||0,
+    desc:$('fct-desc').value.trim(),descripcion:$('fct-desc').value.trim(),monto:parseFloat($('fct-monto').value)||0,
     estado:$('fct-estado').value,fecha:$('fct-fecha').value,vence:$('fct-vence').value
   };
   if(!data.desc||!data.monto){toast('error','Descripción y monto son obligatorios');return;}
@@ -8510,13 +8636,17 @@ function renderPresupuestos(){
           <button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('presupuesto',${p.id})" title="PDF"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>
           <button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button>
           ${p.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="approvePresupuesto(${p.id})"><i class="fa-solid fa-check"></i></button>`:''}
-          ${p.estado==='aprobado'?`<button class="btn btn-sm btn-primary" onclick="convertirAFactura(${p.id})" title="Convertir a Factura"><i class="fa-solid fa-file-invoice"></i> Facturar</button>`:''}
+          ${p.estado==='aprobado'?`<button class="btn btn-sm btn-primary" onclick="convertirAFactura(${p.id})" title="Generar factura"><i class="fa-solid fa-file-invoice"></i> Facturar</button>`:''}
           <button class="btn btn-sm btn-danger btn-icon" onclick="deletePresupuesto(${p.id})"><i class="fa-solid fa-trash"></i></button>
         </div>
       </div>`).join('')}</div>`:`<div class="card" style="padding:24px"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-file-invoice"></i></div><h3>Sin presupuestos</h3></div></div>`;
   } else {
     container.innerHTML=`<div class="card"><div class="table-wrap"><table><thead><tr><th>Presupuesto</th><th>Cliente</th><th>Precio</th><th>Fecha</th><th>Válido hasta</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="presupuestos-tbody">${
-      DB.presupuestos.length?DB.presupuestos.map(p=>`<tr><td><span class="fw-500">${p.nombre||p.desc||'Presupuesto'}</span></td><td>${getClienteName(p.clienteId)}</td><td class="amount-positive">${sym+fmt(p.precio)}</td><td class="text-muted text-sm">${fmtD(p.fecha)}</td><td class="text-muted text-sm">${fmtD(p.valido||p.valido_hasta)}</td><td>${statusBadge(p.estado)}</td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('presupuesto',${p.id})" title="PDF"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>${p.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="approvePresupuesto(${p.id})"><i class="fa-solid fa-check"></i> Aprobar</button>`:''}<button class="btn btn-sm btn-danger btn-icon" onclick="deletePresupuesto(${p.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-file-invoice"></i></div><h3>Sin presupuestos</h3></div></td></tr>`
+      DB.presupuestos.length?DB.presupuestos.map(p=>`<tr><td><span class="fw-500">${p.nombre||p.desc||'Presupuesto'}</span></td><td>${getClienteName(p.clienteId)}</td><td class="amount-positive">${sym+fmt(p.precio)}</td><td class="text-muted text-sm">${fmtD(p.fecha)}</td><td class="text-muted text-sm">${fmtD(p.valido||p.valido_hasta)}</td><td>${statusBadge(p.estado)}</td><td><div class="flex gap-6"><button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-secondary btn-icon" onclick="generarPDF('presupuesto',${p.id})" title="PDF"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i></button>
+              <button class="btn btn-sm btn-secondary btn-icon" onclick="editPresupuesto(${p.id})"><i class="fa-solid fa-pen"></i></button>
+              ${p.estado==='pendiente'?`<button class="btn btn-sm btn-success" onclick="approvePresupuesto(${p.id})"><i class="fa-solid fa-check"></i> Aprobar</button>`:''}
+              ${p.estado==='aprobado'?`<button class="btn btn-sm btn-primary" onclick="convertirAFactura(${p.id})"><i class="fa-solid fa-file-invoice"></i> Facturar</button>`:''}
+              <button class="btn btn-sm btn-danger btn-icon" onclick="deletePresupuesto(${p.id})"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-file-invoice"></i></div><h3>Sin presupuestos</h3></div></td></tr>`
     }</tbody></table></div></div>`;
   }
 }
@@ -9785,18 +9915,118 @@ function generarPDF(tipo, id){
   } else if(tipo==='factura'){
     const f=DB.facturas.find(f=>f.id===id);
     if(!f) return;
+    const cfg=DB.config||{};
     const cliente=DB.clientes.find(c=>c.id===f.clienteId);
     const proyecto=DB.proyectos.find(p=>p.id===f.proyectoId);
-    const factNum='F-'+String(DB.facturas.indexOf(f)+1).padStart(4,'0');
-    data={tipo:'Factura',titulo:`Factura ${factNum}`,agencia,
-      logo:s.logoLight||'',cliente:cliente?.nombre||'Cliente',
-      email:cliente?.email||'',empresa:cliente?.empresa||'',
-      fecha:fmtD(f.fecha),valido:fmtD(f.vence),
-      servicios:[{desc:f.desc+(proyecto?` — ${proyecto.nombre}`:''),monto:f.monto}],
-      total:f.monto,estado:f.estado,
-      metodoPago:f.metodoPago||'',fechaPago:f.fechaPago?fmtD(f.fechaPago):'',
-      notas:'Gracias por su confianza.'};
-    $('pdf-preview-title').textContent='Factura PDF';
+    const sym=getCurrencySymbol();
+    // Build invoice number: tipo + pto_venta + correlativo
+    const ptoVenta=(cfg.pto_venta||'0001').padStart(4,'0');
+    const tipoFact=cfg.tipo_factura||'C';
+    const nroCorr=String(cfg.nro_factura||1).padStart(8,'0');
+    const factNum=`${ptoVenta}-${nroCorr}`;
+    const brandColor=s.colorBrand||'#4f46e5';
+    const logoHtml=s.logoLight?`<img src="${s.logoLight}" style="height:48px;object-fit:contain" alt="Logo">`
+      :`<div style="font-size:20px;font-weight:800;color:${brandColor}">${agencia}</div>`;
+    const descFull=f.descripcion||f.desc||'Servicios';
+    const descConProyecto=proyecto?`${descFull} — ${proyecto.nombre}`:descFull;
+
+    // Render professional invoice HTML (like the uploaded sample)
+    document.getElementById('pdf-content').innerHTML=`
+    <div style="max-width:700px;margin:0 auto;font-family:'Arial',sans-serif;font-size:13px;color:#1a1a1a">
+      <!-- Header: Logo + Emisor + Tipo factura -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #333;padding-bottom:16px;margin-bottom:16px">
+        <div style="display:flex;align-items:flex-start;gap:16px">
+          ${logoHtml}
+          <div>
+            <div style="font-size:16px;font-weight:700">${cfg.razon_social||agencia}</div>
+            <div style="font-size:11.5px;color:#555;margin-top:3px">Dirección: ${cfg.direccion||''}</div>
+            <div style="font-size:11.5px;color:#555">Teléfono: ${cfg.telefono||''}</div>
+            <div style="font-size:11.5px;color:#555">Email: ${cfg.email_agencia||''}</div>
+            ${cfg.condicion_fiscal?`<div style="font-size:11.5px;font-weight:600;color:#333;margin-top:3px">${cfg.condicion_fiscal}</div>`:''}
+          </div>
+        </div>
+        <div style="text-align:right;border:2px solid #333;padding:12px 20px;border-radius:4px;min-width:200px">
+          <div style="font-size:22px;font-weight:800;color:${brandColor};letter-spacing:1px">FACTURA ${tipoFact}</div>
+          <div style="font-size:14px;font-weight:700;margin-top:4px">${factNum}</div>
+          <div style="font-size:11.5px;color:#555;margin-top:6px"><strong>Fecha:</strong> ${fmtD(f.fecha)}</div>
+          ${cfg.cuit?`<div style="font-size:11.5px;color:#555"><strong>CUIT:</strong> ${cfg.cuit}</div>`:''}
+          ${cfg.iibb?`<div style="font-size:11.5px;color:#555"><strong>IIBB:</strong> ${cfg.iibb}</div>`:''}
+          ${cfg.inicio_actividades?`<div style="font-size:11.5px;color:#555"><strong>Inicio de Actividades:</strong> ${fmtD(cfg.inicio_actividades)}</div>`:''}
+          ${cfg.razon_social?`<div style="font-size:11.5px;color:#555"><strong>Razón social:</strong> ${cfg.razon_social}</div>`:''}
+        </div>
+      </div>
+
+      <!-- Client info + Conditions -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:16px;border-bottom:1px solid #ccc;padding-bottom:14px">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;margin-bottom:6px;border-bottom:1px solid #ccc;padding-bottom:4px">INFORMACION DEL CLIENTE</div>
+          <table style="width:100%;border-collapse:collapse">
+            <tr><td style="padding:3px 0;font-size:11.5px;color:#777;width:80px">Cliente:</td><td style="padding:3px 0;font-size:12px;font-weight:600">${cliente?.nombre||'—'}</td></tr>
+            ${cliente?.empresa?`<tr><td style="padding:3px 0;font-size:11.5px;color:#777">Empresa:</td><td style="padding:3px 0;font-size:12px">${cliente.empresa}</td></tr>`:''}
+            ${cliente?.direccion?`<tr><td style="padding:3px 0;font-size:11.5px;color:#777">Dirección:</td><td style="padding:3px 0;font-size:12px">${cliente.direccion}</td></tr>`:''}
+            ${(cliente?.nie||cliente?.telefono)?`<tr><td style="padding:3px 0;font-size:11.5px;color:#777">NIE/DNI:</td><td style="padding:3px 0;font-size:12px">${cliente.nie||cliente.telefono}</td></tr>`:''}
+            ${cliente?.direccion?`<tr><td style="padding:3px 0;font-size:11.5px;color:#777">Dirección:</td><td style="padding:3px 0;font-size:12px">${cliente.direccion}</td></tr>`:''}
+            ${cliente?.email?`<tr><td style="padding:3px 0;font-size:11.5px;color:#777">Email:</td><td style="padding:3px 0;font-size:12px">${cliente.email}</td></tr>`:''}
+          </table>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;margin-bottom:6px;border-bottom:1px solid #ccc;padding-bottom:4px">CONDICIONES DE VENTA</div>
+          <div style="font-size:12px">Condición de venta: <strong>Contado</strong></div>
+          <div style="font-size:12px">Tipo: <strong>Servicios</strong></div>
+          ${f.fecha?`<div style="font-size:12px">Fecha de inicio del servicio: <strong>${fmtD(f.fecha)}</strong></div>`:''}
+          ${f.cuota?`<div style="font-size:12px;margin-top:4px;color:${brandColor};font-weight:700">Cuota: ${f.cuota}</div>`:''}
+        </div>
+      </div>
+
+      <!-- Concepts table -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;margin-bottom:8px">CONCEPTOS</div>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #ccc">
+          <thead>
+            <tr style="background:#f0f0f0">
+              <th style="padding:8px 10px;text-align:center;font-size:11px;border:1px solid #ccc;width:60px">Cantidad</th>
+              <th style="padding:8px 10px;text-align:center;font-size:11px;border:1px solid #ccc;width:80px">Código</th>
+              <th style="padding:8px 10px;text-align:left;font-size:11px;border:1px solid #ccc">Descripción</th>
+              <th style="padding:8px 10px;text-align:center;font-size:11px;border:1px solid #ccc;width:90px">% Bonificación</th>
+              <th style="padding:8px 10px;text-align:right;font-size:11px;border:1px solid #ccc;width:100px">Precio Unitario</th>
+              <th style="padding:8px 10px;text-align:right;font-size:11px;border:1px solid #ccc;width:100px">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:10px;text-align:center;border:1px solid #ddd">1,00</td>
+              <td style="padding:10px;text-align:center;border:1px solid #ddd;font-size:11.5px">${ptoVenta.slice(-4)}</td>
+              <td style="padding:10px;border:1px solid #ddd">${descConProyecto}</td>
+              <td style="padding:10px;text-align:center;border:1px solid #ddd">0,00</td>
+              <td style="padding:10px;text-align:right;border:1px solid #ddd;font-weight:600">${sym}${fmt(f.monto)}</td>
+              <td style="padding:10px;text-align:right;border:1px solid #ddd;font-weight:600">${sym}${fmt(f.monto)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totals -->
+      <div style="display:flex;justify-content:flex-end;margin-bottom:20px">
+        <table style="min-width:260px;border-collapse:collapse">
+          <tr><td style="padding:6px 14px;font-size:12px;color:#555">Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px">${sym}${fmt(f.monto)}</td></tr>
+          <tr><td style="padding:6px 14px;font-size:12px;color:#555">Total Descuento</td><td style="padding:6px 14px;text-align:right;font-size:12px">$ 0,00</td></tr>
+          <tr style="background:#1a1a1a">
+            <td style="padding:10px 14px;font-size:15px;font-weight:800;color:#fff">TOTAL</td>
+            <td style="padding:10px 14px;text-align:right;font-size:15px;font-weight:800;color:#fff">${sym}${fmt(f.monto)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Footer -->
+      <div style="border-top:1px solid #ccc;padding-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:11px;color:#777">${cfg.nota_factura||'Gracias por su confianza.'}</div>
+        <div style="font-size:11px;color:#aaa">Generado por AlexisDigital Manager</div>
+      </div>
+    </div>`;
+    $('pdf-preview-title').textContent=`Factura ${tipoFact} — ${factNum}`;
+    _pdfDocData={tipo:'Factura'};
+    document.getElementById('modal-pdf-preview').classList.add('open');
+    return; // Skip _renderPDFContent for facturas
   } else if(tipo==='contrato'){
     const ct=DB.contratos.find(ct=>ct.id===id);
     if(!ct) return;
