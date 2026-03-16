@@ -1590,6 +1590,9 @@ tbody tr:hover{background:var(--bg-3)}
             <div class="cfg-sidebar-item" onclick="switchCfgPanel('usuarios',this)" id="cfgmenu-usuarios">
               <i class="fa-solid fa-users-gear"></i> Usuarios
             </div>
+            <div class="cfg-sidebar-item" onclick="switchCfgPanel('permisos',this)" id="cfgmenu-permisos">
+              <i class="fa-solid fa-shield-halved"></i> Permisos
+            </div>
             <div class="cfg-sidebar-item" onclick="switchCfgPanel('documentos',this)" id="cfgmenu-documentos">
               <i class="fa-solid fa-file-pdf"></i> Documentos
             </div>
@@ -2067,6 +2070,54 @@ tbody tr:hover{background:var(--bg-3)}
                 </div>
               </div>
             </div>
+
+          <div id="cfgpanel-permisos" class="cfg-panel">
+            <div class="config-section">
+              <div class="config-section-header">
+                <i class="fa-solid fa-shield-halved"></i> Permisos por Rol
+              </div>
+              <p class="text-muted text-sm" style="margin-bottom:20px">
+                Definí qué secciones puede ver cada rol. Los permisos por usuario sobreescriben los del rol.
+              </p>
+
+              <!-- Tabs de roles -->
+              <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid var(--bd);padding-bottom:0">
+                <button class="perm-tab active" onclick="switchPermTab('employee',this)" style="padding:8px 18px;border:none;background:none;cursor:pointer;font-weight:600;font-size:13px;color:var(--brand);border-bottom:2px solid var(--brand);margin-bottom:-2px">
+                  <i class="fa-solid fa-user-tie" style="margin-right:6px"></i>Empleado
+                </button>
+                <button class="perm-tab" onclick="switchPermTab('client',this)" style="padding:8px 18px;border:none;background:none;cursor:pointer;font-weight:600;font-size:13px;color:var(--tx-3);border-bottom:2px solid transparent;margin-bottom:-2px">
+                  <i class="fa-solid fa-user" style="margin-right:6px"></i>Cliente
+                </button>
+              </div>
+
+              <!-- Permisos por rol -->
+              <div id="perm-role-panel">
+                <!-- rendered by renderPermPanel() -->
+              </div>
+
+              <!-- Permisos por usuario individual -->
+              <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--bd)">
+                <div style="font-weight:700;font-size:14px;color:var(--tx-1);margin-bottom:4px">
+                  <i class="fa-solid fa-user-gear" style="color:var(--brand);margin-right:6px"></i>Permisos individuales por usuario
+                </div>
+                <p class="text-muted text-sm" style="margin-bottom:14px">Sobreescribe los permisos del rol para un usuario específico.</p>
+                <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
+                  <select class="form-select" id="perm-user-select" onchange="renderUserPermPanel()" style="max-width:260px">
+                    <option value="">— Seleccionar usuario —</option>
+                  </select>
+                </div>
+                <div id="perm-user-panel">
+                  <!-- rendered by renderUserPermPanel() -->
+                </div>
+              </div>
+
+              <div style="margin-top:20px">
+                <button class="btn btn-primary" onclick="savePermisos()">
+                  <i class="fa-solid fa-floppy-disk"></i> Guardar permisos
+                </button>
+              </div>
+            </div>
+          </div>
 
           </div><!-- /cfg-panels -->
         </div><!-- /cfg-layout -->
@@ -5812,7 +5863,10 @@ function _finishLogin(user){
 
   // Load all data from Supabase on login (so any device sees the latest data)
   if (window.STORAGE_MODE === 'supabase' || window._supabaseClient) {
-    setTimeout(_loadAllFromSupabase, 400);
+    setTimeout(async () => {
+      await loadPermisosFromSupabase();
+      _loadAllFromSupabase();
+    }, 400);
   }
   
   applySystemSettings(); // always apply logo + branding on login
@@ -5820,41 +5874,256 @@ function _finishLogin(user){
   toast('success',`Bienvenido, ${(user.nombre||user.name||'').split(' ')[0]}! <span class="role-badge role-${rol}" style="margin-left:6px">${rol}</span>`);
 }
 
+// ================================================================
+//  PERMISSIONS SYSTEM
+// ================================================================
+
+// All available sections with labels and icons
+const ALL_SECTIONS = [
+  { id:'dashboard',     label:'Dashboard',      icon:'fa-chart-pie',       group:'Principal' },
+  { id:'clientes',      label:'Clientes',        icon:'fa-users',           group:'Gestión' },
+  { id:'proyectos',     label:'Proyectos',       icon:'fa-code-branch',     group:'Gestión' },
+  { id:'tareas',        label:'Tareas',          icon:'fa-list-check',      group:'Gestión' },
+  { id:'calendario',    label:'Calendario',      icon:'fa-calendar-days',   group:'Gestión' },
+  { id:'pipeline',      label:'Ventas',          icon:'fa-filter',          group:'Ventas' },
+  { id:'plantillas_web',label:'Plantillas Web',  icon:'fa-layer-group',     group:'Ventas' },
+  { id:'presupuestos',  label:'Presupuestos',    icon:'fa-file-invoice',    group:'Ventas' },
+  { id:'contratos',     label:'Contratos',       icon:'fa-file-contract',   group:'Ventas' },
+  { id:'finanzas',      label:'Finanzas',        icon:'fa-piggy-bank',      group:'Finanzas' },
+  { id:'facturacion',   label:'Facturación',     icon:'fa-receipt',         group:'Finanzas' },
+  { id:'analytics',     label:'Analytics',       icon:'fa-chart-line',      group:'Finanzas' },
+  { id:'archivos',      label:'Archivos',        icon:'fa-folder',          group:'Recursos' },
+  { id:'portal',        label:'Portal Cliente',  icon:'fa-globe',           group:'Recursos' },
+  { id:'emails',        label:'Emails',          icon:'fa-envelope',        group:'Recursos' },
+  { id:'actividad',     label:'Actividad',       icon:'fa-bell',            group:'Recursos' },
+  { id:'configuracion', label:'Configuración',   icon:'fa-gear',            group:'Sistema' },
+];
+
+// Default permissions per role (sections visible = true)
+const DEFAULT_ROLE_PERMS = {
+  admin: ALL_SECTIONS.map(s => s.id), // admin sees everything always
+  employee: ['clientes','proyectos','tareas','calendario','pipeline','presupuestos','archivos','emails','actividad'],
+  client:   ['portal'],
+};
+
+// Load permissions from DB.config or use defaults
+function getPermisos(){
+  const stored = DB.config?.permisos;
+  if(stored) return stored;
+  return {
+    roles: {
+      employee: [...DEFAULT_ROLE_PERMS.employee],
+      client:   [...DEFAULT_ROLE_PERMS.client],
+    },
+    usuarios: {} // userId → array of section ids
+  };
+}
+
+function savePermisos(){
+  const perms = getPermisos();
+  // Read current role tab checkboxes
+  const activeTab = document.querySelector('.perm-tab.active')?.dataset?.role || 'employee';
+  const checks = document.querySelectorAll('#perm-role-panel .perm-check');
+  perms.roles[activeTab] = [...checks].filter(cb=>cb.checked).map(cb=>cb.dataset.sec);
+
+  // Read user overrides
+  const uid = document.getElementById('perm-user-select')?.value;
+  if(uid){
+    const userChecks = document.querySelectorAll('#perm-user-panel .perm-check-user');
+    const enabled = [...userChecks].filter(cb=>cb.checked).map(cb=>cb.dataset.sec);
+    const useOverride = document.getElementById('perm-user-override')?.checked;
+    if(useOverride){
+      perms.usuarios[uid] = enabled;
+    } else {
+      delete perms.usuarios[uid];
+    }
+  }
+
+  if(!DB.config) DB.config = {};
+  DB.config.permisos = perms;
+  // Persist
+  try{ localStorage.setItem('adm_config', JSON.stringify(DB.config)); }catch(e){}
+  if(window.STORAGE_MODE==='supabase' && window._supabaseClient){
+    window._supabaseClient.from('kv_store')
+      .upsert({key:'permisos', value: JSON.stringify(perms)})
+      .then(({error})=>{ if(error) console.warn('perms save:', error.message); });
+  }
+  toast('success','Permisos guardados ✓');
+}
+
+// Load permisos from Supabase kv_store on boot
+async function loadPermisosFromSupabase(){
+  if(window.STORAGE_MODE!=='supabase'||!window._supabaseClient) return;
+  try{
+    const {data,error} = await window._supabaseClient
+      .from('kv_store').select('value').eq('key','permisos').single();
+    if(data?.value){
+      if(!DB.config) DB.config={};
+      DB.config.permisos = JSON.parse(data.value);
+    }
+  }catch(e){ console.warn('perms load:', e.message); }
+}
+
+// Current role being edited in permissions panel
+window._permCurrentRole = 'employee';
+
+function switchPermTab(role, btn){
+  window._permCurrentRole = role;
+  document.querySelectorAll('.perm-tab').forEach(t=>{
+    t.classList.remove('active');
+    t.style.color = 'var(--tx-3)';
+    t.style.borderBottomColor = 'transparent';
+  });
+  btn.classList.add('active');
+  btn.style.color = 'var(--brand)';
+  btn.style.borderBottomColor = 'var(--brand)';
+  renderPermPanel();
+}
+
+function renderPermPanel(){
+  const role = window._permCurrentRole || 'employee';
+  const perms = getPermisos();
+  const enabled = perms.roles[role] || DEFAULT_ROLE_PERMS[role] || [];
+  
+  // Group sections
+  const groups = {};
+  ALL_SECTIONS.filter(s=>s.id!=='configuracion'||role==='admin').forEach(s=>{
+    if(!groups[s.group]) groups[s.group]=[];
+    groups[s.group].push(s);
+  });
+
+  const isAdmin = role === 'admin';
+  
+  document.getElementById('perm-role-panel').innerHTML = `
+    ${isAdmin ? `<div style="padding:14px;background:var(--brand-soft);border-radius:10px;color:var(--brand);font-size:13px;font-weight:600;text-align:center">
+      <i class="fa-solid fa-crown" style="margin-right:6px"></i>El administrador siempre tiene acceso total — no se puede restringir
+    </div>` : `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      ${Object.entries(groups).map(([group, sections])=>`
+        <div style="background:var(--bg-2);border-radius:12px;padding:14px;border:1px solid var(--bd)">
+          <div style="font-size:11px;font-weight:700;color:var(--tx-3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">${group}</div>
+          ${sections.map(s=>`
+            <label style="display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;border-bottom:1px solid var(--bd);user-select:none" class="perm-row">
+              <input type="checkbox" class="perm-check" data-sec="${s.id}" ${enabled.includes(s.id)?'checked':''} 
+                style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer;flex-shrink:0">
+              <i class="fa-solid ${s.icon}" style="color:var(--brand);width:16px;text-align:center"></i>
+              <span style="font-size:13px;color:var(--tx-1)">${s.label}</span>
+            </label>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+    <p class="text-muted text-sm" style="margin-top:12px"><i class="fa-solid fa-info-circle" style="margin-right:4px"></i>
+      Los permisos individuales por usuario sobreescriben estos valores.</p>
+    `}`;
+}
+
+function renderUserPermPanel(){
+  const uid = document.getElementById('perm-user-select')?.value;
+  const panel = document.getElementById('perm-user-panel');
+  if(!uid){ panel.innerHTML=''; return; }
+  
+  const user = DB.usuarios.find(u=>u.id==uid);
+  if(!user){ panel.innerHTML=''; return; }
+  
+  const perms = getPermisos();
+  const hasOverride = !!perms.usuarios[uid];
+  const overrideSections = perms.usuarios[uid] || perms.roles[user.rol] || DEFAULT_ROLE_PERMS[user.rol] || [];
+  const roleLabel = {admin:'Administrador',employee:'Empleado',client:'Cliente'}[user.rol]||user.rol;
+
+  const groups = {};
+  ALL_SECTIONS.filter(s=>s.id!=='configuracion').forEach(s=>{
+    if(!groups[s.group]) groups[s.group]=[];
+    groups[s.group].push(s);
+  });
+
+  panel.innerHTML = `
+    <div style="background:var(--bg-2);border-radius:10px;padding:14px;border:1px solid var(--bd);margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">
+        <input type="checkbox" id="perm-user-override" ${hasOverride?'checked':''} 
+          style="width:16px;height:16px;accent-color:var(--brand);cursor:pointer"
+          onchange="toggleUserOverride(this,'${uid}')">
+        <div>
+          <div style="font-weight:600;font-size:13px;color:var(--tx-1)">Permisos personalizados para <strong>${user.nombre}</strong></div>
+          <div class="text-muted text-sm">Rol base: ${roleLabel}. Si está desactivado, usa los permisos del rol.</div>
+        </div>
+      </label>
+    </div>
+    <div id="perm-user-checks" style="${hasOverride?'':'opacity:.4;pointer-events:none'}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        ${Object.entries(groups).map(([group, sections])=>`
+          <div style="background:var(--bg-2);border-radius:10px;padding:12px;border:1px solid var(--bd)">
+            <div style="font-size:11px;font-weight:700;color:var(--tx-3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">${group}</div>
+            ${sections.map(s=>`
+              <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;border-bottom:1px solid var(--bd);user-select:none">
+                <input type="checkbox" class="perm-check-user" data-sec="${s.id}" ${overrideSections.includes(s.id)?'checked':''}
+                  style="width:15px;height:15px;accent-color:var(--brand);cursor:pointer;flex-shrink:0">
+                <i class="fa-solid ${s.icon}" style="color:var(--brand);width:14px;text-align:center;font-size:12px"></i>
+                <span style="font-size:12.5px;color:var(--tx-1)">${s.label}</span>
+              </label>
+            `).join('')}
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+function toggleUserOverride(cb, uid){
+  const checksDiv = document.getElementById('perm-user-checks');
+  if(checksDiv){
+    checksDiv.style.opacity = cb.checked ? '1' : '.4';
+    checksDiv.style.pointerEvents = cb.checked ? '' : 'none';
+  }
+}
+
+function openCfgPermisos(){
+  // Populate user select
+  const sel = document.getElementById('perm-user-select');
+  if(sel){
+    sel.innerHTML = '<option value="">— Seleccionar usuario —</option>' +
+      DB.usuarios.filter(u=>u.rol!=='admin').map(u=>
+        `<option value="${u.id}">${u.nombre} (${u.rol==='employee'?'Empleado':'Cliente'})</option>`
+      ).join('');
+  }
+  renderPermPanel();
+}
+
 function _applyRoleNav(rol){
   // Sections hidden per role
-  // Normalize role value (support both 'empleado'/'employee', 'cliente'/'client')
+  // Normalize role
   const normalizedRol = {
     empleado:'employee', cliente:'client', viewer:'employee',
     admin:'admin', employee:'employee', client:'client'
   }[rol] || 'employee';
 
-  const roleConfig = {
-    admin: {
-      hide: [],
-      startSection: 'dashboard'
-    },
-    employee: {
-      // Empleado: NO ve finanzas, facturación, analytics, dashboard, configuración
-      hide: ['dashboard','finanzas','facturacion','analytics','configuracion',
-             'pipeline','plantillas_web','presupuestos','contratos'],
-      startSection: 'calendario'
-    },
-    client: {
-      // Cliente: SOLO ve portal — todo lo demás oculto
-      hide: ['dashboard','clientes','proyectos','tareas','calendario','pipeline',
-             'plantillas_web','presupuestos','contratos','finanzas','facturacion',
-             'analytics','archivos','emails','actividad','configuracion'],
-      startSection: 'portal'
+  // Get visible sections from permissions system
+  let visibleSections;
+  if(normalizedRol === 'admin'){
+    visibleSections = null; // admin sees everything
+  } else {
+    // Check for user-level override first
+    const userId = DB.currentUser?.id;
+    const perms = getPermisos();
+    if(userId && perms.usuarios[userId]){
+      visibleSections = perms.usuarios[userId];
+    } else {
+      visibleSections = perms.roles[normalizedRol] || DEFAULT_ROLE_PERMS[normalizedRol] || [];
     }
-  };
+  }
 
-  const cfg = roleConfig[normalizedRol] || roleConfig.employee;
+  // Determine start section
+  const startSectionMap = { admin:'dashboard', employee:'calendario', client:'portal' };
+  const startSection = startSectionMap[normalizedRol] || 'calendario';
 
-  // Hide nav items
+  // Hide nav items based on permissions
   document.querySelectorAll('.nav-item[data-section]').forEach(el=>{
     const sec = el.dataset.section;
-    el.classList.toggle('role-hidden', cfg.hide.includes(sec));
+    const hidden = visibleSections ? !visibleSections.includes(sec) : false;
+    el.classList.toggle('role-hidden', hidden);
   });
+
+  // cfg object for compatibility
+  const cfg = { startSection };
 
   // Hide nav-group-label spans when ALL following nav items are hidden
   const navContainer = document.querySelector('.sidebar-nav');
@@ -5911,7 +6180,7 @@ function _applyRoleCfgPanels(rol){
   // Panels visible per role in Configuración
   const adminPanels    = ['sistema','agencia','plantillas','extras','tipos_proyecto',
                           'pipeline_estados','contratos_tpl','categorias','usuarios',
-                          'documentos','integraciones','departamentos','backup'];
+                          'permisos','documentos','integraciones','departamentos','backup'];
   const employeePanels = ['sistema']; // empleado solo ve Sistema (tema, idioma)
   const clientPanels   = [];          // cliente no ve configuración
 
@@ -6492,6 +6761,7 @@ function renderConfig(){
 }
 
 function switchCfgPanel(name, btn){
+  if(name === 'permisos') setTimeout(openCfgPermisos, 50);
   _currentCfgPanel = name;
   document.querySelectorAll('.cfg-panel').forEach(p=>p.classList.remove('active'));
   const panel=document.getElementById('cfgpanel-'+name);
