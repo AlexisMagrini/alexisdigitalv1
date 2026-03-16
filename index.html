@@ -6330,7 +6330,13 @@ function _legacyPipeline_REPLACED(){
 }
 function advanceLead(id){
   const l=DB.leads.find(l=>l.id===id);const idx=PIPELINE_COLS.findIndex(c=>c.id===l.etapa);
-  if(idx<PIPELINE_COLS.length-1){l.etapa=PIPELINE_COLS[idx+1].id;renderProspectos();toast('success',`Lead movido a: ${PIPELINE_COLS[idx+1].label}`);}
+  if(idx<PIPELINE_COLS.length-1){
+    l.etapa=PIPELINE_COLS[idx+1].id;
+    _persistArray('leads');
+    _syncRecord('leads', l);
+    renderProspectos();
+    toast('success',`Lead movido a: ${PIPELINE_COLS[idx+1].label}`);
+  }
 }
 /* saveLead replaced by new version */
 function editLead(id){const l=DB.leads.find(l=>l.id===id);$('modal-lead-title').textContent='Editar Venta';$('ld-id').value=l.id;$('ld-nombre').value=l.nombre;$('ld-empresa').value=l.empresa;$('ld-contacto').value=l.contacto;$('ld-valor').value=l.valor;$('ld-etapa').value=l.etapa;$('modal-lead').classList.add('open');}
@@ -7388,7 +7394,12 @@ function renderProspectos(){
 }
 function moveLead(id,etapa){
   const l=DB.leads.find(l=>l.id===id);
-  if(l){l.etapa=etapa;renderProspectos();}
+  if(l){
+    l.etapa=etapa;
+    _persistArray('leads');
+    _syncRecord('leads', l);
+    renderProspectos();
+  }
 }
 function saveLead(){
   const id=$('ld-id').value;
