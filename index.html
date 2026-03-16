@@ -1053,7 +1053,7 @@ tbody tr:hover{background:var(--bg-3)}
       </div>
       <span class="nav-group-label">Ventas</span>
       <div class="nav-item" onclick="navigate('pipeline')" data-section="pipeline">
-        <div class="nav-icon"><i class="fa-solid fa-filter"></i></div><span>Pipeline</span>
+        <div class="nav-icon"><i class="fa-solid fa-filter"></i></div><span>Ventas</span>
       </div>
       <div class="nav-item" onclick="navigate('plantillas_web')" data-section="plantillas_web">
         <div class="nav-icon"><i class="fa-solid fa-layer-group"></i></div><span>Plantillas Web</span>
@@ -1370,12 +1370,12 @@ tbody tr:hover{background:var(--bg-3)}
       <!-- PIPELINE -->
       <section class="section" id="sec-pipeline">
         <div class="sec-header">
-          <div><div class="sec-title">Pipeline de Ventas</div><div class="sec-sub">Seguimiento de leads y oportunidades comerciales</div></div>
+          <div><div class="sec-title">Ventas</div><div class="sec-sub">Gestión de ventas y seguimiento de leads</div></div>
           <button class="btn btn-primary" onclick="openModal('modal-lead')"><i class="fa-solid fa-plus"></i> Nuevo lead</button>
         </div>
         <div class="kanban-board-5" id="pipeline-board"></div>
         <div class="card" style="margin-top:16px">
-          <div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-bar"></i> Resumen del Pipeline</div></div>
+          <div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-bar"></i> Resumen de Ventas</div></div>
           <div class="card-body" id="pipeline-summary"></div>
         </div>
       </section>
@@ -2327,7 +2327,7 @@ tbody tr:hover{background:var(--bg-3)}
 <!-- Modal Lead (Pipeline) -->
 <div class="modal-overlay" id="modal-lead">
   <div class="modal"><div class="modal-header">
-    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-filter"></i></div><div class="modal-title" id="modal-lead-title">Nuevo Lead</div></div>
+    <div class="modal-title-wrap"><div class="modal-ico"><i class="fa-solid fa-filter"></i></div><div class="modal-title" id="modal-lead-title">Nueva Venta</div></div>
     <button class="modal-close" onclick="closeModal('modal-lead')"><i class="fa-solid fa-xmark"></i></button>
   </div><div class="modal-body">
     <input type="hidden" id="ld-id">
@@ -5055,7 +5055,7 @@ function openModal(id) {
   if (id === 'modal-transaccion')    { populateClienteSelect('t-cliente'); document.getElementById('t-fecha').value=today(); document.getElementById('modal-transaccion-title').textContent='Nueva Transacción'; document.getElementById('t-id').value=''; }
   if (id === 'modal-tarea')          { populateProyectoSelect('ta-proyecto'); document.getElementById('modal-tarea-title').textContent='Nueva Tarea'; document.getElementById('ta-id').value=''; }
   if (id === 'modal-evento')         { populateClienteSelect('ev-cliente'); document.getElementById('ev-fecha').value=today(); document.getElementById('modal-evento-title').textContent='Nuevo Evento'; document.getElementById('ev-id').value=''; }
-  if (id === 'modal-lead')           { document.getElementById('modal-lead-title').textContent='Nuevo Lead'; document.getElementById('ld-id').value=''; }
+  if (id === 'modal-lead')           { document.getElementById('modal-lead-title').textContent='Nueva Venta'; document.getElementById('ld-id').value=''; }
   if (id === 'modal-plantilla_web')  { document.getElementById('modal-plantilla_web-title').textContent='Nueva Plantilla'; document.getElementById('plw-id').value=''; }
   if (id === 'modal-extra')          { document.getElementById('modal-extra-title').textContent='Nuevo Extra'; document.getElementById('ex-id').value=''; }
   if (id === 'modal-tipo_proyecto')  { document.getElementById('modal-tipo_proyecto-title').textContent='Nuevo Tipo de Proyecto'; document.getElementById('tp-id').value=''; }
@@ -5355,7 +5355,7 @@ function openModal(id){
   if(id==='modal-transaccion'){populateClienteSelect('t-cliente');$('t-fecha').value=today();$('modal-transaccion-title').textContent='Nueva Transacción';$('t-id').value='';}
   if(id==='modal-tarea'){populateProyectoSelect('ta-proyecto');$('modal-tarea-title').textContent='Nueva Tarea';$('ta-id').value='';}
   if(id==='modal-evento'){populateClienteSelect('ev-cliente');$('ev-fecha').value=today();$('modal-evento-title').textContent='Nuevo Evento';$('ev-id').value='';}
-  if(id==='modal-lead'){$('modal-lead-title').textContent='Nuevo Lead';$('ld-id').value='';}
+  if(id==='modal-lead'){$('modal-lead-title').textContent='Nueva Venta';$('ld-id').value='';}
   if(id==='modal-plantilla_web'){$('modal-plantilla_web-title').textContent='Nueva Plantilla';$('plw-id').value='';}
   if(id==='modal-extra'){$('modal-extra-title').textContent='Nuevo Extra';$('ex-id').value='';}
   if(id==='modal-tipo_proyecto'){$('modal-tipo_proyecto-title').textContent='Nuevo Tipo de Proyecto';$('tp-id').value='';}
@@ -5412,7 +5412,12 @@ function populateProyectoSelect(sid,selId=null){
 const _SB_TABLE = {
   clientes:'clientes', proyectos:'proyectos', presupuestos:'presupuestos',
   facturas:'facturas', transacciones:'transacciones', tareas:'tareas',
-  leads:'leads', eventos:'eventos', departamentos:'departments',
+  leads:'leads', eventos:'eventos', departamentos:'departamentos',
+  contratos:'contratos', plantillas_web:'plantillas_web',
+  pipeline_estados:'pipeline_estados', categorias:'categorias',
+  tipos_proyecto:'tipos_proyecto', contratos_tpl:'contratos_tpl',
+  extras_presupuesto:'extras_presupuesto', email_templates:'email_templates',
+  archivos:'archivos', usuarios:'usuarios',
 };
 
 /** Map from DB array key → localStorage key */
@@ -5445,59 +5450,86 @@ function _persistArray(arrayKey) {
 async function _loadAllFromSupabase() {
   if (window.STORAGE_MODE !== 'supabase' || !window._supabaseClient) return;
   try {
-    // Verify we have an active auth session before loading
     const { data: { session } } = await window._supabaseClient.auth.getSession();
-    if (!session) {
-      console.warn('[load] No active session, skipping Supabase load');
-      return;
-    }
-    toast('info', '⏳ Cargando datos desde Supabase...');
-    const tables = {
-      clientes:      'clientes',
-      proyectos:     'proyectos',
-      presupuestos:  'presupuestos',
-      facturas:      'facturas',
-      transacciones: 'transacciones',
-      tareas:        'tareas',
-      leads:         'leads',
-      usuarios:      'usuarios',
-    };
+    if (!session) { console.warn('[load] No active session'); return; }
+    toast('info', '⏳ Sincronizando con Supabase...');
     const sb = window._supabaseClient;
+
+    // ALL tables mapped: localKey → supabase table name
+    const tables = {
+      clientes:          'clientes',
+      proyectos:         'proyectos',
+      presupuestos:      'presupuestos',
+      facturas:          'facturas',
+      transacciones:     'transacciones',
+      tareas:            'tareas',
+      leads:             'leads',
+      eventos:           'eventos',
+      contratos:         'contratos',
+      plantillas_web:    'plantillas_web',
+      pipeline_estados:  'pipeline_estados',
+      categorias:        'categorias',
+      tipos_proyecto:    'tipos_proyecto',
+      contratos_tpl:     'contratos_tpl',
+      extras_presupuesto:'extras_presupuesto',
+      email_templates:   'email_templates',
+      archivos:          'archivos',
+      usuarios:          'usuarios',
+      departamentos:     'departamentos',
+    };
+
+    // snake_case → camelCase mapper
+    const toCamel = r => {
+      const out = {...r};
+      if (r.cliente_id   !== undefined) out.clienteId   = r.cliente_id;
+      if (r.proyecto_id  !== undefined) out.proyectoId  = r.proyecto_id;
+      if (r.metodo_pago  !== undefined) out.metodoPago  = r.metodo_pago;
+      if (r.fecha_pago   !== undefined) out.fechaPago   = r.fecha_pago;
+      if (r.precio_base  !== undefined) out.precioBase  = r.precio_base;
+      if (r.user_id      !== undefined) out.userId      = r.user_id;
+      // Parse JSON fields
+      if (typeof r.checklist    === 'string') { try{ out.checklist    = JSON.parse(r.checklist);    }catch(e){} }
+      if (typeof r.tecnologias  === 'string') { try{ out.tecnologias  = JSON.parse(r.tecnologias);  }catch(e){} }
+      return out;
+    };
+
+    let loaded = 0, errors = 0;
     await Promise.all(Object.entries(tables).map(async ([key, table]) => {
       try {
         const { data, error } = await sb.from(table).select('*');
-        if (error) { console.warn(`[load] ${table}:`, error.message); return; }
+        if (error) { console.warn(`[load] ${table}:`, error.message); errors++; return; }
         if (data && data.length > 0) {
-          // Map snake_case back to camelCase for app compatibility
-          DB[key] = data.map(r => {
-            const out = {...r};
-            if (r.cliente_id  !== undefined) { out.clienteId  = r.cliente_id;  }
-            if (r.proyecto_id !== undefined) { out.proyectoId = r.proyecto_id; }
-            if (r.metodo_pago !== undefined) { out.metodoPago = r.metodo_pago; }
-            if (r.fecha_pago  !== undefined) { out.fechaPago  = r.fecha_pago;  }
-            return out;
-          });
+          DB[key] = data.map(toCamel);
           _persistArray(key);
-          console.log(`[load] ${table}: ${data.length} rows`);
+          loaded++;
+          console.log(`[load] ${table}: ${data.length} rows ✓`);
         }
-      } catch(e) { console.warn(`[load] ${table} failed:`, e.message); }
+      } catch(e) { console.warn(`[load] ${table} failed:`, e.message); errors++; }
     }));
-    toast('success', `✓ Datos cargados desde Supabase`);
+
+    const msg = errors > 0
+      ? `✓ ${loaded} tablas cargadas (${errors} sin datos o vacías)`
+      : `✓ Todo sincronizado — ${loaded} tablas cargadas`;
+    toast('success', msg);
+
     // Re-render current section
-    const sec = document.querySelector('.section.active');
-    if (sec) {
-      const id = sec.id.replace('sec-','');
+    const secEl = document.querySelector('.section.active');
+    if (secEl) {
+      const id = secEl.id.replace('sec-','');
       const renders = {
         dashboard: renderDashboard, clientes: renderClientes,
         proyectos: renderProyectos, tareas: renderTareas,
         finanzas: renderFinanzas, facturacion: renderFacturacion,
-        analytics: renderAnalytics, pipeline: renderPipeline,
+        analytics: renderAnalytics, pipeline: renderProspectos,
+        leads: renderProspectos, calendario: renderCalendario,
+        contratos: renderContratos, archivos: renderArchivos,
+        emails: renderEmails,
       };
       (renders[id] || function(){})();
     }
   } catch(e) {
     console.error('[load] Failed:', e);
-    toast('warning', 'Error cargando datos: ' + e.message);
+    toast('warning', 'Error sincronizando: ' + e.message);
   }
 }
 
@@ -5576,7 +5608,55 @@ function _toSnakeCase(arrayKey, record) {
     }),
     eventos: r => ({
       id: r.id, titulo: r.titulo, fecha: r.fecha, tipo: r.tipo,
-      cliente_id: r.clienteId, desc: r.desc,
+      cliente_id: r.clienteId||null, notas: r.notas||r.desc||'',
+    }),
+    contratos: r => ({
+      id: r.id, nombre: r.nombre||'', cliente_id: r.clienteId||null,
+      proyecto_id: r.proyectoId||null, fecha: r.fecha||null,
+      monto: r.monto||0, estado: r.estado||'borrador',
+      contenido: r.contenido||r.texto||'',
+    }),
+    plantillas_web: r => ({
+      id: r.id, nombre: r.nombre||'', descripcion: r.descripcion||r.desc||'',
+      precio: r.precio||0, categoria: r.categoria||'',
+      tecnologias: JSON.stringify(r.tecnologias||[]),
+    }),
+    pipeline_estados: r => ({
+      id: r.id, nombre: r.nombre||'', color: r.color||'#4f46e5',
+      orden: r.orden||0,
+    }),
+    categorias: r => ({
+      id: r.id, nombre: r.nombre||'', tipo: r.tipo||'',
+      color: r.color||'#4f46e5',
+    }),
+    tipos_proyecto: r => ({
+      id: r.id, nombre: r.nombre||'', descripcion: r.descripcion||'',
+      precio_base: r.precioBase||r.precio||0,
+    }),
+    contratos_tpl: r => ({
+      id: r.id, nombre: r.nombre||'', contenido: r.contenido||r.texto||'',
+    }),
+    extras_presupuesto: r => ({
+      id: r.id, nombre: r.nombre||'', precio: r.precio||0,
+      descripcion: r.descripcion||'',
+    }),
+    email_templates: r => ({
+      id: r.id, nombre: r.nombre||'', asunto: r.asunto||r.subject||'',
+      contenido: r.contenido||r.body||'', tipo: r.tipo||'general',
+    }),
+    archivos: r => ({
+      id: r.id, nombre: r.nombre||'', tipo: r.tipo||'',
+      url: r.url||'', fecha: r.fecha||null, size: r.size||'—',
+      cliente_id: r.clienteId||null, proyecto_id: r.proyectoId||null,
+    }),
+    usuarios: r => ({
+      id: r.id, nombre: r.nombre||'', email: r.email||'',
+      rol: r.rol||'employee', avatar: r.avatar||'',
+      estado: r.estado||'activo',
+    }),
+    departamentos: r => ({
+      id: r.id, nombre: r.nombre||'', emoji: r.emoji||'🏢',
+      descripcion: r.descripcion||'',
     }),
   };
   const fn = map[arrayKey];
@@ -5871,7 +5951,7 @@ const NAV_META={
   proyectos:{title:'Proyectos',sub:'Gestión de proyectos web',icon:'fa-code-branch'},
   tareas:{title:'Tareas',sub:'Tablero Kanban del equipo',icon:'fa-list-check'},
   calendario:{title:'Calendario',sub:'Eventos, entregas y reuniones',icon:'fa-calendar-days'},
-  pipeline:{title:'Pipeline de Ventas',sub:'Leads y oportunidades comerciales',icon:'fa-filter'},
+  pipeline:{title:'Ventas',sub:'Leads y oportunidades comerciales',icon:'fa-filter'},
   presupuestos:{title:'Presupuestos',sub:'Propuestas comerciales',icon:'fa-file-invoice'},
   contratos:{title:'Contratos',sub:'Documentos legales con clientes',icon:'fa-file-contract'},
   finanzas:{title:'Finanzas',sub:'Registro financiero',icon:'fa-coins'},
@@ -5894,7 +5974,7 @@ function navigate(id){
   $('topbar-icon').innerHTML=`<i class="fa-solid ${m.icon||'fa-circle'}"></i>`;
   ({dashboard:renderDashboard,clientes:renderClientes,proyectos:renderProyectos,
     finanzas:renderFinanzas,archivos:renderArchivos,tareas:renderTareas,
-    configuracion:renderConfig,calendario:renderCalendario,pipeline:renderPipeline,emails:renderEmails,
+    configuracion:renderConfig,calendario:renderCalendario,pipeline:renderProspectos,emails:renderEmails,
     presupuestos:renderPresupuestos,contratos:renderContratos,facturacion:renderFacturacion,
     plantillas_web:renderPlantillasWeb,
     analytics:renderAnalytics,portal:renderPortal,actividad:renderActividad}[id]||function(){})();
@@ -6116,7 +6196,10 @@ function renderArchivos(){
     $(`files-${cat}`).innerHTML=list.length?list.map(a=>`<div class="file-card"><div class="file-icon">${fileIcons[a.tipo]||'📁'}</div><div class="file-name">${a.nombre}</div><div class="file-meta">${a.size||''} · ${fmtD(a.fecha)}</div><div class="file-actions"><button class="btn btn-sm btn-danger btn-icon" onclick="event.stopPropagation();deleteArchivo(${a.id})"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''):`<div class="empty-state"><div class="empty-ico"><i class="fa-solid fa-folder-open"></i></div><h3>Sin archivos</h3><p>Sube el primer archivo</p></div>`;
   });
 }
-function saveArchivo(){const data={id:nextId(),nombre:$('ar-nombre').value.trim(),categoria:$('ar-categoria').value,tipo:$('ar-tipo').value,desc:$('ar-desc').value.trim(),fecha:today(),size:'—'};if(!data.nombre){toast('error','El nombre es obligatorio');return;}DB.archivos.push(data);closeModal('modal-archivo');renderArchivos();toast('success','Archivo guardado');}
+function saveArchivo(){const data={id:nextId(),nombre:$('ar-nombre').value.trim(),categoria:$('ar-categoria').value,tipo:$('ar-tipo').value,desc:$('ar-desc').value.trim(),fecha:today(),size:'—'};if(!data.nombre){toast('error','El nombre es obligatorio');return;}DB.archivos.push(data);
+  _persistArray('archivos');
+  _syncRecord('archivos', data);
+  closeModal('modal-archivo');renderArchivos();toast('success','Archivo guardado');}
 function deleteArchivo(id){if(!confirm('¿Eliminar?'))return;DB.archivos=DB.archivos.filter(a=>a.id!==id);renderArchivos();toast('info','Eliminado');}
 
 /* ================================================================
@@ -6204,6 +6287,8 @@ function saveEvento(){
   if(!data.titulo||!data.fecha){toast('error','Título y fecha son obligatorios');return;}
   if(id){const idx=DB.eventos.findIndex(e=>e.id==id);DB.eventos[idx]={...DB.eventos[idx],...data};}
   else{data.id=nextId();DB.eventos.push(data);}
+  _persistArray('eventos');
+  _syncRecord('eventos', id ? DB.eventos.find(e=>e.id==id)||data : data);
   closeModal('modal-evento');renderCalendario();toast('success','Evento guardado');
 }
 function editEvento(id){
@@ -6245,11 +6330,11 @@ function _legacyPipeline_REPLACED(){
 }
 function advanceLead(id){
   const l=DB.leads.find(l=>l.id===id);const idx=PIPELINE_COLS.findIndex(c=>c.id===l.etapa);
-  if(idx<PIPELINE_COLS.length-1){l.etapa=PIPELINE_COLS[idx+1].id;renderPipeline();toast('success',`Lead movido a: ${PIPELINE_COLS[idx+1].label}`);}
+  if(idx<PIPELINE_COLS.length-1){l.etapa=PIPELINE_COLS[idx+1].id;renderProspectos();toast('success',`Lead movido a: ${PIPELINE_COLS[idx+1].label}`);}
 }
 /* saveLead replaced by new version */
-function editLead(id){const l=DB.leads.find(l=>l.id===id);$('modal-lead-title').textContent='Editar Lead';$('ld-id').value=l.id;$('ld-nombre').value=l.nombre;$('ld-empresa').value=l.empresa;$('ld-contacto').value=l.contacto;$('ld-valor').value=l.valor;$('ld-etapa').value=l.etapa;$('modal-lead').classList.add('open');}
-function deleteLead(id){if(!confirm('¿Eliminar?'))return;DB.leads=DB.leads.filter(l=>l.id!==id);_syncRecord('leads',{id},true);renderPipeline();toast('info','Lead eliminado');}
+function editLead(id){const l=DB.leads.find(l=>l.id===id);$('modal-lead-title').textContent='Editar Venta';$('ld-id').value=l.id;$('ld-nombre').value=l.nombre;$('ld-empresa').value=l.empresa;$('ld-contacto').value=l.contacto;$('ld-valor').value=l.valor;$('ld-etapa').value=l.etapa;$('modal-lead').classList.add('open');}
+function deleteLead(id){if(!confirm('¿Eliminar?'))return;DB.leads=DB.leads.filter(l=>l.id!==id);_syncRecord('leads',{id},true);renderProspectos();toast('info','Lead eliminado');}
 
 /* ================================================================
    PRESUPUESTOS (legacy stub — replaced by new version above)
@@ -6295,6 +6380,8 @@ function saveContrato(){
   if(!data.nombre){toast('error','El nombre es obligatorio');return;}
   if(id){const idx=DB.contratos.findIndex(c=>c.id==id);DB.contratos[idx]={...DB.contratos[idx],...data};}
   else{data.id=nextId();DB.contratos.push(data);}
+  _persistArray('contratos');
+  _syncRecord('contratos', id ? DB.contratos.find(c=>c.id==id)||data : data);
   closeModal('modal-contrato');renderContratos();toast('success','Contrato guardado');
 }
 function editContrato(id){const c=DB.contratos.find(c=>c.id===id);populateClienteSelect('ct-cliente',c.clienteId);populateProyectoSelect('ct-proyecto',c.proyectoId);$('modal-contrato-title').textContent='Editar Contrato';$('ct-id').value=c.id;$('ct-nombre').value=c.nombre;$('ct-tipo').value=c.tipo;$('ct-estado').value=c.estado;$('ct-fecha').value=c.fecha;$('modal-contrato').classList.add('open');}
@@ -6622,6 +6709,8 @@ function saveExtra(){
   if(!data.label||!data.precio){toast('error','Nombre y precio son obligatorios');return;}
   if(id){const idx=DB.extras_presupuesto.findIndex(e=>e.id===id);if(idx>-1)DB.extras_presupuesto[idx]={...DB.extras_presupuesto[idx],...data};}
   else DB.extras_presupuesto.push(data);
+  _persistArray('extras_presupuesto');
+  _syncRecord('extras_presupuesto', id ? DB.extras_presupuesto.find(e=>e.id==id)||data : data);
   closeModal('modal-extra');renderCfgExtras();renderExtrasGrid();
   toast('success','Extra guardado');
 }
@@ -6665,6 +6754,8 @@ function saveTipoProyecto(){
   if(!data.nombre){toast('error','El nombre es obligatorio');return;}
   if(id){const idx=DB.tipos_proyecto.findIndex(t=>t.id==id);DB.tipos_proyecto[idx]={...DB.tipos_proyecto[idx],...data};}
   else{data.id=nextId();DB.tipos_proyecto.push(data);}
+  _persistArray('tipos_proyecto');
+  _syncRecord('tipos_proyecto', id ? DB.tipos_proyecto.find(t=>t.id==id)||data : data);
   closeModal('modal-tipo_proyecto');renderCfgTiposProyecto();toast('success','Tipo guardado');
 }
 
@@ -6709,7 +6800,9 @@ function savePipelineEstado(){
   if(!data.label||!data.slug){toast('error','Nombre y slug obligatorios');return;}
   if(id){const idx=DB.pipeline_estados.findIndex(e=>e.id==id);DB.pipeline_estados[idx]={...DB.pipeline_estados[idx],...data};}
   else{data.id=nextId();DB.pipeline_estados.push(data);}
-  closeModal('modal-pipeline_estado');renderCfgPipelineEstados();renderPipeline();
+  _persistArray('pipeline_estados');
+  _syncRecord('pipeline_estados', id ? DB.pipeline_estados.find(p=>p.id==id)||data : data);
+  closeModal('modal-pipeline_estado');renderCfgPipelineEstados();renderProspectos();
   toast('success','Estado guardado');
 }
 
@@ -6726,7 +6819,7 @@ function deletePipelineEstado(id){
   if(DB.pipeline_estados.length<=2){toast('error','Mínimo 2 estados');return;}
   if(!confirm('¿Eliminar?'))return;
   DB.pipeline_estados=DB.pipeline_estados.filter(e=>e.id!==id);
-  renderCfgPipelineEstados();renderPipeline();toast('info','Estado eliminado');
+  renderCfgPipelineEstados();renderProspectos();toast('info','Estado eliminado');
 }
 
 /* ── CFG CONTRATOS TPL ─────────────────────────────────────── */
@@ -6753,6 +6846,8 @@ function saveContratoTpl(){
   if(!data.nombre){toast('error','El nombre es obligatorio');return;}
   if(id){const idx=DB.contratos_tpl.findIndex(t=>t.id==id);DB.contratos_tpl[idx]={...DB.contratos_tpl[idx],...data};}
   else{data.id=nextId();DB.contratos_tpl.push(data);}
+  _persistArray('contratos_tpl');
+  _syncRecord('contratos_tpl', id ? DB.contratos_tpl.find(c=>c.id==id)||data : data);
   closeModal('modal-contrato_tpl');renderCfgContratosTpl();toast('success','Plantilla guardada');
 }
 
@@ -6790,6 +6885,8 @@ function saveCategoria(){
   if(!data.nombre){toast('error','El nombre es obligatorio');return;}
   if(id){const idx=DB.categorias.findIndex(c=>c.id==id);DB.categorias[idx]={...DB.categorias[idx],...data};}
   else{data.id=nextId();DB.categorias.push(data);}
+  _persistArray('categorias');
+  _syncRecord('categorias', id ? DB.categorias.find(c=>c.id==id)||data : data);
   closeModal('modal-categoria');renderCfgCategorias();toast('success','Categoría guardada');
 }
 
@@ -6961,6 +7058,8 @@ function savePlantillaWeb(){
   if(!data.nombre||!data.precio){toast('error','Nombre y precio son obligatorios');return;}
   if(id){const idx=DB.plantillas_web.findIndex(p=>p.id==id);DB.plantillas_web[idx]={...DB.plantillas_web[idx],...data};}
   else{data.id=nextId();DB.plantillas_web.push(data);}
+  _persistArray('plantillas_web');
+  _syncRecord('plantillas_web', id ? DB.plantillas_web.find(p=>p.id==id)||data : data);
   closeModal('modal-plantilla_web');renderPlantillasWeb();
   toast('success','Plantilla guardada');
 }
@@ -7223,7 +7322,7 @@ function crearFacturaDesdeProyecto(proyId){
    ================================================================ */
 const PLT_TYPE_LABELS_SHORT={landing:'Landing',sitio_web:'Sitio Web',ecommerce:'E-commerce',aplicacion:'App Web',mantenimiento:'Mantenimiento'};
 
-function renderPipeline(){
+function renderProspectos(){
   const PIPELINE_COLS=getPipelineCols();
   const totalVal=DB.leads.reduce((a,l)=>a+l.valor,0);
   $('pipeline-board').innerHTML=PIPELINE_COLS.map(col=>{
@@ -7289,7 +7388,7 @@ function renderPipeline(){
 }
 function moveLead(id,etapa){
   const l=DB.leads.find(l=>l.id===id);
-  if(l){l.etapa=etapa;renderPipeline();}
+  if(l){l.etapa=etapa;renderProspectos();}
 }
 function saveLead(){
   const id=$('ld-id').value;
@@ -7302,12 +7401,13 @@ function saveLead(){
   if(!data.nombre){toast('error','El nombre es obligatorio');return;}
   if(id){const idx=DB.leads.findIndex(l=>l.id==id);DB.leads[idx]={...DB.leads[idx],...data};}
   else{data.id=nextId();DB.leads.push(data);}
+  _persistArray('leads');
   _syncRecord('leads', id ? DB.leads.find(l=>l.id==id)||data : data);
-  closeModal('modal-lead');renderPipeline();toast('success','Lead guardado');
+  closeModal('modal-lead');renderProspectos();toast('success','Venta guardada');
 }
 function editLead(id){
   const l=DB.leads.find(l=>l.id===id);
-  $('modal-lead-title').textContent='Editar Lead';
+  $('modal-lead-title').textContent='Editar Venta';
   $('ld-id').value=l.id;$('ld-nombre').value=l.nombre;
   $('ld-empresa').value=l.empresa||'';$('ld-contacto').value=l.contacto||'';
   $('ld-valor').value=l.valor;$('ld-etapa').value=l.etapa;
@@ -7316,7 +7416,7 @@ function editLead(id){
 }
 function deleteLead(id){
   if(!confirm('¿Eliminar este lead?'))return;
-  DB.leads=DB.leads.filter(l=>l.id!==id);renderPipeline();toast('info','Lead eliminado');
+  DB.leads=DB.leads.filter(l=>l.id!==id);renderProspectos();toast('info','Lead eliminado');
 }
 
 /* ================================================================
@@ -8500,6 +8600,8 @@ function saveEmailTpl(){
   if(!data.nombre||!data.asunto){toast('error','Nombre y asunto son obligatorios');return;}
   if(id){const idx=DB.email_templates.findIndex(t=>t.id==id);DB.email_templates[idx]={...DB.email_templates[idx],...data};}
   else{data.id=nextId();DB.email_templates.push(data);}
+  _persistArray('email_templates');
+  _syncRecord('email_templates', id ? DB.email_templates.find(e=>e.id==id)||data : data);
   closeModal('modal-email-tpl');renderEmails();
   toast('success','Plantilla guardada');
 }
