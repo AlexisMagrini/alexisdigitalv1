@@ -5550,7 +5550,17 @@ async function _loadAllFromSupabase() {
         const { data, error } = await sb.from(table).select('*');
         if (error) { console.warn(`[load] ${table}:`, error.message); errors++; return; }
         if (data && data.length > 0) {
-          DB[key] = data.map(toCamel);
+          const incoming = data.map(toCamel);
+          // For usuarios: preserve local passwords (Supabase doesn't store them)
+          if(key === 'usuarios'){
+            const localUsers = DB.usuarios || [];
+            DB[key] = incoming.map(sbUser => {
+              const local = localUsers.find(u => u.id == sbUser.id || u.email === sbUser.email);
+              return local?.password ? {...sbUser, password: local.password, clienteId: sbUser.clienteId || local.clienteId} : sbUser;
+            });
+          } else {
+            DB[key] = incoming;
+          }
           _persistArray(key);
           loaded++;
           console.log(`[load] ${table}: ${data.length} rows ✓`);
@@ -5808,10 +5818,31 @@ async function doLogin(){
     }
   }
   
-  // Local auth fallback
-  const user=DB.usuarios.find(u=>u.email===email&&u.password===pass);
-  if(!user){toast('error','Credenciales incorrectas');return;}
-  DB.currentUser=user;
+  // Local auth fallback — check both DB.usuarios AND raw localStorage
+  // (Supabase load may have overwritten DB.usuarios without passwords)
+  let user = DB.usuarios.find(u=>u.email===email && u.password===pass);
+  if(!user){
+    // Try reading directly from localStorage where passwords are preserved
+    try{
+      const raw = localStorage.getItem('adm_usuarios');
+      if(raw){
+        const localUsers = JSON.parse(raw);
+        user = localUsers.find(u=>u.email===email && u.password===pass);
+        if(user){
+          // Merge with any Supabase data we have
+          const sbProfile = DB.usuarios.find(u=>u.email===email);
+          if(sbProfile) user = {...sbProfile, password: user.password, clienteId: user.clienteId || sbProfile.clienteId};
+          // Re-save with password preserved
+          const idx = DB.usuarios.findIndex(u=>u.email===email);
+          if(idx>=0) DB.usuarios[idx] = {...DB.usuarios[idx], password: user.password};
+          else DB.usuarios.push(user);
+          _persistArray('usuarios');
+        }
+      }
+    }catch(e){ console.warn('local auth read:', e.message); }
+  }
+  if(!user){ toast('error','Credenciales incorrectas'); return; }
+  DB.currentUser = user;
   _finishLogin(user);
 }
 
