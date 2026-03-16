@@ -7500,7 +7500,7 @@ function applySystemSettings(){
   }
   /* ── Topbar: remove any stale logo area ─────────────────────  */
   _applyTopbarLogo();
-  document.title=(s.nombre||DB.config?.agencia||'AlexisDigital')+' — Panel';
+  document.title=(s.nombre||DB.config?.agencia||'AlexisDigital');
   /* ── Favicon ─────────────────────────────────────────────────  */
   if(s.favicon){
     let link=document.querySelector("link[rel~='icon']");
