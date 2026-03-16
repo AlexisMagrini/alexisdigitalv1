@@ -5738,8 +5738,10 @@ async function _syncRecord(arrayKey, record, isDelete = false) {
 
   try {
     if (isDelete) {
+      // Cast id to number to avoid type mismatch with Supabase bigint
+      const deleteId = parseInt(record.id) || record.id;
       const { error } = await window._supabaseClient
-        .from(table).delete().eq('id', record.id);
+        .from(table).delete().eq('id', deleteId);
       if (error) throw error;
     } else {
       // Normalize field names: camelCase → snake_case for Supabase
@@ -6827,7 +6829,7 @@ function saveArchivo(){const data={id:nextId(),nombre:$('ar-nombre').value.trim(
   _persistArray('archivos');
   _syncRecord('archivos', data);
   closeModal('modal-archivo');renderArchivos();toast('success','Archivo guardado');}
-function deleteArchivo(id){if(!confirm('¿Eliminar?'))return;DB.archivos=DB.archivos.filter(a=>a.id!==id);renderArchivos();toast('info','Eliminado');}
+function deleteArchivo(id){if(!confirm('¿Eliminar?'))return;DB.archivos=DB.archivos.filter(a=>a.id!==id);_persistArray('archivos');_syncRecord('archivos',{id},true);renderArchivos();toast('info','Eliminado');}
 
 /* ================================================================
    TAREAS (KANBAN)
@@ -6929,7 +6931,7 @@ function editEvento(id){
   populateClienteSelect('ev-cliente',ev.clienteId||ev.cliente_id);
   document.getElementById('modal-evento').classList.add('open');
 }
-function deleteEvento(id){if(!confirm('¿Eliminar?'))return;DB.eventos=DB.eventos.filter(e=>e.id!==id);renderCalendario();toast('info','Evento eliminado');}
+function deleteEvento(id){if(!confirm('¿Eliminar?'))return;DB.eventos=DB.eventos.filter(e=>e.id!==id);_persistArray('eventos');_syncRecord('eventos',{id},true);renderCalendario();toast('info','Evento eliminado');}
 
 /* ================================================================
    PIPELINE
@@ -7211,7 +7213,7 @@ function saveContrato(){
 }
 function editContrato(id){const c=DB.contratos.find(c=>c.id===id);populateClienteSelect('ct-cliente',c.clienteId);populateProyectoSelect('ct-proyecto',c.proyectoId);$('modal-contrato-title').textContent='Editar Contrato';$('ct-id').value=c.id;$('ct-nombre').value=c.nombre;$('ct-tipo').value=c.tipo;$('ct-estado').value=c.estado;$('ct-fecha').value=c.fecha;$('modal-contrato').classList.add('open');}
 function signContrato(id){const c=DB.contratos.find(c=>c.id===id);if(c){c.estado='firmado';renderContratos();toast('success','Contrato marcado como firmado ✅');}}
-function deleteContrato(id){if(!confirm('¿Eliminar?'))return;DB.contratos=DB.contratos.filter(c=>c.id!==id);renderContratos();toast('info','Contrato eliminado');}
+function deleteContrato(id){if(!confirm('¿Eliminar?'))return;DB.contratos=DB.contratos.filter(c=>c.id!==id);_persistArray('contratos');_syncRecord('contratos',{id},true);renderContratos();toast('info','Contrato eliminado');}
 
 /* ================================================================
    FACTURACIÓN
