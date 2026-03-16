@@ -1087,8 +1087,8 @@ tbody tr:hover{background:var(--bg-3)}
       <div class="nav-item" onclick="navigate('actividad')" data-section="actividad">
         <div class="nav-icon"><i class="fa-solid fa-timeline"></i></div><span>Actividad</span>
       </div>
-      <span class="nav-group-label">Sistema</span>
-      <div class="nav-item" onclick="navigate('configuracion')" data-section="configuracion">
+      <!-- Configuración accesible desde ⚙️ en topbar -->
+      <div class="nav-item role-hidden" onclick="navigate('configuracion')" data-section="configuracion" style="display:none">
         <div class="nav-icon"><i class="fa-solid fa-gear"></i></div><span>Configuración</span>
       </div>
     </nav>
@@ -6004,15 +6004,7 @@ function _finishLogin(user){
     try{ localStorage.removeItem('adm_session'); }catch(e){}
   }
   
-  // Show role badge
-  const rb=document.getElementById('topbar-role-badge');
-  if(rb){
-    const rol=user.rol||user.role||'admin';
-    const labels={admin:'Admin',employee:'Empleado',client:'Cliente'};
-    rb.textContent=labels[rol]||rol;
-    rb.className='role-badge role-'+rol;
-    rb.style.display='';
-  }
+  // Role badge kept hidden — rol shown in user menu dropdown only
   
   const rol = user.rol||user.role||'admin';
 
