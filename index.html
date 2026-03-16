@@ -6349,12 +6349,59 @@ function renderDashCharts(){
    CLIENTES
    ================================================================ */
 function filterClientes(v){renderClientes(v);}
-function saveCliente(){
+async function saveCliente(){
   const id=$('c-id').value;
   const data={nombre:$('c-nombre').value.trim(),email:$('c-email').value.trim(),telefono:$('c-tel').value.trim(),empresa:$('c-empresa').value.trim(),estado:$('c-estado').value,notas:$('c-notas').value.trim()};
   if(!data.nombre||!data.email){toast('error','Nombre y email son obligatorios');return;}
-  if(id){const idx=DB.clientes.findIndex(c=>c.id==id);DB.clientes[idx]={...DB.clientes[idx],...data};showToast('success','Cliente actualizado');}
-  else{data.id=nextId();data.creado=today();DB.clientes.push(data);DB.actividad.unshift({icon:'fa-user-plus',color:'brand',texto:`Nuevo cliente: <strong>${data.nombre}</strong>`,tiempo:'Ahora'});showToast('success',`Cliente creado: ${data.nombre}`);logActivity('cliente',`Nuevo cliente: <strong>${data.nombre}</strong>`);}
+
+  const isNew = !id;
+
+  if(id){
+    const idx=DB.clientes.findIndex(c=>c.id==id);
+    DB.clientes[idx]={...DB.clientes[idx],...data};
+    showToast('success','Cliente actualizado');
+  } else {
+    data.id=nextId();data.creado=today();
+    DB.clientes.push(data);
+    DB.actividad.unshift({icon:'fa-user-plus',color:'brand',texto:`Nuevo cliente: <strong>${data.nombre}</strong>`,tiempo:'Ahora'});
+    logActivity('cliente',`Nuevo cliente: <strong>${data.nombre}</strong>`);
+
+    // ── Auto-crear usuario con rol cliente ──────────────────
+    const yaExiste = DB.usuarios.find(u => u.email === data.email);
+    if(!yaExiste){
+      const avatar = data.nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      const nuevoUsuario = {
+        id: nextId(), nombre: data.nombre, email: data.email,
+        rol: 'client', avatar, estado: 'activo',
+        clienteId: data.id, password: '3657'
+      };
+      DB.usuarios.push(nuevoUsuario);
+      _persistArray('usuarios');
+
+      // Guardar en Supabase tabla usuarios
+      if(window.STORAGE_MODE==='supabase' && window._supabaseClient){
+        try{
+          await window._supabaseClient.from('usuarios').insert({
+            id: nuevoUsuario.id, nombre: data.nombre, email: data.email,
+            rol: 'client', avatar, estado: 'activo'
+          });
+          toast('success', `✓ Cliente creado — usuario generado con contraseña 3657`);
+        } catch(e){
+          toast('success', `Cliente creado — usuario local con contraseña 3657`);
+          console.warn('Auto-user Supabase:', e.message);
+        }
+      } else {
+        toast('success', `Cliente creado — usuario generado con contraseña 3657`);
+      }
+    } else {
+      // Ya existe usuario con ese email, solo vincular clienteId
+      const uidx = DB.usuarios.findIndex(u=>u.email===data.email);
+      DB.usuarios[uidx].clienteId = data.id;
+      _persistArray('usuarios');
+      toast('success',`Cliente creado — vinculado al usuario existente`);
+    }
+  }
+
   _syncRecord('clientes', id ? DB.clientes.find(cl=>cl.id==id)||data : data);
   _clearDraft('modal-cliente');closeModal('modal-cliente');renderClientes();
   // Refresh portal select
